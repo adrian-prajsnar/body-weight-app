@@ -39,6 +39,17 @@ You may need to allow installation from unknown sources in Android settings.
 
 On first save, the app asks you to pick a backup folder. After that, every change rewrites `body-weight-backup.json` in that folder.
 
+## Publish to GitHub (private)
+
+Git is initialized and changes are committed locally. To create the private repo and push:
+
+```bash
+gh auth login
+gh repo create body-weight-app --private --source=. --remote=origin --push
+```
+
+If `body-weight-app` is already taken on your account, use another name and update the remote URL.
+
 ## Notes
 
 - Weight data stays on your phone and in your chosen backup folder
