@@ -17,5 +17,31 @@ export type WeightStats = {
 
 export type BackupStatus = {
   configured: boolean;
+  googleDriveConnected: boolean;
   lastExportAt?: string;
+};
+
+export type DashboardPeriod =
+  | 'thisWeek'
+  | 'lastWeek'
+  | 'thisMonth'
+  | 'lastMonth'
+  | 'last6Months'
+  | 'lastYear';
+
+export type DateRange = {
+  start: string;
+  end: string;
+};
+
+export type ComparisonMode = 'week' | 'month' | 'year' | 'custom';
+
+export type PeriodComparison = {
+  labelA: string;
+  labelB: string;
+  rangeA: DateRange;
+  rangeB: DateRange;
+  statsA: WeightStats;
+  statsB: WeightStats;
+  difference: number | null;
 };

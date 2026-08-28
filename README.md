@@ -37,7 +37,31 @@ You may need to allow installation from unknown sources in Android settings.
 }
 ```
 
-On first save, the app asks you to pick a backup folder. After that, every change rewrites `body-weight-backup.json` in that folder.
+## Backup
+
+**Google Drive (recommended):** Android does not allow writing backup files directly into a Google Drive folder via the folder picker. Use **Connect Google Drive** in the app instead — backups sync automatically on every save.
+
+### One-time Google Drive setup
+
+1. Create a project at [Google Cloud Console](https://console.cloud.google.com)
+2. Enable **Google Drive API**
+3. Create OAuth credentials:
+   - **Android** client — package `com.adria.bodyweight`, SHA-1 from your APK signing key
+   - **Web** client — for Expo Go development
+4. Add client IDs to `app.json`:
+
+```json
+"extra": {
+  "androidClientId": "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+  "webClientId": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
+}
+```
+
+5. Rebuild or restart the app, then tap **Connect Google Drive**
+
+**Local folder:** Use **Local folder** and pick **Downloads** or another on-device folder. Do not pick Google Drive in the folder picker.
+
+On save, the app rewrites `body-weight-backup.json` to Google Drive or your local folder.
 
 ## Publish to GitHub (private)
 
