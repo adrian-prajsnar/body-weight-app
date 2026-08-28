@@ -1,16 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-import { deleteEntry as deleteStoredEntry, getEntries } from '../storage';
+import { useSupabaseAuth } from '../context/supabase-auth-context';
+import { deleteEntry, getEntries } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
 
 export function useWeightEntries() {
+  const { isAuthenticated } = useSupabaseAuth();
   const [entries, setEntries] = useState<WeightEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshEntries = useCallback(async () => {
-    const loaded = await getEntries();
-    setEntries(loaded);
-    setIsLoading(false);
-  }, []);
+    if (!isAuthenticated) {
+      setEntries([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const loaded = await getEntries();
+      setEntries(loaded);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     void refreshEntries();
@@ -18,7 +30,7 @@ export function useWeightEntries() {
 
   const removeEntry = useCallback(
     async (date: string) => {
-      await deleteStoredEntry(date);
+      await deleteEntry(date);
       await refreshEntries();
     },
     [refreshEntries],

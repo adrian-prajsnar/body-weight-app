@@ -15,6 +15,25 @@ export const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  authContent: {
+    flexGrow: 1,
+    padding: 20,
+    paddingTop: 72,
+    paddingBottom: 32,
+    gap: 16,
+    justifyContent: 'center',
+  },
+  linkText: {
+    textAlign: 'center',
+    color: '#2563EB',
+    fontSize: 15,
+    fontWeight: '600',
+  },
   content: {
     padding: 20,
     paddingTop: 16,
@@ -205,5 +224,41 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginTop: 4,
+  },
+  filterFieldHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  filterPlaceholder: {
+    color: '#9CA3AF',
+    fontWeight: '400',
+  },
+  accountRow: {
+    gap: 4,
+    paddingVertical: 4,
+  },
+  accountLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  accountValue: {
+    fontSize: 16,
+    color: '#111827',
+    fontWeight: '500',
+  },
+  dangerButton: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  dangerButtonText: {
+    color: '#DC2626',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

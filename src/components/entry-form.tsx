@@ -11,17 +11,16 @@ import {
   parseKg,
   toDateKey,
 } from '../format';
-import { saveEntry } from '../storage';
+import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
 import { styles } from '../theme/styles';
 
 type EntryFormProps = {
   entries: WeightEntry[];
   onSaved: () => Promise<void>;
-  onBackupWarning?: (message: string) => void;
 };
 
-export function EntryForm({ entries, onSaved, onBackupWarning }: EntryFormProps) {
+export function EntryForm({ entries, onSaved }: EntryFormProps) {
   const [selectedDate, setSelectedDate] = useState(getTodayDate);
   const [weightInput, setWeightInput] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -82,9 +81,8 @@ export function EntryForm({ entries, onSaved, onBackupWarning }: EntryFormProps)
       await onSaved();
       setSelectedDate(getTodayDate());
     } catch (error) {
-      await onSaved();
-      const message = error instanceof Error ? error.message : 'Backup export failed.';
-      onBackupWarning?.(`Saved in app, but backup failed: ${message}`);
+      const message = error instanceof Error ? error.message : 'Save failed.';
+      Alert.alert('Save failed', message);
     } finally {
       setIsSaving(false);
     }

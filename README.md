@@ -1,80 +1,76 @@
 # Body Weight Tracker
 
-A minimal Android app for logging daily body weight in kilograms (2 decimal places), viewing averages over custom periods, and auto-exporting backups to a folder you choose.
+A minimal Android app for logging daily body weight in kilograms (2 decimal places), with data stored in Supabase.
 
 ## Features
 
+- Sign in / sign up (required — no access without login)
+- Account page — profile info, sign out, delete account
 - Log one weight per day (editing the same date overwrites the previous value)
-- View averages for 7 days, 30 days, 1 year, or a custom day count
-- Auto-export `body-weight-backup.json` on every save, edit, or delete
-- Import a backup file to restore entries
+- Dashboard averages: this week, last week, this month, and more
+- Compare periods week/month/year or custom ranges
+- Cloud database via Supabase (free tier)
 
 ## Development
 
 ```bash
 npm install
-npm run android
+cp .env.example .env
+# Edit .env with your Supabase URL and anon key
+npx expo start -c
 ```
 
-## Build APK (install on your phone)
+## Supabase setup
 
-1. Install dependencies: `npm install`
-2. Log in to Expo: `npx eas login`
-3. Configure the project (first time only): `npx eas build:configure`
-4. Build APK: `npx eas build -p android --profile preview`
-5. Download the APK from the Expo build page and install it on your Android phone
+### 1. Create a Supabase project
 
-You may need to allow installation from unknown sources in Android settings.
+1. Go to [supabase.com](https://supabase.com) and sign up (free)
+2. Create a new project and wait for it to provision
 
-## Backup format
+### 2. Create the database table
 
-```json
-{
-  "exportedAt": "2026-08-27T14:30:00.000Z",
-  "entries": [
-    { "date": "2026-08-27", "weightKg": 65.25 }
-  ]
-}
+1. **SQL Editor** → **New query**
+2. Paste and run [`supabase/schema.sql`](supabase/schema.sql)
+
+If you already ran an older version of the schema, run this in the SQL Editor:
+
+```sql
+grant select, insert, update, delete on table public.weight_entries to authenticated;
+grant select, insert, update, delete on table public.weight_entries to service_role;
 ```
 
-## Backup
+Also run the `delete_own_account` function block at the bottom of `supabase/schema.sql` if you have not already.
 
-**Google Drive (recommended):** Android does not allow writing backup files directly into a Google Drive folder via the folder picker. Use **Connect Google Drive** in the app instead — backups sync automatically on every save.
+### 3. Enable email sign-in
 
-### One-time Google Drive setup
+1. **Authentication** → **Providers** → **Email** → enabled
+2. For personal use, disable **Confirm email** so you can sign in immediately
 
-1. Create a project at [Google Cloud Console](https://console.cloud.google.com)
-2. Enable **Google Drive API**
-3. Create OAuth credentials:
-   - **Android** client — package `com.adria.bodyweight`, SHA-1 from your APK signing key
-   - **Web** client — for Expo Go development
-4. Add client IDs to `app.json`:
+### 4. Add API keys to `.env`
 
-```json
-"extra": {
-  "androidClientId": "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
-  "webClientId": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
-}
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
 ```
 
-5. Rebuild or restart the app, then tap **Connect Google Drive**
+Get these from **Project Settings** → **API**.
 
-**Local folder:** Use **Local folder** and pick **Downloads** or another on-device folder. Do not pick Google Drive in the folder picker.
+Restart Expo: `npx expo start -c`
 
-On save, the app rewrites `body-weight-backup.json` to Google Drive or your local folder.
+### 5. Create your account
 
-## Publish to GitHub (private)
+Open the app → **Create account** → sign in. All weight data is stored in Supabase only.
 
-Git is initialized and changes are committed locally. To create the private repo and push:
+## Build APK
 
 ```bash
-gh auth login
-gh repo create body-weight-app --private --source=. --remote=origin --push
+npx eas login
+npx eas build:configure
+npx eas build -p android --profile preview
 ```
 
-If `body-weight-app` is already taken on your account, use another name and update the remote URL.
+## Privacy
 
-## Notes
-
-- Weight data stays on your phone and in your chosen backup folder
-- Personal weight entries are not stored in this GitHub repo
+- Each user only sees their own entries (Supabase row-level security)
+- Friends or others need their own accounts — data is never shared
+- Never commit `.env` to git

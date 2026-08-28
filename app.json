@@ -21,14 +21,8 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "bodyweight",
     "plugins": [
-      "@react-native-community/datetimepicker",
-      "expo-web-browser"
-    ],
-    "extra": {
-      "androidClientId": "",
-      "webClientId": ""
-    }
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

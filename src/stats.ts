@@ -73,6 +73,22 @@ export function filterEntriesByRange(
   );
 }
 
+export function filterEntriesByBounds(
+  entries: WeightEntry[],
+  start: string | null,
+  end: string | null,
+): WeightEntry[] {
+  return entries.filter((entry) => {
+    if (start && entry.date < start) {
+      return false;
+    }
+    if (end && entry.date > end) {
+      return false;
+    }
+    return true;
+  });
+}
+
 export function getStatsForRange(
   entries: WeightEntry[],
   range: DateRange,

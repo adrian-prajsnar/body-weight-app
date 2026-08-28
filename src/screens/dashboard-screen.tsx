@@ -1,7 +1,6 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { BackupCard } from '../components/backup-card';
 import { EntryForm } from '../components/entry-form';
 import { HistoryList } from '../components/history-list';
 import { PeriodSelector } from '../components/period-selector';
@@ -23,7 +22,6 @@ type Props = BottomTabScreenProps<RootTabParamList, 'Dashboard'>;
 export function DashboardScreen({ navigation }: Props) {
   const { entries, refreshEntries } = useSharedWeightEntries();
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
-  const [backupWarning, setBackupWarning] = useState<string | null>(null);
 
   const range = useMemo(() => getDashboardPeriodRange(period), [period]);
   const stats = useMemo(() => getStatsForRange(entries, range), [entries, range]);
@@ -31,16 +29,9 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title="Body Weight Tracker XD"
-        subtitle="Daily weight in kilograms"
-      />
+      <ScreenHeader title="Body Weight Tracker" subtitle="Log and review your weight" />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <EntryForm
-          entries={entries}
-          onSaved={refreshEntries}
-          onBackupWarning={setBackupWarning}
-        />
+        <EntryForm entries={entries} onSaved={refreshEntries} />
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Average</Text>
@@ -48,12 +39,6 @@ export function DashboardScreen({ navigation }: Props) {
           <Text style={styles.statsText}>Period: {formatDateRange(range)}</Text>
           <StatsSummary stats={stats} />
         </View>
-
-        <BackupCard
-          onEntriesChanged={refreshEntries}
-          warning={backupWarning}
-          onWarningChange={setBackupWarning}
-        />
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Recent history</Text>
