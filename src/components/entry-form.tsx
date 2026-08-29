@@ -1,16 +1,20 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, AppState, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { calculateBmi } from '../bmi';
+import { BmiBadge } from './bmi-badge';
+import { DateField } from './date-field';
+import { LoadingCardOverlay } from './loading-card-overlay';
+import { useSharedBmiDisplay } from '../context/bmi-display-context';
+import { useToast } from '../context/toast-context';
+import { useSharedUserProfile } from '../context/user-profile-context';
 import {
-  formatDateLabel,
   formatKg,
   getTodayDate,
   parseKg,
   toDateKey,
+  WEIGHT_RANGE_MESSAGE,
 } from '../format';
+import { getHeightAtDate } from '../height';
 import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
 import { styles } from '../theme/styles';
@@ -18,59 +22,36 @@ import { styles } from '../theme/styles';
 type EntryFormProps = {
   entries: WeightEntry[];
   onSaved: () => Promise<void>;
+  isDataLoading?: boolean;
 };
 
-export function EntryForm({ entries, onSaved }: EntryFormProps) {
+export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryFormProps) {
+  const { heightEntries } = useSharedUserProfile();
+  const { showBmi } = useSharedBmiDisplay();
+  const { showError, showSuccess } = useToast();
   const [selectedDate, setSelectedDate] = useState(getTodayDate);
   const [weightInput, setWeightInput] = useState('');
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const selectedDateKey = useMemo(() => toDateKey(selectedDate), [selectedDate]);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active') {
-        setSelectedDate(getTodayDate());
-      }
-    });
-
-    return () => subscription.remove();
-  }, []);
+  const previewBmi = useMemo(() => {
+    const weightKg = parseKg(weightInput);
+    const heightCm = getHeightAtDate(heightEntries, selectedDateKey);
+    if (!showBmi || weightKg === null || heightCm === null) {
+      return null;
+    }
+    return calculateBmi(weightKg, heightCm);
+  }, [weightInput, heightEntries, selectedDateKey, showBmi]);
 
   useEffect(() => {
     const existing = entries.find((entry) => entry.date === selectedDateKey);
     setWeightInput(existing ? formatKg(existing.weightKg) : '');
   }, [entries, selectedDateKey]);
 
-  const handleDateChange = (_event: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (date) {
-      setSelectedDate(date);
-    }
-  };
-
-  const openDatePicker = () => {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value: selectedDate,
-        mode: 'date',
-        onChange: handleDateChange,
-      });
-      return;
-    }
-    setShowDatePicker(true);
-  };
-
   const handleSave = async () => {
     const weightKg = parseKg(weightInput);
     if (weightKg === null) {
-      Alert.alert(
-        'Invalid weight',
-        'Enter a weight between 20.00 and 300.00 kg with up to 2 decimals.',
-      );
+      showError(WEIGHT_RANGE_MESSAGE);
       return;
     }
 
@@ -80,48 +61,61 @@ export function EntryForm({ entries, onSaved }: EntryFormProps) {
       await saveEntry(selectedDateKey, weightKg);
       await onSaved();
       setSelectedDate(getTodayDate());
+      showSuccess('Weight entry saved.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Save failed.';
-      Alert.alert('Save failed', message);
+      showError(message);
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Add or edit entry</Text>
-      <Pressable style={styles.dateButton} onPress={openDatePicker}>
-        <Text style={styles.dateButtonLabel}>Date</Text>
-        <Text style={styles.dateButtonValue}>{formatDateLabel(selectedDateKey)}</Text>
-      </Pressable>
-
-      {showDatePicker && Platform.OS === 'ios' && (
-        <DateTimePicker
+    <View style={styles.loadingCard}>
+      {isDataLoading ? <LoadingCardOverlay /> : null}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Add or edit entry</Text>
+        <DateField
+          label="Date"
           value={selectedDate}
-          mode="date"
-          display="spinner"
-          onChange={handleDateChange}
+          onChange={(date) => {
+            if (date) {
+              setSelectedDate(date);
+            }
+          }}
+          maximumDate={getTodayDate()}
         />
-      )}
 
-      <Text style={styles.fieldLabel}>Weight (kg)</Text>
-      <TextInput
-        style={styles.input}
-        value={weightInput}
-        onChangeText={setWeightInput}
-        keyboardType="decimal-pad"
-        placeholder="65.25"
-        placeholderTextColor="#9CA3AF"
-      />
+        <Text style={styles.fieldLabel}>Weight (kg)</Text>
+        <TextInput
+          style={styles.input}
+          value={weightInput}
+          onChangeText={setWeightInput}
+          keyboardType="decimal-pad"
+          placeholder="65.25"
+          placeholderTextColor="#9CA3AF"
+          editable={!isDataLoading && !isSaving}
+        />
 
-      <Pressable
-        style={[styles.primaryButton, isSaving && styles.buttonDisabled]}
-        onPress={() => void handleSave()}
-        disabled={isSaving}
-      >
-        <Text style={styles.primaryButtonText}>{isSaving ? 'Saving...' : 'Save'}</Text>
-      </Pressable>
+        {previewBmi ? (
+          <View style={styles.bmiPreviewRow}>
+            <Text style={styles.fieldLabel}>Estimated BMI</Text>
+            <BmiBadge bmi={previewBmi} />
+          </View>
+        ) : null}
+
+        <Pressable
+          style={[styles.primaryButton, (isSaving || isDataLoading) && styles.buttonDisabled]}
+          onPress={() => void handleSave()}
+          disabled={isSaving || isDataLoading}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Save</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }

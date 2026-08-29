@@ -1,5 +1,7 @@
 import { WeightEntry } from '../types';
+import { getUserId } from './auth-user';
 import { supabase } from './client';
+import { toSupabaseError } from './errors';
 
 type WeightEntryRow = {
   entry_date: string;
@@ -13,14 +15,6 @@ function mapRow(row: WeightEntryRow): WeightEntry {
   };
 }
 
-async function getUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) {
-    throw new Error('You must be signed in.');
-  }
-  return data.user.id;
-}
-
 export async function getEntries(): Promise<WeightEntry[]> {
   const userId = await getUserId();
   const { data, error } = await supabase
@@ -30,7 +24,7 @@ export async function getEntries(): Promise<WeightEntry[]> {
     .order('entry_date', { ascending: false });
 
   if (error) {
-    throw new Error(error.message);
+    throw toSupabaseError(error);
   }
 
   return (data ?? []).map(mapRow);
@@ -49,7 +43,7 @@ export async function saveEntry(date: string, weightKg: number): Promise<void> {
   );
 
   if (error) {
-    throw new Error(error.message);
+    throw toSupabaseError(error);
   }
 }
 
@@ -62,6 +56,6 @@ export async function deleteEntry(date: string): Promise<void> {
     .eq('entry_date', date);
 
   if (error) {
-    throw new Error(error.message);
+    throw toSupabaseError(error);
   }
 }

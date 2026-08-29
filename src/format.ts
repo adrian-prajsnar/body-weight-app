@@ -3,6 +3,8 @@ import { DateRange } from './types';
 const MIN_WEIGHT_KG = 20;
 const MAX_WEIGHT_KG = 300;
 
+export const WEIGHT_RANGE_MESSAGE = `Enter a weight between ${MIN_WEIGHT_KG.toFixed(2)} and ${MAX_WEIGHT_KG.toFixed(2)} kg with up to 2 decimals.`;
+
 export function formatKg(value: number): string {
   return value.toFixed(2);
 }
@@ -115,4 +117,57 @@ export function formatDifferenceKg(value: number | null): string {
   }
   const sign = value > 0 ? '+' : '';
   return `${sign}${formatKg(value)} kg`;
+}
+
+const MIN_HEIGHT_CM = 100;
+const MAX_HEIGHT_CM = 250;
+
+export const HEIGHT_RANGE_MESSAGE = `Enter height between 1 m 00 cm and 2 m 50 cm (${MIN_HEIGHT_CM}–${MAX_HEIGHT_CM} cm total).`;
+
+export function formatHeightCm(heightCm: number | null): string {
+  if (heightCm === null) {
+    return 'Not set';
+  }
+
+  const meters = Math.floor(heightCm / 100);
+  const centimeters = heightCm % 100;
+  return `${meters} m ${centimeters} cm`;
+}
+
+export function heightCmToParts(heightCm: number | null): { meters: string; centimeters: string } {
+  if (heightCm === null) {
+    return { meters: '', centimeters: '' };
+  }
+
+  return {
+    meters: String(Math.floor(heightCm / 100)),
+    centimeters: String(heightCm % 100).padStart(2, '0'),
+  };
+}
+
+export function parseHeightCm(metersInput: string, centimetersInput: string): number | null {
+  const meters = metersInput.trim();
+  const centimeters = centimetersInput.trim();
+
+  if (!meters || !centimeters) {
+    return null;
+  }
+
+  if (!/^\d{1,2}$/.test(meters) || !/^\d{1,2}$/.test(centimeters)) {
+    return null;
+  }
+
+  const metersValue = Number(meters);
+  const centimetersValue = Number(centimeters);
+
+  if (centimetersValue < 0 || centimetersValue > 99) {
+    return null;
+  }
+
+  const total = metersValue * 100 + centimetersValue;
+  if (total < MIN_HEIGHT_CM || total > MAX_HEIGHT_CM) {
+    return null;
+  }
+
+  return total;
 }

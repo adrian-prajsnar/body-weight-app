@@ -1,13 +1,13 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { ComparisonResult } from '../components/comparison-result';
+import { ComparisonResultSkeleton } from '../components/comparison-result-skeleton';
+import { DateField } from '../components/date-field';
+import { ErrorCard } from '../components/error-card';
+import { LoadingCardOverlay } from '../components/loading-card-overlay';
 import { ScreenHeader } from '../components/screen-header';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
-import { formatDateLabel, getTodayDate, toDateKey } from '../format';
+import { getTodayDate, toDateKey } from '../format';
 import { getComparison } from '../stats';
 import { ComparisonMode } from '../types';
 import { styles } from '../theme/styles';
@@ -18,54 +18,6 @@ const MODE_OPTIONS: { label: string; value: ComparisonMode }[] = [
   { label: 'Year', value: 'year' },
   { label: 'Custom', value: 'custom' },
 ];
-
-type DateFieldProps = {
-  label: string;
-  value: Date;
-  onChange: (date: Date) => void;
-};
-
-function DateField({ label, value, onChange }: DateFieldProps) {
-  const [showPicker, setShowPicker] = useState(false);
-
-  const handleChange = (_event: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(false);
-    }
-    if (date) {
-      onChange(date);
-    }
-  };
-
-  const openPicker = () => {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value,
-        mode: 'date',
-        onChange: handleChange,
-      });
-      return;
-    }
-    setShowPicker(true);
-  };
-
-  return (
-    <View style={styles.rangeRow}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <Pressable style={styles.dateButton} onPress={openPicker}>
-        <Text style={styles.dateButtonValue}>{formatDateLabel(toDateKey(value))}</Text>
-      </Pressable>
-      {showPicker && Platform.OS === 'ios' && (
-        <DateTimePicker
-          value={value}
-          mode="date"
-          display="spinner"
-          onChange={handleChange}
-        />
-      )}
-    </View>
-  );
-}
 
 type RangePickerProps = {
   title: string;
@@ -79,14 +31,30 @@ function RangePicker({ title, start, end, onStartChange, onEndChange }: RangePic
   return (
     <View style={styles.card}>
       <Text style={styles.rangeLabel}>{title}</Text>
-      <DateField label="Start" value={start} onChange={onStartChange} />
-      <DateField label="End" value={end} onChange={onEndChange} />
+      <DateField
+        label="Start"
+        value={start}
+        onChange={(date) => {
+          if (date) {
+            onStartChange(date);
+          }
+        }}
+      />
+      <DateField
+        label="End"
+        value={end}
+        onChange={(date) => {
+          if (date) {
+            onEndChange(date);
+          }
+        }}
+      />
     </View>
   );
 }
 
 export function ComparisonScreen() {
-  const { entries } = useSharedWeightEntries();
+  const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const [mode, setMode] = useState<ComparisonMode>('week');
   const today = getTodayDate();
 
@@ -117,16 +85,24 @@ export function ComparisonScreen() {
 
   const customInvalid =
     mode === 'custom' &&
-    (toDateKey(rangeAStart) > toDateKey(rangeAEnd) ||
-      toDateKey(rangeBStart) > toDateKey(rangeBEnd));
+    customRanges &&
+    (customRanges.rangeA.start > customRanges.rangeA.end ||
+      customRanges.rangeB.start > customRanges.rangeB.end);
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title="Comparison"
-        subtitle="Compare averages across periods"
-      />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScreenHeader title="Comparison" subtitle="Compare averages across periods" />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
+        }
+      >
+        {error && !isLoading ? (
+          <ErrorCard message={error} onRetry={() => void refreshEntries()} />
+        ) : null}
+
         <View style={styles.card}>
           <View style={styles.segmentRow}>
             {MODE_OPTIONS.map((option) => (
@@ -170,22 +146,28 @@ export function ComparisonScreen() {
           </>
         ) : null}
 
-        <View style={styles.card}>
-          {customInvalid ? (
-            <Text style={styles.warningText}>Each range must have start on or before end.</Text>
-          ) : comparison ? (
-            <ComparisonResult
-              labelA={comparison.labelA}
-              labelB={comparison.labelB}
-              rangeA={comparison.rangeA}
-              rangeB={comparison.rangeB}
-              statsA={comparison.statsA}
-              statsB={comparison.statsB}
-              difference={comparison.difference}
-            />
-          ) : (
-            <Text style={styles.emptyText}>Select valid ranges to compare.</Text>
-          )}
+        <View style={styles.loadingCard}>
+          {isRefreshing ? <LoadingCardOverlay /> : null}
+          <View style={styles.card}>
+            {isLoading ? (
+              <ComparisonResultSkeleton />
+            ) : customInvalid ? (
+              <Text style={styles.warningText}>Each range must have start on or before end.</Text>
+            ) : comparison ? (
+              <ComparisonResult
+                labelA={comparison.labelA}
+                labelB={comparison.labelB}
+                rangeA={comparison.rangeA}
+                rangeB={comparison.rangeB}
+                statsA={comparison.statsA}
+                statsB={comparison.statsB}
+                entries={entries}
+                difference={comparison.difference}
+              />
+            ) : (
+              <Text style={styles.emptyText}>Select valid ranges to compare.</Text>
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>

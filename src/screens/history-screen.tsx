@@ -1,77 +1,24 @@
-import DateTimePicker, {
-  DateTimePickerAndroid,
-  DateTimePickerEvent,
-} from '@react-native-community/datetimepicker';
 import { useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { DateField } from '../components/date-field';
+import { ErrorCard } from '../components/error-card';
 import { HistoryList } from '../components/history-list';
+import { HistoryListSkeleton } from '../components/history-list-skeleton';
+import { LoadingCardOverlay } from '../components/loading-card-overlay';
 import { ScreenHeader } from '../components/screen-header';
+import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { formatDateLabel, getTodayDate, toDateKey } from '../format';
 import { filterEntriesByBounds } from '../stats';
 import { styles } from '../theme/styles';
 
-type OptionalDateFieldProps = {
-  label: string;
-  value: Date | null;
-  onChange: (date: Date | null) => void;
-};
-
-function OptionalDateField({ label, value, onChange }: OptionalDateFieldProps) {
-  const [showPicker, setShowPicker] = useState(false);
-
-  const handleChange = (_event: DateTimePickerEvent, date?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowPicker(false);
-    }
-    if (date) {
-      onChange(date);
-    }
-  };
-
-  const openPicker = () => {
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value: value ?? getTodayDate(),
-        mode: 'date',
-        onChange: handleChange,
-      });
-      return;
-    }
-    setShowPicker(true);
-  };
-
-  return (
-    <View style={styles.rangeRow}>
-      <View style={styles.filterFieldHeader}>
-        <Text style={styles.fieldLabel}>{label}</Text>
-        {value ? (
-          <Pressable onPress={() => onChange(null)} hitSlop={8}>
-            <Text style={styles.linkText}>Clear</Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <Pressable style={styles.dateButton} onPress={openPicker}>
-        <Text style={[styles.dateButtonValue, !value && styles.filterPlaceholder]}>
-          {value ? formatDateLabel(toDateKey(value)) : 'Any'}
-        </Text>
-      </Pressable>
-      {showPicker && Platform.OS === 'ios' && (
-        <DateTimePicker
-          value={value ?? getTodayDate()}
-          mode="date"
-          display="spinner"
-          onChange={handleChange}
-        />
-      )}
-    </View>
-  );
-}
-
 export function HistoryScreen() {
-  const { entries, removeEntry } = useSharedWeightEntries();
+  const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
+    useSharedWeightEntries();
+  const { showError, showSuccess } = useToast();
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
+  const today = getTodayDate();
 
   const isFilterActive = fromDate !== null || toDate !== null;
   const fromKey = fromDate ? toDateKey(fromDate) : null;
@@ -98,9 +45,10 @@ export function HistoryScreen() {
           void (async () => {
             try {
               await removeEntry(date);
+              showSuccess(`Entry for ${formatDateLabel(date)} deleted.`);
             } catch (error) {
               const message = error instanceof Error ? error.message : 'Delete failed.';
-              Alert.alert('Delete failed', message);
+              showError(message);
             }
           })();
         },
@@ -125,7 +73,17 @@ export function HistoryScreen() {
         title="History"
         subtitle={isFilterActive ? 'Filtered entries' : 'All logged entries'}
       />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
+        }
+      >
+        {error && !isLoading ? (
+          <ErrorCard message={error} onRetry={() => void refreshEntries()} />
+        ) : null}
+
         <View style={styles.card}>
           <View style={styles.filterFieldHeader}>
             <Text style={styles.cardTitle}>Date filter</Text>
@@ -135,19 +93,33 @@ export function HistoryScreen() {
               </Pressable>
             ) : null}
           </View>
-          <OptionalDateField label="From" value={fromDate} onChange={setFromDate} />
-          <OptionalDateField label="To" value={toDate} onChange={setToDate} />
+          <DateField
+            label="From"
+            value={fromDate}
+            onChange={setFromDate}
+            optional
+            maximumDate={today}
+          />
+          <DateField label="To" value={toDate} onChange={setToDate} optional maximumDate={today} />
           {isInvalid ? (
             <Text style={styles.warningText}>From date must be on or before to date.</Text>
           ) : null}
         </View>
 
-        <View style={styles.card}>
-          <HistoryList
-            entries={filteredEntries}
-            onDelete={handleDelete}
-            emptyMessage={emptyMessage}
-          />
+        <View style={styles.loadingCard}>
+          {isRefreshing ? <LoadingCardOverlay /> : null}
+          <View style={styles.card}>
+            {isLoading ? (
+              <HistoryListSkeleton rows={6} />
+            ) : (
+              <HistoryList
+                entries={filteredEntries}
+                onDelete={handleDelete}
+                deletingDate={deletingDate}
+                emptyMessage={emptyMessage}
+              />
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>

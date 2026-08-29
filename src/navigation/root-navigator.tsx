@@ -1,16 +1,18 @@
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
+import { NewPasswordScreen } from '../screens/new-password-screen';
 import { AuthNavigator } from './auth-navigator';
 import { MainTabNavigator } from './main-tab-navigator';
 import { styles } from '../theme/styles';
 
 export function RootNavigator() {
-  const { isAuthenticated, isLoading, isConfigured } = useSupabaseAuth();
+  const { isAuthenticated, isPasswordRecovery, isLoading, isConfigured } = useSupabaseAuth();
 
   if (isLoading) {
     return (
-      <View style={[styles.screen, styles.centered]}>
+      <View style={[styles.screen, styles.centered, { gap: 12 }]}>
         <ActivityIndicator size="large" color="#2563EB" />
+        <Text style={styles.subtitle}>Loading your account...</Text>
       </View>
     );
   }
@@ -27,5 +29,11 @@ export function RootNavigator() {
     );
   }
 
-  return isAuthenticated ? <MainTabNavigator /> : <AuthNavigator />;
+  return isPasswordRecovery ? (
+    <NewPasswordScreen />
+  ) : isAuthenticated ? (
+    <MainTabNavigator />
+  ) : (
+    <AuthNavigator />
+  );
 }

@@ -1,4 +1,3 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,28 +6,23 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { PasswordField } from '../components/password-field';
+import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
-import { AuthStackParamList } from '../navigation/types';
 import { styles } from '../theme/styles';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
-
-export function SignUpScreen({ navigation }: Props) {
-  const { signUp } = useSupabaseAuth();
+export function NewPasswordScreen() {
+  const { updatePassword } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isBusy, setIsBusy] = useState(false);
 
-  const handleSignUp = async () => {
-    if (!email.trim() || !password) {
-      showError('Enter your email and password.');
+  const handleSavePassword = async () => {
+    if (!password) {
+      showError('Enter a new password.');
       return;
     }
 
@@ -43,17 +37,11 @@ export function SignUpScreen({ navigation }: Props) {
     }
 
     setIsBusy(true);
-    const trimmedEmail = email.trim();
     try {
-      const { needsEmailConfirmation } = await signUp(trimmedEmail, password);
-      if (needsEmailConfirmation) {
-        showSuccess('Account created. Check your email to confirm, then sign in.');
-      } else {
-        showSuccess('Account created. Sign in to continue.');
-      }
-      navigation.navigate('Login', { email: trimmedEmail });
+      await updatePassword(password);
+      showSuccess('Password updated. You are signed in.');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Sign up failed.';
+      const message = error instanceof Error ? error.message : 'Could not update password.';
       showError(message);
     } finally {
       setIsBusy(false);
@@ -66,26 +54,12 @@ export function SignUpScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
     >
       <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Start tracking your weight</Text>
+        <Text style={styles.title}>Choose a new password</Text>
+        <Text style={styles.subtitle}>You opened a password reset link. Set a new password below.</Text>
 
         <View style={styles.card}>
-          <Text style={styles.fieldLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            keyboardType="email-address"
-            returnKeyType="next"
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-          />
-
           <PasswordField
-            label="Password"
+            label="New password"
             value={password}
             onChangeText={setPassword}
             autoComplete="new-password"
@@ -101,26 +75,22 @@ export function SignUpScreen({ navigation }: Props) {
             autoComplete="new-password"
             textContentType="newPassword"
             returnKeyType="done"
-            onSubmitEditing={() => void handleSignUp()}
+            onSubmitEditing={() => void handleSavePassword()}
             placeholder="Repeat password"
           />
 
           <Pressable
             style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-            onPress={() => void handleSignUp()}
+            onPress={() => void handleSavePassword()}
             disabled={isBusy}
           >
             {isBusy ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.primaryButtonText}>Create account</Text>
+              <Text style={styles.primaryButtonText}>Save password</Text>
             )}
           </Pressable>
         </View>
-
-        <Pressable onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.linkText}>Already have an account? Sign in</Text>
-        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );

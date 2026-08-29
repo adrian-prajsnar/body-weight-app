@@ -1,16 +1,26 @@
 import { Session } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createSessionFromUrl, getAuthRedirectUrl, isPasswordRecoveryUrl } from '../auth-redirect';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
+
+type SignUpResult = {
+  needsEmailConfirmation: boolean;
+};
 
 type SupabaseAuthContextValue = {
   session: Session | null;
   isAuthenticated: boolean;
+  isPasswordRecovery: boolean;
   isLoading: boolean;
   isConfigured: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 };
 
 const SupabaseAuthContext = createContext<SupabaseAuthContextValue | null>(null);
@@ -18,9 +28,22 @@ const SupabaseAuthContext = createContext<SupabaseAuthContextValue | null>(null)
 export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const completingSignUpRef = useRef(false);
 
-  const isAuthenticated = Boolean(session) && !completingSignUpRef.current;
+  const isAuthenticated = Boolean(session) && !completingSignUpRef.current && !isPasswordRecovery;
+
+  const handleAuthUrl = useCallback(async (url: string) => {
+    try {
+      const isRecovery = isPasswordRecoveryUrl(url);
+      await createSessionFromUrl(url);
+      if (isRecovery) {
+        setIsPasswordRecovery(true);
+      }
+    } catch {
+      // Ignore malformed or unrelated deep links.
+    }
+  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
@@ -33,12 +56,31 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     });
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, activeSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, activeSession) => {
       setSession(activeSession);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      }
+      if (event === 'SIGNED_OUT') {
+        setIsPasswordRecovery(false);
+      }
     });
 
-    return () => subscription.subscription.unsubscribe();
-  }, []);
+    void Linking.getInitialURL().then((url) => {
+      if (url) {
+        void handleAuthUrl(url);
+      }
+    });
+
+    const linkSubscription = Linking.addEventListener('url', ({ url }) => {
+      void handleAuthUrl(url);
+    });
+
+    return () => {
+      subscription.subscription.unsubscribe();
+      linkSubscription.remove();
+    };
+  }, [handleAuthUrl]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -47,16 +89,26 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string): Promise<SignUpResult> => {
     completingSignUpRef.current = true;
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+        },
+      });
       if (error) {
         throw new Error(error.message);
       }
 
-      // Supabase creates a session when email confirmation is disabled — sign out so the user logs in manually.
+      const needsEmailConfirmation = Boolean(data.user && !data.session);
+
+      // Supabase may auto-login when email confirmation is disabled — sign out so the user logs in manually.
       await supabase.auth.signOut();
+
+      return { needsEmailConfirmation };
     } finally {
       completingSignUpRef.current = false;
     }
@@ -78,17 +130,54 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     await signOut();
   }, [signOut]);
 
+  const resendConfirmationEmail = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+      },
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: getAuthRedirectUrl(),
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    setIsPasswordRecovery(false);
+  }, []);
+
   return (
     <SupabaseAuthContext.Provider
       value={{
         session,
         isAuthenticated,
+        isPasswordRecovery,
         isLoading,
         isConfigured: isSupabaseConfigured(),
         signIn,
         signUp,
         signOut,
         deleteAccount,
+        resendConfirmationEmail,
+        resetPassword,
+        updatePassword,
       }}
     >
       {children}

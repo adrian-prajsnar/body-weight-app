@@ -5,7 +5,7 @@ A minimal Android app for logging daily body weight in kilograms (2 decimal plac
 ## Features
 
 - Sign in / sign up (required — no access without login)
-- Account page — profile info, sign out, delete account
+- Profile page — email, height, sign out, delete account
 - Log one weight per day (editing the same date overwrites the previous value)
 - Dashboard averages: this week, last week, this month, and more
 - Compare periods week/month/year or custom ranges
@@ -27,24 +27,47 @@ npx expo start -c
 1. Go to [supabase.com](https://supabase.com) and sign up (free)
 2. Create a new project and wait for it to provision
 
-### 2. Create the database table
+### 2. Create the database tables
 
 1. **SQL Editor** → **New query**
-2. Paste and run [`supabase/schema.sql`](supabase/schema.sql)
+2. Paste and run [`supabase/schema.sql`](supabase/schema.sql) (safe to run again — policies are recreated)
 
-If you already ran an older version of the schema, run this in the SQL Editor:
+**Already set up `weight_entries`?** Run only [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) to add `height_entries` without touching existing weight policies.
+
+**Migrating from an older schema** (if `user_profiles` had a `height_cm` column):
 
 ```sql
-grant select, insert, update, delete on table public.weight_entries to authenticated;
-grant select, insert, update, delete on table public.weight_entries to service_role;
+insert into public.height_entries (user_id, effective_date, height_cm, updated_at)
+select user_id, updated_at::date, height_cm, updated_at
+from public.user_profiles
+where height_cm is not null
+on conflict (user_id, effective_date) do nothing;
 ```
 
-Also run the `delete_own_account` function block at the bottom of `supabase/schema.sql` if you have not already.
+### Troubleshooting: "permission denied for table weight_entries"
 
-### 3. Enable email sign-in
+Your tables exist but API roles lack access. Run [`supabase/grants.sql`](supabase/grants.sql) in the SQL Editor (safe to run again anytime).
+
+```sql
+grant usage on schema public to authenticated, anon;
+grant select, insert, update, delete on table public.weight_entries to authenticated;
+grant select, insert, update, delete on table public.height_entries to authenticated;
+grant select, insert, update, delete on table public.user_profiles to authenticated;
+```
+
+If you already ran an older schema without `height_entries`, run the full `supabase/schema.sql` or the migration block above.
+
+### 3. Enable email sign-in and confirmation
 
 1. **Authentication** → **Providers** → **Email** → enabled
-2. For personal use, disable **Confirm email** so you can sign in immediately
+2. Turn on **Confirm email** (recommended)
+3. **Authentication** → **URL Configuration**:
+   - **Site URL**: `body-weight-app://auth/callback`
+   - **Redirect URLs** — add both:
+     - `body-weight-app://auth/callback`
+     - `exp://127.0.0.1:8081/--/auth/callback` (Expo Go on your PC; adjust port if Expo uses another)
+
+Supabase sends confirmation and password-reset emails on the free tier (built-in mailer). For better delivery later, you can add custom SMTP under **Authentication** → **SMTP**.
 
 ### 4. Add API keys to `.env`
 
@@ -59,7 +82,13 @@ Restart Expo: `npx expo start -c`
 
 ### 5. Create your account
 
-Open the app → **Create account** → sign in. All weight data is stored in Supabase only.
+1. Open the app → **Create account**
+2. Check your email and tap **Confirm your mail**
+3. Return to the app → **Sign in**
+
+**Password reset:** Login → **Forgot password?** → open the email link on your phone → set a new password in the app.
+
+All weight data is stored in Supabase only.
 
 ## Build APK
 

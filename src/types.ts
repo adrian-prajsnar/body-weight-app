@@ -34,3 +34,12 @@ export type PeriodComparison = {
   statsB: WeightStats;
   difference: number | null;
 };
+
+export type UserProfile = {
+  heightEntries: HeightEntry[];
+};
+
+export type HeightEntry = {
+  effectiveDate: string;
+  heightCm: number;
+};

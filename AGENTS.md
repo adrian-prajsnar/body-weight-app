@@ -21,26 +21,29 @@ src/
   screens/              # login-screen, sign-up-screen, dashboard-screen, ...
   components/
   hooks/
-  context/              # supabase-auth-context, weight-entries-context
+  context/              # supabase-auth-context, weight-entries-context, user-profile-context
   navigation/           # root-navigator, auth-navigator, main-tab-navigator
-  supabase/             # client.ts, weight-sync.ts (all data I/O)
+  supabase/             # client.ts, weight-sync.ts, height-sync.ts (all data I/O)
   theme/
-  stats.ts, format.ts, types.ts
+  stats.ts, height.ts, format.ts, types.ts
 supabase/schema.sql
+supabase/grants.sql
 ```
 
 ## Data
 
 - **No local weight storage** — all entries read/write via `src/supabase/weight-sync.ts`
-- AsyncStorage is only used by Supabase for auth session persistence
-- One entry per date per user; save overwrites same day
+- Height history in `height_entries` via `src/supabase/height-sync.ts` (one row per effective date; upsert overwrites same day)
+- BMI uses height effective on each weight entry date (`src/height.ts` → `getHeightAtDate`)
+- AsyncStorage is only used by Supabase for auth session persistence and for the BMI display preference (`src/storage/bmi-display-preference.ts`)
+- One weight entry per date per user; save overwrites same day
 - RLS enforces `user_id = auth.uid()`
 
 ## Auth
 
 - App blocked until signed in (`root-navigator.tsx`)
 - Login and sign-up are separate screens
-- Sign out on dashboard
+- Sign out on profile screen
 
 ## Before finishing
 

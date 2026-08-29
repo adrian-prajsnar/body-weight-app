@@ -5,6 +5,9 @@ import { WeightEntry } from '../types';
 type WeightEntriesContextValue = {
   entries: WeightEntry[];
   isLoading: boolean;
+  isRefreshing: boolean;
+  deletingDate: string | null;
+  error: string | null;
   refreshEntries: () => Promise<void>;
   removeEntry: (date: string) => Promise<void>;
 };

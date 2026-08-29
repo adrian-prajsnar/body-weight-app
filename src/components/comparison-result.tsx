@@ -1,6 +1,6 @@
 import { Text, View } from 'react-native';
 import { formatDateRange } from '../format';
-import { DateRange, WeightStats } from '../types';
+import { DateRange, WeightEntry, WeightStats } from '../types';
 import { styles } from '../theme/styles';
 import { StatsSummary } from './stats-summary';
 
@@ -11,6 +11,7 @@ type ComparisonResultProps = {
   rangeB: DateRange;
   statsA: WeightStats;
   statsB: WeightStats;
+  entries: WeightEntry[];
   difference: number | null;
 };
 
@@ -21,6 +22,7 @@ export function ComparisonResult({
   rangeB,
   statsA,
   statsB,
+  entries,
   difference,
 }: ComparisonResultProps) {
   return (
@@ -28,13 +30,13 @@ export function ComparisonResult({
       <View style={styles.comparisonPeriodCard}>
         <Text style={styles.comparisonPeriodLabel}>{labelA}</Text>
         <Text style={styles.statsText}>{formatDateRange(rangeA)}</Text>
-        <StatsSummary stats={statsA} />
+        <StatsSummary stats={statsA} entries={entries} range={rangeA} />
       </View>
 
       <View style={styles.comparisonPeriodCard}>
         <Text style={styles.comparisonPeriodLabel}>{labelB}</Text>
         <Text style={styles.statsText}>{formatDateRange(rangeB)}</Text>
-        <StatsSummary stats={statsB} />
+        <StatsSummary stats={statsB} entries={entries} range={rangeB} />
       </View>
 
       <View>
