@@ -1,23 +1,19 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { AuthLayout } from '../components/auth-layout';
+import { EmailField } from '../components/email-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
 import { AuthStackParamList } from '../navigation/types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
 
 export function ForgotPasswordScreen({ navigation, route }: Props) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { resetPassword } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [email, setEmail] = useState(route.params?.email ?? '');
@@ -43,49 +39,41 @@ export function ForgotPasswordScreen({ navigation, route }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-    >
-      <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Reset password</Text>
-        <Text style={styles.subtitle}>
-          Enter your email and we will send a link to choose a new password.
-        </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.fieldLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            keyboardType="email-address"
-            returnKeyType="done"
-            onSubmitEditing={() => void handleResetPassword()}
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-          />
-
-          <Pressable
-            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-            onPress={() => void handleResetPassword()}
-            disabled={isBusy}
-          >
-            {isBusy ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Send reset link</Text>
-            )}
-          </Pressable>
-        </View>
-
-        <Pressable onPress={() => navigation.navigate('Login', { email: email.trim() || undefined })}>
+    <AuthLayout
+      title="Reset password"
+      subtitle="We will email you a link to choose a new password"
+      footer={
+        <Pressable
+          onPress={() =>
+            navigation.navigate('Login', { email: email.trim() || undefined })
+          }
+        >
           <Text style={styles.linkText}>Back to sign in</Text>
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    >
+      <EmailField
+        value={email}
+        onChangeText={setEmail}
+        returnKeyType="done"
+        onSubmitEditing={() => void handleResetPassword()}
+      />
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          isBusy && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => void handleResetPassword()}
+        disabled={isBusy}
+      >
+        {isBusy ? (
+          <ActivityIndicator color={colors.onAccent} />
+        ) : (
+          <Text style={styles.primaryButtonText}>Send reset link</Text>
+        )}
+      </Pressable>
+    </AuthLayout>
   );
 }

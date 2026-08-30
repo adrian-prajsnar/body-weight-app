@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
 import { SkeletonBlock } from './skeleton';
 
 type HistoryListSkeletonProps = {
@@ -7,6 +7,8 @@ type HistoryListSkeletonProps = {
 };
 
 export function HistoryListSkeleton({ rows = 5 }: HistoryListSkeletonProps) {
+  const styles = useAppStyles();
+
   return (
     <View style={{ gap: 4 }}>
       {Array.from({ length: rows }, (_, index) => (

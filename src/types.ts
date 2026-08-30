@@ -25,6 +25,27 @@ export type DateRange = {
 
 export type ComparisonMode = 'week' | 'month' | 'year' | 'custom';
 
+export type ChartRange = '30d' | '90d' | '1y';
+
+export type WeightSeries = {
+  /** Entries inside the window, ascending by date. */
+  points: WeightEntry[];
+  min: number;
+  max: number;
+};
+
+export type EntryGroup = {
+  /** `YYYY-MM` key the group covers. */
+  monthKey: string;
+  entries: WeightEntry[];
+};
+
+export type LatestChange = {
+  latest: WeightEntry | null;
+  /** Signed difference against the previous entry, or null when there is none. */
+  change: number | null;
+};
+
 export type PeriodComparison = {
   labelA: string;
   labelB: string;

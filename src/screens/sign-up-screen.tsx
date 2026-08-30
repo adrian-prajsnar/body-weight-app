@@ -1,24 +1,20 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { AuthLayout } from '../components/auth-layout';
+import { EmailField } from '../components/email-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { PasswordField } from '../components/password-field';
 import { useToast } from '../context/toast-context';
 import { AuthStackParamList } from '../navigation/types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
 export function SignUpScreen({ navigation }: Props) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { signUp } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [email, setEmail] = useState('');
@@ -61,67 +57,53 @@ export function SignUpScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-    >
-      <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Create account</Text>
-        <Text style={styles.subtitle}>Start tracking your weight</Text>
-
-        <View style={styles.card}>
-          <Text style={styles.fieldLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            keyboardType="email-address"
-            returnKeyType="next"
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-          />
-
-          <PasswordField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="next"
-            placeholder="At least 8 characters"
-          />
-
-          <PasswordField
-            label="Confirm password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="done"
-            onSubmitEditing={() => void handleSignUp()}
-            placeholder="Repeat password"
-          />
-
-          <Pressable
-            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-            onPress={() => void handleSignUp()}
-            disabled={isBusy}
-          >
-            {isBusy ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Create account</Text>
-            )}
-          </Pressable>
-        </View>
-
+    <AuthLayout
+      title="Create account"
+      subtitle="Start tracking your weight in seconds"
+      footer={
         <Pressable onPress={() => navigation.navigate('Login')}>
           <Text style={styles.linkText}>Already have an account? Sign in</Text>
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    >
+      <EmailField value={email} onChangeText={setEmail} />
+
+      <PasswordField
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="new-password"
+        textContentType="newPassword"
+        returnKeyType="next"
+        placeholder="At least 8 characters"
+      />
+
+      <PasswordField
+        label="Confirm password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        autoComplete="new-password"
+        textContentType="newPassword"
+        returnKeyType="done"
+        onSubmitEditing={() => void handleSignUp()}
+        placeholder="Repeat password"
+      />
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          isBusy && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => void handleSignUp()}
+        disabled={isBusy}
+      >
+        {isBusy ? (
+          <ActivityIndicator color={colors.onAccent} />
+        ) : (
+          <Text style={styles.primaryButtonText}>Create account</Text>
+        )}
+      </Pressable>
+    </AuthLayout>
   );
 }

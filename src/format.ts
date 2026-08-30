@@ -72,6 +72,13 @@ export function formatDateLabel(dateKey: string): string {
   });
 }
 
+export function formatMonthLabel(dateKey: string): string {
+  return fromDateKey(dateKey).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
 export function formatDateRange(range: DateRange): string {
   const start = fromDateKey(range.start);
   const end = fromDateKey(range.end);

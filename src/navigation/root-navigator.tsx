@@ -3,15 +3,18 @@ import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { NewPasswordScreen } from '../screens/new-password-screen';
 import { AuthNavigator } from './auth-navigator';
 import { MainTabNavigator } from './main-tab-navigator';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 export function RootNavigator() {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { isAuthenticated, isPasswordRecovery, isLoading, isConfigured } = useSupabaseAuth();
 
   if (isLoading) {
     return (
       <View style={[styles.screen, styles.centered, { gap: 12 }]}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.subtitle}>Loading your account...</Text>
       </View>
     );

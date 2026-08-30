@@ -2,10 +2,12 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import { formatDateLabel, getTodayDate, toDateKey } from '../format';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 type DateFieldProps = {
   label: string;
@@ -24,6 +26,8 @@ export function DateField({
   maximumDate,
   minimumDate,
 }: DateFieldProps) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const [showPicker, setShowPicker] = useState(false);
 
   const handleChange = (_event: DateTimePickerEvent, date?: Date) => {
@@ -59,10 +63,16 @@ export function DateField({
           </Pressable>
         ) : null}
       </View>
-      <Pressable style={styles.dateButton} onPress={openPicker}>
-        <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
-          {value ? formatDateLabel(toDateKey(value)) : optional ? 'Any' : 'Select date'}
-        </Text>
+      <Pressable
+        style={({ pressed }) => [styles.dateButton, pressed && styles.buttonPressed]}
+        onPress={openPicker}
+      >
+        <View style={styles.filterFieldHeader}>
+          <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
+            {value ? formatDateLabel(toDateKey(value)) : optional ? 'Any' : 'Select date'}
+          </Text>
+          <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
+        </View>
       </Pressable>
       {showPicker && Platform.OS === 'ios' && (
         <DateTimePicker

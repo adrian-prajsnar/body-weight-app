@@ -1,9 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { calculateBmi } from '../bmi';
+import { AppCard } from './app-card';
 import { BmiBadge } from './bmi-badge';
 import { DateField } from './date-field';
-import { LoadingCardOverlay } from './loading-card-overlay';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useToast } from '../context/toast-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
@@ -15,9 +16,13 @@ import {
   WEIGHT_RANGE_MESSAGE,
 } from '../format';
 import { getHeightAtDate } from '../height';
+import { getLatestChange } from '../stats';
 import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
+
+const STEP_KG = 0.1;
 
 type EntryFormProps = {
   entries: WeightEntry[];
@@ -26,12 +31,15 @@ type EntryFormProps = {
 };
 
 export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryFormProps) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { showError, showSuccess } = useToast();
   const [selectedDate, setSelectedDate] = useState(getTodayDate);
   const [weightInput, setWeightInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const selectedDateKey = useMemo(() => toDateKey(selectedDate), [selectedDate]);
   const previewBmi = useMemo(() => {
@@ -47,6 +55,16 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
     const existing = entries.find((entry) => entry.date === selectedDateKey);
     setWeightInput(existing ? formatKg(existing.weightKg) : '');
   }, [entries, selectedDateKey]);
+
+  const isDisabled = isSaving || isDataLoading;
+
+  const adjustWeight = (delta: number) => {
+    const current = parseKg(weightInput) ?? getLatestChange(entries).latest?.weightKg ?? null;
+    if (current === null) {
+      return;
+    }
+    setWeightInput(formatKg(Math.round((current + delta) * 100) / 100));
+  };
 
   const handleSave = async () => {
     const weightKg = parseKg(weightInput);
@@ -71,51 +89,78 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
   };
 
   return (
-    <View style={styles.loadingCard}>
-      {isDataLoading ? <LoadingCardOverlay /> : null}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Add or edit entry</Text>
-        <DateField
-          label="Date"
-          value={selectedDate}
-          onChange={(date) => {
-            if (date) {
-              setSelectedDate(date);
-            }
-          }}
-          maximumDate={getTodayDate()}
-        />
+    <AppCard title="Log weight" isBusy={isDataLoading} delay={60}>
+      <DateField
+        label="Date"
+        value={selectedDate}
+        onChange={(date) => {
+          if (date) {
+            setSelectedDate(date);
+          }
+        }}
+        maximumDate={getTodayDate()}
+      />
 
-        <Text style={styles.fieldLabel}>Weight (kg)</Text>
-        <TextInput
-          style={styles.input}
-          value={weightInput}
-          onChangeText={setWeightInput}
-          keyboardType="decimal-pad"
-          placeholder="65.25"
-          placeholderTextColor="#9CA3AF"
-          editable={!isDataLoading && !isSaving}
-        />
+      <Text style={styles.fieldLabel}>Weight</Text>
+      <View style={styles.weightEntryRow}>
+        <Pressable
+          style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
+          onPress={() => adjustWeight(-STEP_KG)}
+          disabled={isDisabled}
+          accessibilityRole="button"
+          accessibilityLabel="Decrease weight"
+        >
+          <Ionicons name="remove" size={22} color={colors.textMuted} />
+        </Pressable>
 
-        {previewBmi ? (
-          <View style={styles.bmiPreviewRow}>
-            <Text style={styles.fieldLabel}>Estimated BMI</Text>
-            <BmiBadge bmi={previewBmi} />
-          </View>
-        ) : null}
+        <View style={[styles.weightInputWrapper, isFocused && styles.inputFocused]}>
+          <TextInput
+            style={styles.weightInput}
+            value={weightInput}
+            onChangeText={setWeightInput}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={colors.textSubtle}
+            editable={!isDisabled}
+          />
+          <Text style={styles.weightInputUnit}>kg</Text>
+        </View>
 
         <Pressable
-          style={[styles.primaryButton, (isSaving || isDataLoading) && styles.buttonDisabled]}
-          onPress={() => void handleSave()}
-          disabled={isSaving || isDataLoading}
+          style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
+          onPress={() => adjustWeight(STEP_KG)}
+          disabled={isDisabled}
+          accessibilityRole="button"
+          accessibilityLabel="Increase weight"
         >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.primaryButtonText}>Save</Text>
-          )}
+          <Ionicons name="add" size={22} color={colors.textMuted} />
         </Pressable>
       </View>
-    </View>
+
+      {previewBmi ? (
+        <View style={styles.bmiPreviewRow}>
+          <Text style={styles.fieldLabel}>Estimated BMI</Text>
+          <BmiBadge bmi={previewBmi} />
+        </View>
+      ) : null}
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          isDisabled && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => void handleSave()}
+        disabled={isDisabled}
+      >
+        {isSaving ? (
+          <ActivityIndicator color={colors.onAccent} />
+        ) : (
+          <Text style={styles.primaryButtonText}>Save entry</Text>
+        )}
+      </Pressable>
+    </AppCard>
   );
 }

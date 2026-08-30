@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import {
   createContext,
   ReactNode,
@@ -7,9 +8,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Animated, Pressable, Text, View, ViewStyle, TextStyle } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeOutUp, SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { styles } from '../theme/styles';
+import { AppStyles, useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
+import { Palette } from '../theme/tokens';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -39,93 +43,81 @@ const TOAST_TITLES: Record<ToastType, string> = {
   info: 'Info',
 };
 
-const TOAST_CARD_STYLES: Record<ToastType, ViewStyle> = {
-  success: styles.toastCardSuccess,
-  error: styles.toastCardError,
-  info: styles.toastCardInfo,
+const TOAST_ICONS: Record<ToastType, keyof typeof Ionicons.glyphMap> = {
+  success: 'checkmark-circle',
+  error: 'alert-circle',
+  info: 'information-circle',
 };
 
-const TOAST_TITLE_STYLES: Record<ToastType, TextStyle> = {
-  success: styles.toastTitleSuccess,
-  error: styles.toastTitleError,
-  info: styles.toastTitleInfo,
-};
+function toastVariant(styles: AppStyles, type: ToastType) {
+  switch (type) {
+    case 'success':
+      return {
+        card: styles.toastCardSuccess,
+        title: styles.toastTitleSuccess,
+        message: styles.toastMessageSuccess,
+      };
+    case 'error':
+      return {
+        card: styles.toastCardError,
+        title: styles.toastTitleError,
+        message: styles.toastMessageError,
+      };
+    default:
+      return {
+        card: styles.toastCardInfo,
+        title: styles.toastTitleInfo,
+        message: styles.toastMessageInfo,
+      };
+  }
+}
 
-const TOAST_MESSAGE_STYLES: Record<ToastType, TextStyle> = {
-  success: styles.toastMessageSuccess,
-  error: styles.toastMessageError,
-  info: styles.toastMessageInfo,
-};
+function toastIconColor(colors: Palette, type: ToastType): string {
+  switch (type) {
+    case 'success':
+      return colors.success;
+    case 'error':
+      return colors.danger;
+    default:
+      return colors.accent;
+  }
+}
 
 function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () => void }) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const insets = useSafeAreaInsets();
-  const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(-20)).current;
-
-  const dismiss = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: -20,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-    ]).start(({ finished }) => {
-      if (finished) {
-        onDismiss();
-      }
-    });
-  }, [onDismiss, opacity, translateY]);
+  const variant = toastVariant(styles, toast.type);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    const timer = setTimeout(() => {
-      dismiss();
-    }, TOAST_DURATION_MS);
-
+    const timer = setTimeout(onDismiss, TOAST_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [dismiss, opacity, translateY]);
+  }, [onDismiss]);
 
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[
-        styles.toastContainer,
-        { top: insets.top + 8, opacity, transform: [{ translateY }] },
-      ]}
+      entering={SlideInUp.springify().damping(18).mass(0.6)}
+      exiting={FadeOutUp.duration(180)}
+      style={[styles.toastContainer, { top: insets.top + 8 }]}
     >
-      <Pressable
-        style={[styles.toastCard, TOAST_CARD_STYLES[toast.type]]}
-        onPress={dismiss}
-      >
-        <Text style={[styles.toastTitle, TOAST_TITLE_STYLES[toast.type]]}>
-          {TOAST_TITLES[toast.type]}
-        </Text>
-        <Text style={[styles.toastMessage, TOAST_MESSAGE_STYLES[toast.type]]}>
-          {toast.message}
-        </Text>
+      <Pressable style={[styles.toastCard, variant.card]} onPress={onDismiss}>
+        <Ionicons
+          name={TOAST_ICONS[toast.type]}
+          size={20}
+          color={toastIconColor(colors, toast.type)}
+        />
+        <View style={styles.toastTextGroup}>
+          <Text style={[styles.toastTitle, variant.title]}>{TOAST_TITLES[toast.type]}</Text>
+          <Text style={[styles.toastMessage, variant.message]}>{toast.message}</Text>
+        </View>
       </Pressable>
     </Animated.View>
   );
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const styles = useAppStyles();
   const [toast, setToast] = useState<ToastState | null>(null);
   const idRef = useRef(0);
 
@@ -149,13 +141,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [showToast],
   );
 
+  const dismiss = useCallback(() => setToast(null), []);
+
   return (
     <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo }}>
       <View style={styles.toastRoot}>
         {children}
-        {toast ? (
-          <ToastBanner key={toast.id} toast={toast} onDismiss={() => setToast(null)} />
-        ) : null}
+        {toast ? <ToastBanner key={toast.id} toast={toast} onDismiss={dismiss} /> : null}
       </View>
     </ToastContext.Provider>
   );

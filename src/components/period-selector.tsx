@@ -1,6 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text } from 'react-native';
 import { DashboardPeriod } from '../types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
 
 const PERIOD_OPTIONS: { label: string; value: DashboardPeriod }[] = [
   { label: 'This week', value: 'thisWeek' },
@@ -17,27 +17,37 @@ type PeriodSelectorProps = {
 };
 
 export function PeriodSelector({ selected, onSelect }: PeriodSelectorProps) {
+  const styles = useAppStyles();
+
   return (
-    <View style={styles.presetRow}>
-      {PERIOD_OPTIONS.map((option) => (
-        <Pressable
-          key={option.value}
-          style={[
-            styles.presetButton,
-            selected === option.value && styles.presetButtonActive,
-          ]}
-          onPress={() => onSelect(option.value)}
-        >
-          <Text
-            style={[
-              styles.presetButtonText,
-              selected === option.value && styles.presetButtonTextActive,
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.presetScroll}
+      contentContainerStyle={styles.presetScrollContent}
+    >
+      {PERIOD_OPTIONS.map((option) => {
+        const isActive = selected === option.value;
+        return (
+          <Pressable
+            key={option.value}
+            style={({ pressed }) => [
+              styles.presetButton,
+              isActive && styles.presetButtonActive,
+              pressed && styles.buttonPressed,
             ]}
+            onPress={() => onSelect(option.value)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isActive }}
           >
-            {option.label}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
+            <Text
+              style={[styles.presetButtonText, isActive && styles.presetButtonTextActive]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
   );
 }

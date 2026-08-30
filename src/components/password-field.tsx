@@ -7,7 +7,8 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 type PasswordFieldProps = {
   label: string;
@@ -32,12 +33,15 @@ export function PasswordField({
   autoComplete,
   textContentType,
 }: PasswordFieldProps) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const [isVisible, setIsVisible] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
     <View style={styles.passwordFieldGroup}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.passwordField}>
+      <View style={[styles.passwordField, isFocused && styles.inputFocused]}>
         <TextInput
           style={styles.passwordInput}
           value={value}
@@ -47,8 +51,10 @@ export function PasswordField({
           textContentType={textContentType}
           returnKeyType={returnKeyType}
           onSubmitEditing={onSubmitEditing}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textSubtle}
         />
         <Pressable
           style={styles.passwordToggle}
@@ -60,7 +66,7 @@ export function PasswordField({
           <Ionicons
             name={isVisible ? 'eye-off-outline' : 'eye-outline'}
             size={22}
-            color="#6B7280"
+            color={colors.textMuted}
           />
         </Pressable>
       </View>

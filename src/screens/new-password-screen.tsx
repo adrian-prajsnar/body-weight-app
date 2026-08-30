@@ -1,19 +1,15 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
+import { AuthLayout } from '../components/auth-layout';
 import { PasswordField } from '../components/password-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 export function NewPasswordScreen() {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { updatePassword } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [password, setPassword] = useState('');
@@ -49,49 +45,46 @@ export function NewPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+    <AuthLayout
+      title="Choose a new password"
+      subtitle="You opened a password reset link. Set a new password below."
     >
-      <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Choose a new password</Text>
-        <Text style={styles.subtitle}>You opened a password reset link. Set a new password below.</Text>
+      <PasswordField
+        label="New password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="new-password"
+        textContentType="newPassword"
+        returnKeyType="next"
+        placeholder="At least 8 characters"
+      />
 
-        <View style={styles.card}>
-          <PasswordField
-            label="New password"
-            value={password}
-            onChangeText={setPassword}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="next"
-            placeholder="At least 8 characters"
-          />
+      <PasswordField
+        label="Confirm password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        autoComplete="new-password"
+        textContentType="newPassword"
+        returnKeyType="done"
+        onSubmitEditing={() => void handleSavePassword()}
+        placeholder="Repeat password"
+      />
 
-          <PasswordField
-            label="Confirm password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            autoComplete="new-password"
-            textContentType="newPassword"
-            returnKeyType="done"
-            onSubmitEditing={() => void handleSavePassword()}
-            placeholder="Repeat password"
-          />
-
-          <Pressable
-            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-            onPress={() => void handleSavePassword()}
-            disabled={isBusy}
-          >
-            {isBusy ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Save password</Text>
-            )}
-          </Pressable>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          isBusy && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => void handleSavePassword()}
+        disabled={isBusy}
+      >
+        {isBusy ? (
+          <ActivityIndicator color={colors.onAccent} />
+        ) : (
+          <Text style={styles.primaryButtonText}>Save password</Text>
+        )}
+      </Pressable>
+    </AuthLayout>
   );
 }

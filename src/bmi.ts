@@ -1,3 +1,5 @@
+import { ColorScheme } from './theme/tokens';
+
 export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obese';
 
 export type BmiInfo = {
@@ -11,22 +13,42 @@ export type BmiTheme = {
   textColor: string;
 };
 
-const BMI_THEMES: Record<BmiCategory, BmiTheme> = {
-  underweight: {
-    backgroundColor: '#DBEAFE',
-    textColor: '#1D4ED8',
+const BMI_THEMES: Record<ColorScheme, Record<BmiCategory, BmiTheme>> = {
+  light: {
+    underweight: {
+      backgroundColor: '#DBEAFE',
+      textColor: '#1D4ED8',
+    },
+    normal: {
+      backgroundColor: '#DCFCE7',
+      textColor: '#15803D',
+    },
+    overweight: {
+      backgroundColor: '#FEF3C7',
+      textColor: '#B45309',
+    },
+    obese: {
+      backgroundColor: '#FFE4E6',
+      textColor: '#BE123C',
+    },
   },
-  normal: {
-    backgroundColor: '#DCFCE7',
-    textColor: '#15803D',
-  },
-  overweight: {
-    backgroundColor: '#FEF3C7',
-    textColor: '#B45309',
-  },
-  obese: {
-    backgroundColor: '#FEE2E2',
-    textColor: '#DC2626',
+  dark: {
+    underweight: {
+      backgroundColor: '#16233F',
+      textColor: '#93C5FD',
+    },
+    normal: {
+      backgroundColor: '#0E2A22',
+      textColor: '#6EE7B7',
+    },
+    overweight: {
+      backgroundColor: '#2A2110',
+      textColor: '#FCD34D',
+    },
+    obese: {
+      backgroundColor: '#2B1620',
+      textColor: '#FDA4AF',
+    },
   },
 };
 
@@ -75,8 +97,8 @@ export function calculateBmi(weightKg: number, heightCm: number): BmiInfo | null
   };
 }
 
-export function getBmiTheme(category: BmiCategory): BmiTheme {
-  return BMI_THEMES[category];
+export function getBmiTheme(category: BmiCategory, scheme: ColorScheme): BmiTheme {
+  return BMI_THEMES[scheme][category];
 }
 
 export function formatBmiValue(value: number): string {

@@ -1,25 +1,21 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { formatSignInError, isEmailNotConfirmedError } from '../auth-errors';
+import { AuthLayout } from '../components/auth-layout';
+import { EmailField } from '../components/email-field';
 import { PasswordField } from '../components/password-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
 import { AuthStackParamList } from '../navigation/types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation, route }: Props) {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { signIn, resendConfirmationEmail } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [email, setEmail] = useState(route.params?.email ?? '');
@@ -74,86 +70,81 @@ export function LoginScreen({ navigation, route }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.screen}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-    >
-      <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.title}>Body Weight Tracker</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
-
-        <View style={styles.card}>
-          <Text style={styles.fieldLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={(value) => {
-              setEmail(value);
-              setShowEmailNotConfirmed(false);
-            }}
-            autoCapitalize="none"
-            autoComplete="email"
-            textContentType="emailAddress"
-            keyboardType="email-address"
-            returnKeyType="next"
-            placeholder="you@example.com"
-            placeholderTextColor="#9CA3AF"
-          />
-
-          <PasswordField
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            autoComplete="password"
-            textContentType="password"
-            returnKeyType="done"
-            onSubmitEditing={() => void handleSignIn()}
-            placeholder="Password"
-          />
-
-          <Pressable
-            style={styles.authInlineLink}
-            onPress={() => navigation.navigate('ForgotPassword', { email: email.trim() || undefined })}
-          >
-            <Text style={styles.linkText}>Forgot password?</Text>
-          </Pressable>
-
-          {showEmailNotConfirmed ? (
-            <View style={styles.authNotice}>
-              <Text style={styles.authNoticeText}>
-                Your email is not confirmed yet. Open the link we sent, then sign in again.
-              </Text>
-              <Pressable
-                style={[styles.secondaryButton, isResending && styles.buttonDisabled]}
-                onPress={() => void handleResendConfirmation()}
-                disabled={isResending}
-              >
-                {isResending ? (
-                  <ActivityIndicator color="#2563EB" />
-                ) : (
-                  <Text style={styles.secondaryButtonText}>Resend confirmation email</Text>
-                )}
-              </Pressable>
-            </View>
-          ) : null}
-
-          <Pressable
-            style={[styles.primaryButton, isBusy && styles.buttonDisabled]}
-            onPress={() => void handleSignIn()}
-            disabled={isBusy}
-          >
-            {isBusy ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.primaryButtonText}>Sign in</Text>
-            )}
-          </Pressable>
-        </View>
-
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to keep tracking your weight"
+      footer={
         <Pressable onPress={() => navigation.navigate('SignUp')}>
           <Text style={styles.linkText}>No account? Create one</Text>
         </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    >
+      <EmailField
+        value={email}
+        onChangeText={(value) => {
+          setEmail(value);
+          setShowEmailNotConfirmed(false);
+        }}
+      />
+
+      <PasswordField
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        autoComplete="password"
+        textContentType="password"
+        returnKeyType="done"
+        onSubmitEditing={() => void handleSignIn()}
+        placeholder="Password"
+      />
+
+      <Pressable
+        style={styles.authInlineLink}
+        onPress={() =>
+          navigation.navigate('ForgotPassword', { email: email.trim() || undefined })
+        }
+      >
+        <Text style={styles.linkText}>Forgot password?</Text>
+      </Pressable>
+
+      {showEmailNotConfirmed ? (
+        <View style={styles.authNotice}>
+          <Text style={styles.authNoticeText}>
+            Your email is not confirmed yet. Open the link we sent, then sign in again.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              isResending && styles.buttonDisabled,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => void handleResendConfirmation()}
+            disabled={isResending}
+          >
+            {isResending ? (
+              <ActivityIndicator color={colors.accent} />
+            ) : (
+              <Text style={styles.secondaryButtonText}>Resend confirmation email</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
+
+      <Pressable
+        style={({ pressed }) => [
+          styles.primaryButton,
+          isBusy && styles.buttonDisabled,
+          pressed && styles.buttonPressed,
+        ]}
+        onPress={() => void handleSignIn()}
+        disabled={isBusy}
+      >
+        {isBusy ? (
+          <ActivityIndicator color={colors.onAccent} />
+        ) : (
+          <Text style={styles.primaryButtonText}>Sign in</Text>
+        )}
+      </Pressable>
+    </AuthLayout>
   );
 }

@@ -4,7 +4,7 @@ import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { formatKg } from '../format';
 import { getHeightAtDate } from '../height';
 import { HeightEntry } from '../types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
 import { BmiBadge } from './bmi-badge';
 
 type WeightWithBmiProps = {
@@ -24,6 +24,7 @@ export function WeightWithBmi({
   compactBmi = false,
   layout = 'inline',
 }: WeightWithBmiProps) {
+  const styles = useAppStyles();
   const { showBmi } = useSharedBmiDisplay();
   const heightCm = getHeightAtDate(heightEntries, entryDate);
   const bmi = showBmi && heightCm !== null ? calculateBmi(weightKg, heightCm) : null;

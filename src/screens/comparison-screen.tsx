@@ -1,36 +1,47 @@
 import { useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { AppCard } from '../components/app-card';
 import { ComparisonResult } from '../components/comparison-result';
 import { ComparisonResultSkeleton } from '../components/comparison-result-skeleton';
 import { DateField } from '../components/date-field';
+import { EmptyState } from '../components/empty-state';
 import { ErrorCard } from '../components/error-card';
-import { LoadingCardOverlay } from '../components/loading-card-overlay';
 import { ScreenHeader } from '../components/screen-header';
+import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
+import { useScrollHeader } from '../hooks/use-scroll-header';
 import { getTodayDate, toDateKey } from '../format';
 import { getComparison } from '../stats';
 import { ComparisonMode } from '../types';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
 
-const MODE_OPTIONS: { label: string; value: ComparisonMode }[] = [
-  { label: 'Week', value: 'week' },
-  { label: 'Month', value: 'month' },
-  { label: 'Year', value: 'year' },
-  { label: 'Custom', value: 'custom' },
+const MODE_OPTIONS: SegmentedOption<ComparisonMode>[] = [
+  { value: 'week', label: 'Week' },
+  { value: 'month', label: 'Month' },
+  { value: 'year', label: 'Year' },
+  { value: 'custom', label: 'Custom' },
 ];
 
 type RangePickerProps = {
   title: string;
+  delay: number;
   start: Date;
   end: Date;
   onStartChange: (date: Date) => void;
   onEndChange: (date: Date) => void;
 };
 
-function RangePicker({ title, start, end, onStartChange, onEndChange }: RangePickerProps) {
+function RangePicker({
+  title,
+  delay,
+  start,
+  end,
+  onStartChange,
+  onEndChange,
+}: RangePickerProps) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.rangeLabel}>{title}</Text>
+    <AppCard title={title} delay={delay}>
       <DateField
         label="Start"
         value={start}
@@ -49,12 +60,14 @@ function RangePicker({ title, start, end, onStartChange, onEndChange }: RangePic
           }
         }}
       />
-    </View>
+    </AppCard>
   );
 }
 
 export function ComparisonScreen() {
+  const styles = useAppStyles();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
+  const { scrollY, onScroll } = useScrollHeader();
   const [mode, setMode] = useState<ComparisonMode>('week');
   const today = getTodayDate();
 
@@ -91,10 +104,16 @@ export function ComparisonScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title="Comparison" subtitle="Compare averages across periods" />
-      <ScrollView
+      <ScreenHeader
+        title="Compare"
+        subtitle="See how two periods stack up"
+        scrollY={scrollY}
+      />
+      <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
         }
@@ -103,34 +122,15 @@ export function ComparisonScreen() {
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
         ) : null}
 
-        <View style={styles.card}>
-          <View style={styles.segmentRow}>
-            {MODE_OPTIONS.map((option) => (
-              <Pressable
-                key={option.value}
-                style={[
-                  styles.presetButton,
-                  mode === option.value && styles.presetButtonActive,
-                ]}
-                onPress={() => setMode(option.value)}
-              >
-                <Text
-                  style={[
-                    styles.presetButtonText,
-                    mode === option.value && styles.presetButtonTextActive,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <AppCard title="Period">
+          <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={setMode} />
+        </AppCard>
 
         {mode === 'custom' ? (
           <>
             <RangePicker
               title="Range A"
+              delay={60}
               start={rangeAStart}
               end={rangeAEnd}
               onStartChange={setRangeAStart}
@@ -138,6 +138,7 @@ export function ComparisonScreen() {
             />
             <RangePicker
               title="Range B"
+              delay={120}
               start={rangeBStart}
               end={rangeBEnd}
               onStartChange={setRangeBStart}
@@ -146,30 +147,36 @@ export function ComparisonScreen() {
           </>
         ) : null}
 
-        <View style={styles.loadingCard}>
-          {isRefreshing ? <LoadingCardOverlay /> : null}
-          <View style={styles.card}>
-            {isLoading ? (
-              <ComparisonResultSkeleton />
-            ) : customInvalid ? (
-              <Text style={styles.warningText}>Each range must have start on or before end.</Text>
-            ) : comparison ? (
-              <ComparisonResult
-                labelA={comparison.labelA}
-                labelB={comparison.labelB}
-                rangeA={comparison.rangeA}
-                rangeB={comparison.rangeB}
-                statsA={comparison.statsA}
-                statsB={comparison.statsB}
-                entries={entries}
-                difference={comparison.difference}
-              />
-            ) : (
-              <Text style={styles.emptyText}>Select valid ranges to compare.</Text>
-            )}
-          </View>
-        </View>
-      </ScrollView>
+        {isLoading ? (
+          <AppCard>
+            <ComparisonResultSkeleton />
+          </AppCard>
+        ) : customInvalid ? (
+          <AppCard>
+            <Text style={styles.warningText}>Each range must have start on or before end.</Text>
+          </AppCard>
+        ) : comparison ? (
+          <ComparisonResult
+            labelA={comparison.labelA}
+            labelB={comparison.labelB}
+            rangeA={comparison.rangeA}
+            rangeB={comparison.rangeB}
+            statsA={comparison.statsA}
+            statsB={comparison.statsB}
+            entries={entries}
+            difference={comparison.difference}
+            isBusy={isRefreshing}
+          />
+        ) : (
+          <AppCard>
+            <EmptyState
+              icon="git-compare-outline"
+              title="Nothing to compare"
+              message="Select valid ranges to compare two periods."
+            />
+          </AppCard>
+        )}
+      </Animated.ScrollView>
     </View>
   );
 }

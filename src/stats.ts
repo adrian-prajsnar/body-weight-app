@@ -6,13 +6,23 @@ import {
   toDateKey,
 } from './format';
 import {
+  ChartRange,
   ComparisonMode,
   DashboardPeriod,
   DateRange,
+  EntryGroup,
+  LatestChange,
   PeriodComparison,
   WeightEntry,
+  WeightSeries,
   WeightStats,
 } from './types';
+
+const CHART_RANGE_DAYS: Record<ChartRange, number> = {
+  '30d': 30,
+  '90d': 90,
+  '1y': 365,
+};
 
 function normalizeToday(today?: Date): Date {
   const date = today ? new Date(today) : getTodayDate();
@@ -201,4 +211,54 @@ export function getComparison(
 
 export function dateKeyToDate(dateKey: string): Date {
   return fromDateKey(dateKey);
+}
+
+export function groupEntriesByMonth(entries: WeightEntry[]): EntryGroup[] {
+  const groups: EntryGroup[] = [];
+
+  for (const entry of entries) {
+    const monthKey = entry.date.slice(0, 7);
+    const lastGroup = groups[groups.length - 1];
+    if (lastGroup && lastGroup.monthKey === monthKey) {
+      lastGroup.entries.push(entry);
+      continue;
+    }
+    groups.push({ monthKey, entries: [entry] });
+  }
+
+  return groups;
+}
+
+export function getChartSeries(entries: WeightEntry[], range: ChartRange): WeightSeries {
+  const today = getTodayDate();
+  const start = addDays(today, -(CHART_RANGE_DAYS[range] - 1));
+  const points = filterEntriesByRange(entries, toRange(start, today)).sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
+
+  if (points.length === 0) {
+    return { points, min: 0, max: 0 };
+  }
+
+  const weights = points.map((entry) => entry.weightKg);
+  return {
+    points,
+    min: Math.min(...weights),
+    max: Math.max(...weights),
+  };
+}
+
+export function getLatestChange(entries: WeightEntry[]): LatestChange {
+  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+  const latest = sorted[0] ?? null;
+  const previous = sorted[1] ?? null;
+
+  if (!latest || !previous) {
+    return { latest, change: null };
+  }
+
+  return {
+    latest,
+    change: Math.round((latest.weightKg - previous.weightKg) * 100) / 100,
+  };
 }

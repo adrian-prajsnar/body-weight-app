@@ -1,10 +1,14 @@
-import { ActivityIndicator, View } from 'react-native';
-import { styles } from '../theme/styles';
+import { ActivityIndicator, StyleProp, View, ViewStyle } from 'react-native';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
-export function LoadingCardOverlay() {
+export function LoadingCardOverlay({ style }: { style?: StyleProp<ViewStyle> }) {
+  const styles = useAppStyles();
+  const colors = useColors();
+
   return (
-    <View style={styles.loadingOverlay}>
-      <ActivityIndicator size="small" color="#2563EB" />
+    <View style={[styles.loadingOverlay, style]}>
+      <ActivityIndicator size="small" color={colors.accent} />
     </View>
   );
 }

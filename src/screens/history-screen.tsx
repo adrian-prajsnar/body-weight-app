@@ -1,23 +1,31 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, RefreshControl, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+import { AppCard } from '../components/app-card';
 import { DateField } from '../components/date-field';
 import { ErrorCard } from '../components/error-card';
 import { HistoryList } from '../components/history-list';
 import { HistoryListSkeleton } from '../components/history-list-skeleton';
-import { LoadingCardOverlay } from '../components/loading-card-overlay';
 import { ScreenHeader } from '../components/screen-header';
 import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
+import { useScrollHeader } from '../hooks/use-scroll-header';
 import { formatDateLabel, getTodayDate, toDateKey } from '../format';
 import { filterEntriesByBounds } from '../stats';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 export function HistoryScreen() {
+  const styles = useAppStyles();
+  const colors = useColors();
   const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
     useSharedWeightEntries();
   const { showError, showSuccess } = useToast();
+  const { scrollY, onScroll } = useScrollHeader();
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const today = getTodayDate();
 
   const isFilterActive = fromDate !== null || toDate !== null;
@@ -65,17 +73,42 @@ export function HistoryScreen() {
     ? 'Start date must be on or before end date.'
     : isFilterActive
       ? 'No entries in this date range.'
-      : 'No entries yet.';
+      : 'Entries you log will show up here.';
+
+  const showFilterCard = isFilterOpen || isFilterActive;
 
   return (
     <View style={styles.screen}>
       <ScreenHeader
         title="History"
-        subtitle={isFilterActive ? 'Filtered entries' : 'All logged entries'}
+        subtitle={
+          filteredEntries.length === 1 ? '1 entry' : `${filteredEntries.length} entries`
+        }
+        scrollY={scrollY}
+        right={
+          <Pressable
+            style={({ pressed }) => [
+              styles.iconButton,
+              isFilterActive && { backgroundColor: colors.accentSoft },
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() => setIsFilterOpen((open) => !open)}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle date filter"
+          >
+            <Ionicons
+              name="options-outline"
+              size={20}
+              color={isFilterActive ? colors.accent : colors.textMuted}
+            />
+          </Pressable>
+        }
       />
-      <ScrollView
+      <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
         }
@@ -84,44 +117,51 @@ export function HistoryScreen() {
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
         ) : null}
 
-        <View style={styles.card}>
-          <View style={styles.filterFieldHeader}>
-            <Text style={styles.cardTitle}>Date filter</Text>
-            {isFilterActive ? (
-              <Pressable onPress={clearFilter} hitSlop={8}>
-                <Text style={styles.linkText}>Clear all</Text>
-              </Pressable>
+        {showFilterCard ? (
+          <AppCard
+            title="Date filter"
+            right={
+              isFilterActive ? (
+                <Pressable onPress={clearFilter} hitSlop={8}>
+                  <Text style={styles.linkText}>Clear all</Text>
+                </Pressable>
+              ) : undefined
+            }
+          >
+            <DateField
+              label="From"
+              value={fromDate}
+              onChange={setFromDate}
+              optional
+              maximumDate={today}
+            />
+            <DateField
+              label="To"
+              value={toDate}
+              onChange={setToDate}
+              optional
+              maximumDate={today}
+            />
+            {isInvalid ? (
+              <Text style={styles.warningText}>From date must be on or before to date.</Text>
             ) : null}
-          </View>
-          <DateField
-            label="From"
-            value={fromDate}
-            onChange={setFromDate}
-            optional
-            maximumDate={today}
-          />
-          <DateField label="To" value={toDate} onChange={setToDate} optional maximumDate={today} />
-          {isInvalid ? (
-            <Text style={styles.warningText}>From date must be on or before to date.</Text>
-          ) : null}
-        </View>
+          </AppCard>
+        ) : null}
 
-        <View style={styles.loadingCard}>
-          {isRefreshing ? <LoadingCardOverlay /> : null}
-          <View style={styles.card}>
-            {isLoading ? (
-              <HistoryListSkeleton rows={6} />
-            ) : (
-              <HistoryList
-                entries={filteredEntries}
-                onDelete={handleDelete}
-                deletingDate={deletingDate}
-                emptyMessage={emptyMessage}
-              />
-            )}
-          </View>
-        </View>
-      </ScrollView>
+        <AppCard isBusy={isRefreshing} delay={60}>
+          {isLoading ? (
+            <HistoryListSkeleton rows={6} />
+          ) : (
+            <HistoryList
+              entries={filteredEntries}
+              onDelete={handleDelete}
+              deletingDate={deletingDate}
+              emptyMessage={emptyMessage}
+              grouped
+            />
+          )}
+        </AppCard>
+      </Animated.ScrollView>
     </View>
   );
 }

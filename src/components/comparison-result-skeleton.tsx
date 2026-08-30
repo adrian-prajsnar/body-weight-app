@@ -1,8 +1,10 @@
 import { View } from 'react-native';
-import { styles } from '../theme/styles';
+import { useAppStyles } from '../theme/styles';
 import { SkeletonBlock } from './skeleton';
 
 export function ComparisonResultSkeleton() {
+  const styles = useAppStyles();
+
   return (
     <View style={{ gap: 12 }}>
       <View style={styles.comparisonPeriodCard}>
