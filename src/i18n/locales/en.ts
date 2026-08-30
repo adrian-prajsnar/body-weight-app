@@ -21,6 +21,9 @@ export default {
     compare: 'Compare',
     profile: 'Profile',
     loadingAccount: 'Loading your account...',
+    setupRequired: 'Configuration required',
+    setupSubtitle:
+      'This app cannot connect to the server. If you received this build from someone else, ask them for a new APK. When developing locally, add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to .env and restart Expo.',
   },
   auth: {
     welcomeBack: 'Welcome back',

@@ -21,6 +21,9 @@ const pl = {
     compare: 'Porównaj',
     profile: 'Profil',
     loadingAccount: 'Ładowanie konta...',
+    setupRequired: 'Wymagana konfiguracja',
+    setupSubtitle:
+      'Aplikacja nie może połączyć się z serwerem. Jeśli masz ten plik od kogoś innego, poproś o nowy APK. Przy lokalnym developmencie dodaj EXPO_PUBLIC_SUPABASE_URL i EXPO_PUBLIC_SUPABASE_ANON_KEY do .env i uruchom Expo ponownie.',
   },
   auth: {
     welcomeBack: 'Witaj ponownie',

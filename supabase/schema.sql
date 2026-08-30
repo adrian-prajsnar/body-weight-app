@@ -1,5 +1,7 @@
--- Run this in Supabase: SQL Editor → New query → paste → Run
--- Safe to run multiple times (tables use IF NOT EXISTS; policies are dropped first).
+-- NEW Supabase projects only — run once in SQL Editor to bootstrap tables.
+-- Do NOT re-run on production to apply schema changes (use supabase/migrations/ instead).
+-- Safe to re-run only on an empty project: IF NOT EXISTS tables; policies are dropped and recreated.
+-- See AGENTS.md → Database migrations.
 
 grant usage on schema public to authenticated, anon;
 

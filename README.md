@@ -30,7 +30,9 @@ npx expo start -c
 ### 2. Create the database tables
 
 1. **SQL Editor** → **New query**
-2. Paste and run [`supabase/schema.sql`](supabase/schema.sql) (safe to run again — policies are recreated)
+2. Paste and run [`supabase/schema.sql`](supabase/schema.sql) once (new projects only)
+
+**Already have data?** Do not re-run `schema.sql` to apply changes. Add a new file under [`supabase/migrations/`](supabase/migrations/) instead — see **Database migrations** in [`AGENTS.md`](AGENTS.md).
 
 **Already set up `weight_entries`?** Run only [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) to add `height_entries` without touching existing weight policies.
 
@@ -92,11 +94,23 @@ All weight data is stored in Supabase only.
 
 ## Build APK
 
+Cloud build (download link on your phone):
+
 ```bash
-npx eas login
-npx eas build:configure
-npx eas build -p android --profile preview
+npx eas-cli login
+npx eas-cli env:push --environment production
+npx eas-cli build -p android --profile production
 ```
+
+`env:push` uploads `EXPO_PUBLIC_*` values from your local `.env` to EAS so the APK can reach Supabase. The build fails early if they are missing.
+
+Local build on your PC (copy the APK to your phone):
+
+```bash
+npx eas-cli build -p android --profile production --local
+```
+
+Before friends sign up, confirm Supabase **Authentication → URL Configuration** includes `body-weight-app://auth/callback`.
 
 ## Privacy
 

@@ -28,9 +28,31 @@ src/
   i18n/                 # language-context.tsx, locales/en.ts, locales/pl.ts
   theme/                # tokens.ts (palettes), theme-context.tsx, styles.ts
   stats.ts, height.ts, format.ts, types.ts
-supabase/schema.sql
-supabase/grants.sql
+supabase/schema.sql          # bootstrap for NEW projects only
+supabase/grants.sql          # safe to re-run anytime
+supabase/migrations/         # one dated .sql file per change on live databases
+supabase/migration-template.sql
 ```
+
+## Database migrations
+
+**Never delete or break existing user data.** Entries belong to real users.
+
+- **New Supabase project:** run `supabase/schema.sql` once.
+- **Project with data (you and friends):** add `supabase/migrations/YYYY-MM-DD-description.sql` (copy `supabase/migration-template.sql`). **Do not** re-run `schema.sql` on production to apply changes.
+
+### Rules for every migration
+
+1. **Additive first** — `CREATE TABLE IF NOT EXISTS`, `ADD COLUMN IF NOT EXISTS` (nullable or with a default), new indexes/policies/grants.
+2. **Never** on live data tables: `DROP TABLE`, `TRUNCATE`, unscoped `DELETE`, or `DROP COLUMN` until data was copied elsewhere and the app no longer reads the column.
+3. **Copy before reshape** — `INSERT … SELECT` with `ON CONFLICT DO NOTHING` (see `migrate-height-entries.sql`). Prefer several safe steps over one destructive step.
+4. **Policies** — `DROP POLICY IF EXISTS` then `CREATE POLICY` does not delete rows; safe when permissions change.
+5. **`grants.sql`** — safe to re-run anytime.
+6. **CHECK constraints** — tightening can reject existing rows; migrate or widen data first, then add the stricter check.
+7. **Keep `schema.sql` in sync** after a migration so new projects match production — but apply live changes only via `supabase/migrations/`.
+8. **Verify** — in migration comments, note `SELECT count(*)` (or similar) before and after on affected tables.
+
+When changing app code that reads/writes Supabase, ensure the migration ships **before** or **with** the app update so users never hit missing columns or tables.
 
 ## Data
 

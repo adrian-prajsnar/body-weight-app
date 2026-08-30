@@ -25,11 +25,8 @@ export function RootNavigator() {
   if (!isConfigured) {
     return (
       <View style={[styles.screen, styles.centered, styles.authContent]}>
-        <Text style={styles.title}>Setup required</Text>
-        <Text style={styles.subtitle}>
-          Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env file, then
-          restart Expo.
-        </Text>
+        <Text style={styles.title}>{t('navigation.setupRequired')}</Text>
+        <Text style={styles.subtitle}>{t('navigation.setupSubtitle')}</Text>
       </View>
     );
   }

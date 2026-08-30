@@ -1,5 +1,6 @@
+-- One-time migration example — copy data before reshape, no drops on weight tables.
+-- For new changes, add a dated file under supabase/migrations/ (see AGENTS.md).
 -- Run once if you already had weight_entries / user_profiles from an older schema.
--- Adds height_entries only (no drops on existing weight tables).
 
 grant usage on schema public to authenticated, anon;
 

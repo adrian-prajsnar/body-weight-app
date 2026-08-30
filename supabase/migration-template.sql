@@ -1,0 +1,24 @@
+-- Migration: YYYY-MM-DD-short-description.sql
+-- Copy this file to supabase/migrations/ before editing.
+--
+-- RULES (see AGENTS.md → Database migrations):
+-- - Never DROP TABLE / TRUNCATE / DELETE without a scoped WHERE on live data tables.
+-- - Add columns nullable or with a default; copy data before DROP COLUMN.
+-- - Use ON CONFLICT DO NOTHING (or DO UPDATE only when overwriting is intentional).
+-- - Policies: DROP POLICY IF EXISTS + CREATE POLICY is OK (does not delete rows).
+-- - grants.sql can be re-run anytime; schema.sql is for NEW projects only.
+--
+-- Before running on production, note row counts:
+--   select count(*) from public.weight_entries;
+--   select count(*) from public.height_entries;
+--
+-- Example additive change (safe):
+-- alter table public.weight_entries
+--   add column if not exists note text;
+--
+-- Example data copy (safe):
+-- insert into public.height_entries (user_id, effective_date, height_cm, updated_at)
+-- select user_id, updated_at::date, height_cm, updated_at
+-- from public.user_profiles
+-- where height_cm is not null
+-- on conflict (user_id, effective_date) do nothing;
