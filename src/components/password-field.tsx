@@ -7,6 +7,7 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
+import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 
@@ -35,6 +36,7 @@ export function PasswordField({
 }: PasswordFieldProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -61,7 +63,7 @@ export function PasswordField({
           onPress={() => setIsVisible((current) => !current)}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={isVisible ? 'Hide password' : 'Show password'}
+          accessibilityLabel={isVisible ? t('auth.hidePassword') : t('auth.showPassword')}
         >
           <Ionicons
             name={isVisible ? 'eye-off-outline' : 'eye-outline'}

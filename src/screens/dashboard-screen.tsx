@@ -14,6 +14,7 @@ import { StatsSummary } from '../components/stats-summary';
 import { StatsSummarySkeleton } from '../components/stats-summary-skeleton';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
+import { useTranslation } from '../i18n/language-context';
 import { RootTabParamList } from '../navigation/types';
 import { formatDateRange } from '../format';
 import {
@@ -28,6 +29,7 @@ type Props = BottomTabScreenProps<RootTabParamList, 'Dashboard'>;
 
 export function DashboardScreen({ navigation }: Props) {
   const styles = useAppStyles();
+  const { t } = useTranslation();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const { scrollY, onScroll } = useScrollHeader();
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
@@ -39,8 +41,8 @@ export function DashboardScreen({ navigation }: Props) {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Overview"
-        subtitle="Track how your weight is trending"
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
         scrollY={scrollY}
       />
       <Animated.ScrollView
@@ -61,7 +63,7 @@ export function DashboardScreen({ navigation }: Props) {
         <EntryForm entries={entries} onSaved={refreshEntries} isDataLoading={isLoading} />
 
         <AppCard
-          title="Averages"
+          title={t('dashboard.averages')}
           subtitle={formatDateRange(range)}
           isBusy={isRefreshing}
           delay={120}
@@ -75,23 +77,20 @@ export function DashboardScreen({ navigation }: Props) {
         </AppCard>
 
         <AppCard
-          title="Recent history"
-          subtitle="Last 7 days"
+          title={t('dashboard.recentHistory')}
+          subtitle={t('dashboard.last7Days')}
           isBusy={isRefreshing}
           delay={180}
           right={
             <Pressable onPress={() => navigation.navigate('History')} hitSlop={8}>
-              <Text style={styles.linkText}>View all</Text>
+              <Text style={styles.linkText}>{t('dashboard.viewAll')}</Text>
             </Pressable>
           }
         >
           {isLoading ? (
             <HistoryListSkeleton rows={3} />
           ) : (
-            <HistoryList
-              entries={recentEntries}
-              emptyMessage="Nothing logged in the last 7 days."
-            />
+            <HistoryList entries={recentEntries} emptyMessage={t('dashboard.emptyRecent')} />
           )}
         </AppCard>
       </Animated.ScrollView>

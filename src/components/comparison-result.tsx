@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
 import { formatDateRange } from '../format';
+import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry, WeightStats } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -31,6 +32,7 @@ export function ComparisonResult({
 }: ComparisonResultProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
 
   const differenceColor =
     difference === null || Math.abs(difference) < 0.005
@@ -47,13 +49,13 @@ export function ComparisonResult({
 
       <AppCard isBusy={isBusy} delay={60}>
         <View style={styles.comparisonDeltaBlock}>
-          <Text style={styles.sectionLabel}>Difference (A − B)</Text>
+          <Text style={styles.sectionLabel}>{t('comparison.difference')}</Text>
           <Text style={[styles.differenceValue, { color: differenceColor }]}>
             {difference === null
-              ? '—'
-              : `${difference > 0 ? '+' : ''}${difference.toFixed(2)} kg`}
+              ? t('common.emDash')
+              : `${difference > 0 ? '+' : ''}${difference.toFixed(2)} ${t('common.kg')}`}
           </Text>
-          <Text style={styles.cardSubtitle}>Based on the average of each period</Text>
+          <Text style={styles.cardSubtitle}>{t('comparison.differenceNote')}</Text>
         </View>
       </AppCard>
 

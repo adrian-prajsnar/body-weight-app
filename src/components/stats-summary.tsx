@@ -5,6 +5,7 @@ import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatKg } from '../format';
 import { getBmiStatsForRange } from '../height';
+import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry, WeightStats } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { BmiBadge } from './bmi-badge';
@@ -16,12 +17,13 @@ type StatsSummaryProps = {
   range: DateRange;
 };
 
-function formatValue(value: number | null): string {
-  return value === null ? '—' : formatKg(value);
+function formatValue(value: number | null, emDash: string): string {
+  return value === null ? emDash : formatKg(value);
 }
 
 export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const styles = useAppStyles();
+  const { t } = useTranslation();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const bmiStats = useMemo(
@@ -29,30 +31,32 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
     [entries, heightEntries, range],
   );
 
+  const emDash = t('common.emDash');
+
   const bmiBadge = (value: number | null) =>
     showBmi && value !== null ? <BmiBadge bmi={bmiInfoFromValue(value)} compact /> : null;
 
   return (
     <View style={styles.statGrid}>
       <StatTile
-        label="Average"
-        value={formatValue(stats.average)}
-        unit={stats.average === null ? undefined : 'kg'}
+        label={t('stats.average')}
+        value={formatValue(stats.average, emDash)}
+        unit={stats.average === null ? undefined : t('common.kg')}
         badge={bmiBadge(bmiStats.average)}
       />
       <StatTile
-        label="Lowest"
-        value={formatValue(stats.min)}
-        unit={stats.min === null ? undefined : 'kg'}
+        label={t('stats.lowest')}
+        value={formatValue(stats.min, emDash)}
+        unit={stats.min === null ? undefined : t('common.kg')}
         badge={bmiBadge(bmiStats.min)}
       />
       <StatTile
-        label="Highest"
-        value={formatValue(stats.max)}
-        unit={stats.max === null ? undefined : 'kg'}
+        label={t('stats.highest')}
+        value={formatValue(stats.max, emDash)}
+        unit={stats.max === null ? undefined : t('common.kg')}
         badge={bmiBadge(bmiStats.max)}
       />
-      <StatTile label="Entries" value={String(stats.count)} />
+      <StatTile label={t('stats.entries')} value={String(stats.count)} />
     </View>
   );
 }

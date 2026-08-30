@@ -3,6 +3,7 @@ import { calculateBmi } from '../bmi';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { formatKg } from '../format';
 import { getHeightAtDate } from '../height';
+import { useTranslation } from '../i18n/language-context';
 import { HeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { BmiBadge } from './bmi-badge';
@@ -26,13 +27,15 @@ export function WeightWithBmi({
 }: WeightWithBmiProps) {
   const styles = useAppStyles();
   const { showBmi } = useSharedBmiDisplay();
+  const { t } = useTranslation();
   const heightCm = getHeightAtDate(heightEntries, entryDate);
   const bmi = showBmi && heightCm !== null ? calculateBmi(weightKg, heightCm) : null;
+  const weightLabel = `${formatKg(weightKg)} ${t('common.kg')}`;
 
   if (layout === 'stacked') {
     return (
       <View style={styles.weightWithBmiStacked}>
-        <Text style={[styles.historyWeight, weightStyle]}>{formatKg(weightKg)} kg</Text>
+        <Text style={[styles.historyWeight, weightStyle]}>{weightLabel}</Text>
         {bmi ? <BmiBadge bmi={bmi} compact={compactBmi} /> : null}
       </View>
     );
@@ -40,7 +43,7 @@ export function WeightWithBmi({
 
   return (
     <View style={styles.weightWithBmiInline}>
-      <Text style={[styles.historyWeight, weightStyle]}>{formatKg(weightKg)} kg</Text>
+      <Text style={[styles.historyWeight, weightStyle]}>{weightLabel}</Text>
       {bmi ? <BmiBadge bmi={bmi} compact={compactBmi} /> : null}
     </View>
   );

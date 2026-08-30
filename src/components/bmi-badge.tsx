@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
-import { BmiInfo, getBmiTheme } from '../bmi';
+import { BmiInfo, formatBmiValue, getBmiTheme } from '../bmi';
+import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { useTheme } from '../theme/theme-context';
 
@@ -11,6 +12,7 @@ type BmiBadgeProps = {
 export function BmiBadge({ bmi, compact = false }: BmiBadgeProps) {
   const styles = useAppStyles();
   const { scheme } = useTheme();
+  const { t } = useTranslation();
   const badgeTheme = getBmiTheme(bmi.category, scheme);
 
   return (
@@ -28,7 +30,7 @@ export function BmiBadge({ bmi, compact = false }: BmiBadgeProps) {
           { color: badgeTheme.textColor },
         ]}
       >
-        BMI {bmi.value.toFixed(1)} · {bmi.label}
+        {t('bmi.label', { value: formatBmiValue(bmi.value), category: bmi.label })}
       </Text>
     </View>
   );

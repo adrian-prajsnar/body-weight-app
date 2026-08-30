@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { t } from '../i18n';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { getCurrentHeight } from '../height';
 import { getHeightEntries, saveHeight } from '../supabase/height-sync';
@@ -36,7 +37,7 @@ export function useUserProfile() {
       setError(null);
       hasLoadedRef.current = true;
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Could not load profile.';
+      const message = loadError instanceof Error ? loadError.message : t('errors.couldNotLoadProfile');
       setError(message);
     } finally {
       setIsLoading(false);

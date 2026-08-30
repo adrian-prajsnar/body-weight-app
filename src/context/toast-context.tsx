@@ -11,6 +11,7 @@ import {
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeOutUp, SlideInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from '../i18n/language-context';
 import { AppStyles, useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { Palette } from '../theme/tokens';
@@ -36,12 +37,6 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 const TOAST_DURATION_MS = 3200;
-
-const TOAST_TITLES: Record<ToastType, string> = {
-  success: 'Success',
-  error: 'Error',
-  info: 'Info',
-};
 
 const TOAST_ICONS: Record<ToastType, keyof typeof Ionicons.glyphMap> = {
   success: 'checkmark-circle',
@@ -86,8 +81,16 @@ function toastIconColor(colors: Palette, type: ToastType): string {
 function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () => void }) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const variant = toastVariant(styles, toast.type);
+
+  const toastTitle =
+    toast.type === 'success'
+      ? t('toasts.success')
+      : toast.type === 'error'
+        ? t('toasts.error')
+        : t('toasts.info');
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, TOAST_DURATION_MS);
@@ -108,7 +111,7 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
           color={toastIconColor(colors, toast.type)}
         />
         <View style={styles.toastTextGroup}>
-          <Text style={[styles.toastTitle, variant.title]}>{TOAST_TITLES[toast.type]}</Text>
+          <Text style={[styles.toastTitle, variant.title]}>{toastTitle}</Text>
           <Text style={[styles.toastMessage, variant.message]}>{toast.message}</Text>
         </View>
       </Pressable>

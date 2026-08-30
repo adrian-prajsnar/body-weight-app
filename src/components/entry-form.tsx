@@ -11,11 +11,12 @@ import { useSharedUserProfile } from '../context/user-profile-context';
 import {
   formatKg,
   getTodayDate,
+  getWeightRangeMessage,
   parseKg,
   toDateKey,
-  WEIGHT_RANGE_MESSAGE,
 } from '../format';
 import { getHeightAtDate } from '../height';
+import { useTranslation } from '../i18n/language-context';
 import { getLatestChange } from '../stats';
 import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
@@ -33,6 +34,7 @@ type EntryFormProps = {
 export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryFormProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { showError, showSuccess } = useToast();
@@ -69,7 +71,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
   const handleSave = async () => {
     const weightKg = parseKg(weightInput);
     if (weightKg === null) {
-      showError(WEIGHT_RANGE_MESSAGE);
+      showError(getWeightRangeMessage());
       return;
     }
 
@@ -79,9 +81,9 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
       await saveEntry(selectedDateKey, weightKg);
       await onSaved();
       setSelectedDate(getTodayDate());
-      showSuccess('Weight entry saved.');
+      showSuccess(t('entryForm.saved'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Save failed.';
+      const message = error instanceof Error ? error.message : t('entryForm.saveFailed');
       showError(message);
     } finally {
       setIsSaving(false);
@@ -89,9 +91,9 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
   };
 
   return (
-    <AppCard title="Log weight" isBusy={isDataLoading} delay={60}>
+    <AppCard title={t('entryForm.title')} isBusy={isDataLoading} delay={60}>
       <DateField
-        label="Date"
+        label={t('entryForm.date')}
         value={selectedDate}
         onChange={(date) => {
           if (date) {
@@ -101,14 +103,14 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
         maximumDate={getTodayDate()}
       />
 
-      <Text style={styles.fieldLabel}>Weight</Text>
+      <Text style={styles.fieldLabel}>{t('entryForm.weight')}</Text>
       <View style={styles.weightEntryRow}>
         <Pressable
           style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
           onPress={() => adjustWeight(-STEP_KG)}
           disabled={isDisabled}
           accessibilityRole="button"
-          accessibilityLabel="Decrease weight"
+          accessibilityLabel={t('entryForm.decreaseWeight')}
         >
           <Ionicons name="remove" size={22} color={colors.textMuted} />
         </Pressable>
@@ -125,7 +127,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
             placeholderTextColor={colors.textSubtle}
             editable={!isDisabled}
           />
-          <Text style={styles.weightInputUnit}>kg</Text>
+          <Text style={styles.weightInputUnit}>{t('common.kg')}</Text>
         </View>
 
         <Pressable
@@ -133,7 +135,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
           onPress={() => adjustWeight(STEP_KG)}
           disabled={isDisabled}
           accessibilityRole="button"
-          accessibilityLabel="Increase weight"
+          accessibilityLabel={t('entryForm.increaseWeight')}
         >
           <Ionicons name="add" size={22} color={colors.textMuted} />
         </Pressable>
@@ -141,7 +143,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
 
       {previewBmi ? (
         <View style={styles.bmiPreviewRow}>
-          <Text style={styles.fieldLabel}>Estimated BMI</Text>
+          <Text style={styles.fieldLabel}>{t('entryForm.estimatedBmi')}</Text>
           <BmiBadge bmi={previewBmi} />
         </View>
       ) : null}
@@ -158,7 +160,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
         {isSaving ? (
           <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.primaryButtonText}>Save entry</Text>
+          <Text style={styles.primaryButtonText}>{t('entryForm.saveEntry')}</Text>
         )}
       </Pressable>
     </AppCard>

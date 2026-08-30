@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatDateLabel, formatMonthLabel } from '../format';
+import { useTranslation } from '../i18n/language-context';
 import { groupEntriesByMonth } from '../stats';
 import { WeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -22,12 +23,15 @@ export function HistoryList({
   entries,
   onDelete,
   deletingDate = null,
-  emptyMessage = 'Entries you log will show up here.',
+  emptyMessage,
   grouped = false,
 }: HistoryListProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const { heightEntries } = useSharedUserProfile();
+
+  const resolvedEmptyMessage = emptyMessage ?? t('history.emptyDefault');
 
   const groups = useMemo(
     () => (grouped ? groupEntriesByMonth(entries) : [{ monthKey: 'all', entries }]),
@@ -35,7 +39,13 @@ export function HistoryList({
   );
 
   if (entries.length === 0) {
-    return <EmptyState icon="documents-outline" title="No entries" message={emptyMessage} />;
+    return (
+      <EmptyState
+        icon="documents-outline"
+        title={t('history.noEntries')}
+        message={resolvedEmptyMessage}
+      />
+    );
   }
 
   const renderRow = (item: WeightEntry) => (
@@ -60,7 +70,7 @@ export function HistoryList({
           ]}
           hitSlop={6}
           accessibilityRole="button"
-          accessibilityLabel={`Delete entry for ${formatDateLabel(item.date)}`}
+          accessibilityLabel={t('history.deleteA11y', { date: formatDateLabel(item.date) })}
         >
           {deletingDate === item.date ? (
             <ActivityIndicator size="small" color={colors.danger} />

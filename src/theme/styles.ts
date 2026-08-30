@@ -13,21 +13,11 @@ function cardSurface(colors: Palette, scheme: ColorScheme, level: 1 | 2): ViewSt
   };
 }
 
-/** Floating chrome (tab bar): one shadow *or* elevation, never stacked with a border. */
+/** Floating chrome (tab bar): border separation only — elevation/shadow tint badly on light Android. */
 function floatingSurface(colors: Palette, scheme: ColorScheme): ViewStyle {
-  if (scheme === 'dark') {
-    return { borderWidth: 1, borderColor: colors.border };
-  }
-
-  if (Platform.OS === 'android') {
-    return { elevation: 6 };
-  }
-
   return {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
+    borderWidth: scheme === 'dark' ? 1 : StyleSheet.hairlineWidth,
+    borderColor: scheme === 'dark' ? colors.border : colors.borderStrong,
   };
 }
 
@@ -694,6 +684,91 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
 
     toastRoot: {
       flex: 1,
+    },
+
+    overlayRoot: {
+      flex: 1,
+    },
+    modalBackdropCentered: {
+      flex: 1,
+      backgroundColor: scheme === 'dark' ? 'rgba(0, 0, 0, 0.62)' : 'rgba(15, 23, 42, 0.42)',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.xl,
+    },
+    confirmDialogCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      padding: spacing.xl,
+      gap: spacing.md,
+      borderWidth: scheme === 'dark' ? 1 : StyleSheet.hairlineWidth,
+      borderColor: colors.borderStrong,
+    },
+    confirmDialogTitle: {
+      fontSize: 18,
+      color: colors.text,
+      fontFamily: fontFamily.semibold,
+    },
+    confirmDialogMessage: {
+      fontSize: 15,
+      color: colors.textMuted,
+      lineHeight: 22,
+      fontFamily: fontFamily.regular,
+    },
+    confirmDialogActions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    confirmDialogButton: {
+      flex: 1,
+      minHeight: 46,
+    },
+    confirmDialogDestructiveButton: {
+      backgroundColor: colors.danger,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 46,
+    },
+    confirmDialogDestructiveButtonText: {
+      color: colors.onAccent,
+      fontSize: 15,
+      fontFamily: fontFamily.semibold,
+    },
+    modalSheetBackdrop: {
+      flex: 1,
+      backgroundColor: scheme === 'dark' ? 'rgba(0, 0, 0, 0.62)' : 'rgba(15, 23, 42, 0.42)',
+      justifyContent: 'flex-end',
+    },
+    modalSheetDismissArea: {
+      flex: 1,
+    },
+    datePickerSheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.xl,
+      borderTopRightRadius: radius.xl,
+      paddingTop: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      gap: spacing.md,
+      borderTopWidth: scheme === 'dark' ? 1 : StyleSheet.hairlineWidth,
+      borderColor: colors.borderStrong,
+    },
+    datePickerSheetHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    datePickerSheetTitle: {
+      flex: 1,
+      fontSize: 18,
+      color: colors.text,
+      fontFamily: fontFamily.semibold,
+    },
+    datePickerSheetConfirm: {
+      marginTop: spacing.xs,
     },
     toastContainer: {
       position: 'absolute',

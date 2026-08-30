@@ -9,6 +9,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { formatKg } from '../format';
+import { useTranslation } from '../i18n/language-context';
+import { getDateLocale } from '../i18n/resolve-locale';
 import { dateKeyToDate } from '../stats';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -38,13 +40,6 @@ function buildSmoothPath(points: Point[]): string {
   return path;
 }
 
-function formatAxisDate(dateKey: string): string {
-  return dateKeyToDate(dateKey).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 type WeightChartProps = {
   series: WeightSeries;
   height?: number;
@@ -53,7 +48,15 @@ type WeightChartProps = {
 export function WeightChart({ series, height = 160 }: WeightChartProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t, locale } = useTranslation();
   const [width, setWidth] = useState(0);
+  const dateLocale = getDateLocale(locale);
+
+  const formatAxisDate = (dateKey: string): string =>
+    dateKeyToDate(dateKey).toLocaleDateString(dateLocale, {
+      month: 'short',
+      day: 'numeric',
+    });
 
   const handleLayout = (event: LayoutChangeEvent) => {
     setWidth(event.nativeEvent.layout.width);
@@ -64,8 +67,8 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
       <View style={styles.chartEmpty}>
         <EmptyState
           icon="trending-up-outline"
-          title="No data in this range"
-          message="Log a weight to start building your trend."
+          title={t('chart.noDataTitle')}
+          message={t('chart.noDataMessage')}
         />
       </View>
     );
@@ -145,7 +148,7 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
       <View style={styles.chartAxisRow}>
         <Text style={styles.chartAxisLabel}>{formatAxisDate(series.points[0].date)}</Text>
         <Text style={styles.chartAxisLabel}>
-          {formatKg(series.min)} – {formatKg(series.max)} kg
+          {t('chart.rangeLabel', { min: formatKg(series.min), max: formatKg(series.max) })}
         </Text>
         <Text style={styles.chartAxisLabel}>
           {formatAxisDate(series.points[series.points.length - 1].date)}

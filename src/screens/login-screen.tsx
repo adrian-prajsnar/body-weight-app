@@ -7,6 +7,7 @@ import { EmailField } from '../components/email-field';
 import { PasswordField } from '../components/password-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
+import { useTranslation } from '../i18n/language-context';
 import { AuthStackParamList } from '../navigation/types';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -16,6 +17,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export function LoginScreen({ navigation, route }: Props) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const { signIn, resendConfirmationEmail } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [email, setEmail] = useState(route.params?.email ?? '');
@@ -32,7 +34,7 @@ export function LoginScreen({ navigation, route }: Props) {
 
   const handleSignIn = async () => {
     if (!email.trim() || !password) {
-      showError('Enter your email and password.');
+      showError(t('auth.enterEmailPassword'));
       return;
     }
 
@@ -40,7 +42,7 @@ export function LoginScreen({ navigation, route }: Props) {
     setIsBusy(true);
     try {
       await signIn(email.trim(), password);
-      showSuccess('Signed in successfully.');
+      showSuccess(t('auth.signedIn'));
     } catch (error) {
       if (isEmailNotConfirmedError(error)) {
         setShowEmailNotConfirmed(true);
@@ -53,16 +55,16 @@ export function LoginScreen({ navigation, route }: Props) {
 
   const handleResendConfirmation = async () => {
     if (!email.trim()) {
-      showError('Enter your email address first.');
+      showError(t('auth.enterEmailFirst'));
       return;
     }
 
     setIsResending(true);
     try {
       await resendConfirmationEmail(email.trim());
-      showSuccess('Confirmation email sent. Check your inbox.');
+      showSuccess(t('auth.confirmationSent'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not resend email.';
+      const message = error instanceof Error ? error.message : t('auth.couldNotResend');
       showError(message);
     } finally {
       setIsResending(false);
@@ -71,11 +73,11 @@ export function LoginScreen({ navigation, route }: Props) {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to keep tracking your weight"
+      title={t('auth.welcomeBack')}
+      subtitle={t('auth.signInSubtitle')}
       footer={
         <Pressable onPress={() => navigation.navigate('SignUp')}>
-          <Text style={styles.linkText}>No account? Create one</Text>
+          <Text style={styles.linkText}>{t('auth.noAccount')}</Text>
         </Pressable>
       }
     >
@@ -88,14 +90,14 @@ export function LoginScreen({ navigation, route }: Props) {
       />
 
       <PasswordField
-        label="Password"
+        label={t('auth.password')}
         value={password}
         onChangeText={setPassword}
         autoComplete="password"
         textContentType="password"
         returnKeyType="done"
         onSubmitEditing={() => void handleSignIn()}
-        placeholder="Password"
+        placeholder={t('auth.password')}
       />
 
       <Pressable
@@ -104,14 +106,12 @@ export function LoginScreen({ navigation, route }: Props) {
           navigation.navigate('ForgotPassword', { email: email.trim() || undefined })
         }
       >
-        <Text style={styles.linkText}>Forgot password?</Text>
+        <Text style={styles.linkText}>{t('auth.forgotPassword')}</Text>
       </Pressable>
 
       {showEmailNotConfirmed ? (
         <View style={styles.authNotice}>
-          <Text style={styles.authNoticeText}>
-            Your email is not confirmed yet. Open the link we sent, then sign in again.
-          </Text>
+          <Text style={styles.authNoticeText}>{t('auth.emailNotConfirmed')}</Text>
           <Pressable
             style={({ pressed }) => [
               styles.secondaryButton,
@@ -124,7 +124,7 @@ export function LoginScreen({ navigation, route }: Props) {
             {isResending ? (
               <ActivityIndicator color={colors.accent} />
             ) : (
-              <Text style={styles.secondaryButtonText}>Resend confirmation email</Text>
+              <Text style={styles.secondaryButtonText}>{t('auth.resendConfirmation')}</Text>
             )}
           </Pressable>
         </View>
@@ -142,7 +142,7 @@ export function LoginScreen({ navigation, route }: Props) {
         {isBusy ? (
           <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.primaryButtonText}>Sign in</Text>
+          <Text style={styles.primaryButtonText}>{t('auth.signIn')}</Text>
         )}
       </Pressable>
     </AuthLayout>

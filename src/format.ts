@@ -1,9 +1,16 @@
+import { getI18nLocale, t } from './i18n';
+import { getDateLocale } from './i18n/resolve-locale';
 import { DateRange } from './types';
 
 const MIN_WEIGHT_KG = 20;
 const MAX_WEIGHT_KG = 300;
 
-export const WEIGHT_RANGE_MESSAGE = `Enter a weight between ${MIN_WEIGHT_KG.toFixed(2)} and ${MAX_WEIGHT_KG.toFixed(2)} kg with up to 2 decimals.`;
+export function getWeightRangeMessage(): string {
+  return t('validation.weightRange', {
+    min: MIN_WEIGHT_KG.toFixed(2),
+    max: MAX_WEIGHT_KG.toFixed(2),
+  });
+}
 
 export function formatKg(value: number): string {
   return value.toFixed(2);
@@ -62,9 +69,13 @@ export function addDays(date: Date, days: number): Date {
   return next;
 }
 
+function getLocaleTag(): string {
+  return getDateLocale(getI18nLocale());
+}
+
 export function formatDateLabel(dateKey: string): string {
   const [year, month, day] = dateKey.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
+  return new Date(year, month - 1, day).toLocaleDateString(getLocaleTag(), {
     weekday: 'short',
     year: 'numeric',
     month: 'short',
@@ -73,7 +84,7 @@ export function formatDateLabel(dateKey: string): string {
 }
 
 export function formatMonthLabel(dateKey: string): string {
-  return fromDateKey(dateKey).toLocaleDateString(undefined, {
+  return fromDateKey(dateKey).toLocaleDateString(getLocaleTag(), {
     month: 'long',
     year: 'numeric',
   });
@@ -83,12 +94,13 @@ export function formatDateRange(range: DateRange): string {
   const start = fromDateKey(range.start);
   const end = fromDateKey(range.end);
   const sameYear = start.getFullYear() === end.getFullYear();
-  const startLabel = start.toLocaleDateString(undefined, {
+  const localeTag = getLocaleTag();
+  const startLabel = start.toLocaleDateString(localeTag, {
     month: 'short',
     day: 'numeric',
     year: sameYear ? undefined : 'numeric',
   });
-  const endLabel = end.toLocaleDateString(undefined, {
+  const endLabel = end.toLocaleDateString(localeTag, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -120,20 +132,25 @@ export function parseDateKey(input: string): string | null {
 
 export function formatDifferenceKg(value: number | null): string {
   if (value === null) {
-    return '—';
+    return t('common.emDash');
   }
   const sign = value > 0 ? '+' : '';
-  return `${sign}${formatKg(value)} kg`;
+  return `${sign}${formatKg(value)} ${t('common.kg')}`;
 }
 
 const MIN_HEIGHT_CM = 100;
 const MAX_HEIGHT_CM = 250;
 
-export const HEIGHT_RANGE_MESSAGE = `Enter height between 1 m 00 cm and 2 m 50 cm (${MIN_HEIGHT_CM}–${MAX_HEIGHT_CM} cm total).`;
+export function getHeightRangeMessage(): string {
+  return t('validation.heightRange', {
+    min: MIN_HEIGHT_CM,
+    max: MAX_HEIGHT_CM,
+  });
+}
 
 export function formatHeightCm(heightCm: number | null): string {
   if (heightCm === null) {
-    return 'Not set';
+    return t('common.notSet');
   }
 
   const meters = Math.floor(heightCm / 100);

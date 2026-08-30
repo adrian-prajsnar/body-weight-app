@@ -11,17 +11,11 @@ import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
+import { useTranslation } from '../i18n/language-context';
 import { getTodayDate, toDateKey } from '../format';
 import { getComparison } from '../stats';
 import { ComparisonMode } from '../types';
 import { useAppStyles } from '../theme/styles';
-
-const MODE_OPTIONS: SegmentedOption<ComparisonMode>[] = [
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
-  { value: 'custom', label: 'Custom' },
-];
 
 type RangePickerProps = {
   title: string;
@@ -40,10 +34,12 @@ function RangePicker({
   onStartChange,
   onEndChange,
 }: RangePickerProps) {
+  const { t } = useTranslation();
+
   return (
     <AppCard title={title} delay={delay}>
       <DateField
-        label="Start"
+        label={t('comparison.start')}
         value={start}
         onChange={(date) => {
           if (date) {
@@ -52,7 +48,7 @@ function RangePicker({
         }}
       />
       <DateField
-        label="End"
+        label={t('comparison.end')}
         value={end}
         onChange={(date) => {
           if (date) {
@@ -66,6 +62,7 @@ function RangePicker({
 
 export function ComparisonScreen() {
   const styles = useAppStyles();
+  const { t, locale } = useTranslation();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const { scrollY, onScroll } = useScrollHeader();
   const [mode, setMode] = useState<ComparisonMode>('week');
@@ -75,6 +72,16 @@ export function ComparisonScreen() {
   const [rangeAEnd, setRangeAEnd] = useState(today);
   const [rangeBStart, setRangeBStart] = useState(today);
   const [rangeBEnd, setRangeBEnd] = useState(today);
+
+  const modeOptions = useMemo<SegmentedOption<ComparisonMode>[]>(
+    () => [
+      { value: 'week', label: t('comparison.week') },
+      { value: 'month', label: t('comparison.month') },
+      { value: 'year', label: t('comparison.year') },
+      { value: 'custom', label: t('comparison.custom') },
+    ],
+    [t],
+  );
 
   const customRanges = useMemo(() => {
     if (mode !== 'custom') {
@@ -94,7 +101,7 @@ export function ComparisonScreen() {
       return getComparison(entries, 'custom', customRanges);
     }
     return getComparison(entries, mode);
-  }, [entries, mode, customRanges]);
+  }, [entries, mode, customRanges, locale]);
 
   const customInvalid =
     mode === 'custom' &&
@@ -105,8 +112,8 @@ export function ComparisonScreen() {
   return (
     <View style={styles.screen}>
       <ScreenHeader
-        title="Compare"
-        subtitle="See how two periods stack up"
+        title={t('comparison.title')}
+        subtitle={t('comparison.subtitle')}
         scrollY={scrollY}
       />
       <Animated.ScrollView
@@ -122,14 +129,14 @@ export function ComparisonScreen() {
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
         ) : null}
 
-        <AppCard title="Period">
-          <SegmentedControl options={MODE_OPTIONS} value={mode} onChange={setMode} />
+        <AppCard title={t('comparison.period')}>
+          <SegmentedControl options={modeOptions} value={mode} onChange={setMode} />
         </AppCard>
 
         {mode === 'custom' ? (
           <>
             <RangePicker
-              title="Range A"
+              title={t('periods.rangeA')}
               delay={60}
               start={rangeAStart}
               end={rangeAEnd}
@@ -137,7 +144,7 @@ export function ComparisonScreen() {
               onEndChange={setRangeAEnd}
             />
             <RangePicker
-              title="Range B"
+              title={t('periods.rangeB')}
               delay={120}
               start={rangeBStart}
               end={rangeBEnd}
@@ -153,7 +160,7 @@ export function ComparisonScreen() {
           </AppCard>
         ) : customInvalid ? (
           <AppCard>
-            <Text style={styles.warningText}>Each range must have start on or before end.</Text>
+            <Text style={styles.warningText}>{t('comparison.invalidCustom')}</Text>
           </AppCard>
         ) : comparison ? (
           <ComparisonResult
@@ -171,8 +178,8 @@ export function ComparisonScreen() {
           <AppCard>
             <EmptyState
               icon="git-compare-outline"
-              title="Nothing to compare"
-              message="Select valid ranges to compare two periods."
+              title={t('comparison.nothingTitle')}
+              message={t('comparison.nothingMessage')}
             />
           </AppCard>
         )}

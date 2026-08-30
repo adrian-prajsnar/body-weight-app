@@ -1,15 +1,26 @@
+import { useMemo } from 'react';
 import { Pressable, ScrollView, Text } from 'react-native';
+import { useTranslation } from '../i18n/language-context';
 import { DashboardPeriod } from '../types';
 import { useAppStyles } from '../theme/styles';
 
-const PERIOD_OPTIONS: { label: string; value: DashboardPeriod }[] = [
-  { label: 'This week', value: 'thisWeek' },
-  { label: 'Last week', value: 'lastWeek' },
-  { label: 'This month', value: 'thisMonth' },
-  { label: 'Last month', value: 'lastMonth' },
-  { label: 'Last 6 months', value: 'last6Months' },
-  { label: 'Last year', value: 'lastYear' },
+const PERIOD_VALUES: DashboardPeriod[] = [
+  'thisWeek',
+  'lastWeek',
+  'thisMonth',
+  'lastMonth',
+  'last6Months',
+  'lastYear',
 ];
+
+const PERIOD_KEYS: Record<DashboardPeriod, string> = {
+  thisWeek: 'periods.thisWeek',
+  lastWeek: 'periods.lastWeek',
+  thisMonth: 'periods.thisMonth',
+  lastMonth: 'periods.lastMonth',
+  last6Months: 'periods.last6Months',
+  lastYear: 'periods.lastYear',
+};
 
 type PeriodSelectorProps = {
   selected: DashboardPeriod;
@@ -18,6 +29,16 @@ type PeriodSelectorProps = {
 
 export function PeriodSelector({ selected, onSelect }: PeriodSelectorProps) {
   const styles = useAppStyles();
+  const { t, locale } = useTranslation();
+
+  const options = useMemo(
+    () =>
+      PERIOD_VALUES.map((value) => ({
+        value,
+        label: t(PERIOD_KEYS[value]),
+      })),
+    [t, locale],
+  );
 
   return (
     <ScrollView
@@ -26,7 +47,7 @@ export function PeriodSelector({ selected, onSelect }: PeriodSelectorProps) {
       style={styles.presetScroll}
       contentContainerStyle={styles.presetScrollContent}
     >
-      {PERIOD_OPTIONS.map((option) => {
+      {options.map((option) => {
         const isActive = selected === option.value;
         return (
           <Pressable

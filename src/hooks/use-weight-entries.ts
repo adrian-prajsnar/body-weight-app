@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { t } from '../i18n';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { deleteEntry, getEntries } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
@@ -34,7 +35,7 @@ export function useWeightEntries() {
       setError(null);
       hasLoadedRef.current = true;
     } catch (loadError) {
-      const message = loadError instanceof Error ? loadError.message : 'Could not load entries.';
+      const message = loadError instanceof Error ? loadError.message : t('errors.couldNotLoadEntries');
       setError(message);
     } finally {
       setIsLoading(false);

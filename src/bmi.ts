@@ -1,3 +1,4 @@
+import { t } from './i18n';
 import { ColorScheme } from './theme/tokens';
 
 export type BmiCategory = 'underweight' | 'normal' | 'overweight' | 'obese';
@@ -52,12 +53,9 @@ const BMI_THEMES: Record<ColorScheme, Record<BmiCategory, BmiTheme>> = {
   },
 };
 
-const BMI_LABELS: Record<BmiCategory, string> = {
-  underweight: 'Underweight',
-  normal: 'Normal',
-  overweight: 'Overweight',
-  obese: 'Obese',
-};
+function getCategoryLabel(category: BmiCategory): string {
+  return t(`bmi.${category}`);
+}
 
 function getCategory(bmi: number): BmiCategory {
   if (bmi < 18.5) {
@@ -77,7 +75,7 @@ export function bmiInfoFromValue(value: number): BmiInfo {
   return {
     value,
     category,
-    label: BMI_LABELS[category],
+    label: getCategoryLabel(category),
   };
 }
 
@@ -93,7 +91,7 @@ export function calculateBmi(weightKg: number, heightCm: number): BmiInfo | null
   return {
     value,
     category,
-    label: BMI_LABELS[category],
+    label: getCategoryLabel(category),
   };
 }
 

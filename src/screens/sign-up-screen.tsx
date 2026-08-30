@@ -6,6 +6,7 @@ import { EmailField } from '../components/email-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { PasswordField } from '../components/password-field';
 import { useToast } from '../context/toast-context';
+import { useTranslation } from '../i18n/language-context';
 import { AuthStackParamList } from '../navigation/types';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -15,6 +16,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 export function SignUpScreen({ navigation }: Props) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const { signUp } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [email, setEmail] = useState('');
@@ -24,17 +26,17 @@ export function SignUpScreen({ navigation }: Props) {
 
   const handleSignUp = async () => {
     if (!email.trim() || !password) {
-      showError('Enter your email and password.');
+      showError(t('auth.enterEmailPassword'));
       return;
     }
 
     if (password.length < 8) {
-      showError('Use a password with at least 8 characters.');
+      showError(t('auth.passwordMinLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      showError('Passwords do not match.');
+      showError(t('auth.passwordsMismatch'));
       return;
     }
 
@@ -43,13 +45,13 @@ export function SignUpScreen({ navigation }: Props) {
     try {
       const { needsEmailConfirmation } = await signUp(trimmedEmail, password);
       if (needsEmailConfirmation) {
-        showSuccess('Account created. Check your email to confirm, then sign in.');
+        showSuccess(t('auth.accountCreatedConfirm'));
       } else {
-        showSuccess('Account created. Sign in to continue.');
+        showSuccess(t('auth.accountCreated'));
       }
       navigation.navigate('Login', { email: trimmedEmail });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Sign up failed.';
+      const message = error instanceof Error ? error.message : t('auth.signUpFailed');
       showError(message);
     } finally {
       setIsBusy(false);
@@ -58,35 +60,35 @@ export function SignUpScreen({ navigation }: Props) {
 
   return (
     <AuthLayout
-      title="Create account"
-      subtitle="Start tracking your weight in seconds"
+      title={t('auth.createAccount')}
+      subtitle={t('auth.signUpSubtitle')}
       footer={
         <Pressable onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.linkText}>Already have an account? Sign in</Text>
+          <Text style={styles.linkText}>{t('auth.hasAccount')}</Text>
         </Pressable>
       }
     >
       <EmailField value={email} onChangeText={setEmail} />
 
       <PasswordField
-        label="Password"
+        label={t('auth.password')}
         value={password}
         onChangeText={setPassword}
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="next"
-        placeholder="At least 8 characters"
+        placeholder={t('auth.passwordMinPlaceholder')}
       />
 
       <PasswordField
-        label="Confirm password"
+        label={t('auth.confirmPassword')}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="done"
         onSubmitEditing={() => void handleSignUp()}
-        placeholder="Repeat password"
+        placeholder={t('auth.repeatPassword')}
       />
 
       <Pressable
@@ -101,7 +103,7 @@ export function SignUpScreen({ navigation }: Props) {
         {isBusy ? (
           <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.primaryButtonText}>Create account</Text>
+          <Text style={styles.primaryButtonText}>{t('auth.createAccount')}</Text>
         )}
       </Pressable>
     </AuthLayout>

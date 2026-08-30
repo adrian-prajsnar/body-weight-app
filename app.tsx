@@ -15,10 +15,12 @@ import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SupabaseAuthProvider } from './src/context/supabase-auth-context';
 import { BmiDisplayProvider } from './src/context/bmi-display-context';
+import { ConfirmProvider } from './src/context/confirm-context';
 import { ToastProvider } from './src/context/toast-context';
 import { UserProfileProvider } from './src/context/user-profile-context';
 import { WeightEntriesProvider } from './src/context/weight-entries-context';
 import { RootNavigator } from './src/navigation/root-navigator';
+import { LanguageProvider } from './src/i18n/language-context';
 import { ThemeProvider, useTheme } from './src/theme/theme-context';
 import { fontFamily } from './src/theme/tokens';
 
@@ -44,16 +46,18 @@ function ThemedApp() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <SupabaseAuthProvider>
         <ToastProvider>
-          <UserProfileProvider>
-            <BmiDisplayProvider>
-              <WeightEntriesProvider>
-                <NavigationContainer theme={navigationTheme}>
-                  <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-                  <RootNavigator />
-                </NavigationContainer>
-              </WeightEntriesProvider>
-            </BmiDisplayProvider>
-          </UserProfileProvider>
+          <ConfirmProvider>
+            <UserProfileProvider>
+              <BmiDisplayProvider>
+                <WeightEntriesProvider>
+                  <NavigationContainer theme={navigationTheme}>
+                    <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+                    <RootNavigator />
+                  </NavigationContainer>
+                </WeightEntriesProvider>
+              </BmiDisplayProvider>
+            </UserProfileProvider>
+          </ConfirmProvider>
         </ToastProvider>
       </SupabaseAuthProvider>
     </View>
@@ -91,9 +95,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <FontGate>
-          <ThemedApp />
-        </FontGate>
+        <LanguageProvider>
+          <FontGate>
+            <ThemedApp />
+          </FontGate>
+        </LanguageProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

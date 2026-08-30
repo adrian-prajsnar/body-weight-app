@@ -5,6 +5,7 @@ import {
   getTodayDate,
   toDateKey,
 } from './format';
+import { t } from './i18n';
 import {
   ChartRange,
   ComparisonMode,
@@ -157,21 +158,21 @@ export function getComparison(
     case 'week':
       rangeA = getDashboardPeriodRange('thisWeek');
       rangeB = getDashboardPeriodRange('lastWeek');
-      labelA = 'This week';
-      labelB = 'Last week';
+      labelA = t('periods.thisWeek');
+      labelB = t('periods.lastWeek');
       break;
     case 'month':
       rangeA = getDashboardPeriodRange('thisMonth');
       rangeB = getDashboardPeriodRange('lastMonth');
-      labelA = 'This month';
-      labelB = 'Last month';
+      labelA = t('periods.thisMonth');
+      labelB = t('periods.lastMonth');
       break;
     case 'year': {
       const ranges = getYearComparisonRanges();
       rangeA = ranges.rangeA;
       rangeB = ranges.rangeB;
-      labelA = 'Last 365 days';
-      labelB = 'Previous 365 days';
+      labelA = t('periods.last365Days');
+      labelB = t('periods.previous365Days');
       break;
     }
     case 'custom':
@@ -186,8 +187,8 @@ export function getComparison(
       }
       rangeA = customRanges.rangeA;
       rangeB = customRanges.rangeB;
-      labelA = 'Range A';
-      labelB = 'Range B';
+      labelA = t('periods.rangeA');
+      labelB = t('periods.rangeB');
       break;
   }
 

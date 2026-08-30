@@ -4,12 +4,14 @@ import { AuthLayout } from '../components/auth-layout';
 import { PasswordField } from '../components/password-field';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useToast } from '../context/toast-context';
+import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 
 export function NewPasswordScreen() {
   const styles = useAppStyles();
   const colors = useColors();
+  const { t } = useTranslation();
   const { updatePassword } = useSupabaseAuth();
   const { showError, showSuccess } = useToast();
   const [password, setPassword] = useState('');
@@ -18,26 +20,26 @@ export function NewPasswordScreen() {
 
   const handleSavePassword = async () => {
     if (!password) {
-      showError('Enter a new password.');
+      showError(t('auth.enterNewPassword'));
       return;
     }
 
     if (password.length < 8) {
-      showError('Use a password with at least 8 characters.');
+      showError(t('auth.passwordMinLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      showError('Passwords do not match.');
+      showError(t('auth.passwordsMismatch'));
       return;
     }
 
     setIsBusy(true);
     try {
       await updatePassword(password);
-      showSuccess('Password updated. You are signed in.');
+      showSuccess(t('auth.passwordUpdated'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not update password.';
+      const message = error instanceof Error ? error.message : t('auth.couldNotUpdatePassword');
       showError(message);
     } finally {
       setIsBusy(false);
@@ -46,28 +48,28 @@ export function NewPasswordScreen() {
 
   return (
     <AuthLayout
-      title="Choose a new password"
-      subtitle="You opened a password reset link. Set a new password below."
+      title={t('auth.chooseNewPassword')}
+      subtitle={t('auth.newPasswordSubtitle')}
     >
       <PasswordField
-        label="New password"
+        label={t('auth.newPassword')}
         value={password}
         onChangeText={setPassword}
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="next"
-        placeholder="At least 8 characters"
+        placeholder={t('auth.passwordMinPlaceholder')}
       />
 
       <PasswordField
-        label="Confirm password"
+        label={t('auth.confirmPassword')}
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         autoComplete="new-password"
         textContentType="newPassword"
         returnKeyType="done"
         onSubmitEditing={() => void handleSavePassword()}
-        placeholder="Repeat password"
+        placeholder={t('auth.repeatPassword')}
       />
 
       <Pressable
@@ -82,7 +84,7 @@ export function NewPasswordScreen() {
         {isBusy ? (
           <ActivityIndicator color={colors.onAccent} />
         ) : (
-          <Text style={styles.primaryButtonText}>Save password</Text>
+          <Text style={styles.primaryButtonText}>{t('auth.savePassword')}</Text>
         )}
       </Pressable>
     </AuthLayout>
