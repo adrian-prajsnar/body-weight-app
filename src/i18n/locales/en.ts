@@ -14,6 +14,9 @@ export default {
     emDash: '—',
     kg: 'kg',
     unitKg: 'kg',
+    lb: 'lb',
+    ft: 'ft',
+    in: 'in',
   },
   navigation: {
     dashboard: 'Dashboard',
@@ -164,6 +167,12 @@ export default {
     height: 'Height',
     meters: 'Meters',
     centimeters: 'Centimeters',
+    feet: 'Feet',
+    inches: 'Inches',
+    unitsHint: 'Choose weight and height units.',
+    unitsSystem: 'System',
+    unitsMetric: 'Metric',
+    unitsImperial: 'Imperial',
     saveHeight: 'Save height',
     heightSaved: 'Height saved.',
     appearance: 'Appearance',
@@ -193,7 +202,8 @@ export default {
   chart: {
     noDataTitle: 'No data in this range',
     noDataMessage: 'Log a weight to start building your trend.',
-    rangeLabel: '%{min} – %{max} kg',
+    rangeLabelMetric: '%{min} – %{max} kg',
+    rangeLabelImperial: '%{min} – %{max} lb',
   },
   dateField: {
     selectDate: 'Select date',
@@ -216,9 +226,13 @@ export default {
     obese: 'Obese',
   },
   validation: {
-    weightRange:
+    weightRangeMetric:
       'Enter a weight between %{min} and %{max} kg with up to 2 decimals.',
-    heightRange:
+    weightRangeImperial:
+      'Enter a weight between %{min} and %{max} lb with up to 1 decimal.',
+    heightRangeMetric:
       'Enter height between 1 m 00 cm and 2 m 50 cm (%{min}–%{max} cm total).',
+    heightRangeImperial:
+      'Enter height between %{minFt} ft %{minIn} in and %{maxFt} ft %{maxIn} in.',
   },
 } as const;

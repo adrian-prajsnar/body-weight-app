@@ -6,13 +6,15 @@ import { AppCard } from './app-card';
 import { BmiBadge } from './bmi-badge';
 import { DateField } from './date-field';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
+import { useUnits } from '../context/unit-context';
 import { useToast } from '../context/toast-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import {
-  formatKg,
+  formatWeightValue,
   getTodayDate,
   getWeightRangeMessage,
-  parseKg,
+  getWeightUnitLabel,
+  parseWeightInput,
   toDateKey,
 } from '../format';
 import { getHeightAtDate } from '../height';
@@ -20,10 +22,9 @@ import { useTranslation } from '../i18n/language-context';
 import { getLatestChange } from '../stats';
 import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
+import { lbToKg, WEIGHT_STEP_KG, WEIGHT_STEP_LB } from '../units';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
-
-const STEP_KG = 0.1;
 
 type EntryFormProps = {
   entries: WeightEntry[];
@@ -35,6 +36,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
   const styles = useAppStyles();
   const colors = useColors();
   const { t } = useTranslation();
+  const { units } = useUnits();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { showError, showSuccess } = useToast();
@@ -44,34 +46,39 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
   const [isFocused, setIsFocused] = useState(false);
 
   const selectedDateKey = useMemo(() => toDateKey(selectedDate), [selectedDate]);
+  const weightPlaceholder = units === 'imperial' ? '0.0' : '0.00';
   const previewBmi = useMemo(() => {
-    const weightKg = parseKg(weightInput);
+    const weightKg = parseWeightInput(weightInput, units);
     const heightCm = getHeightAtDate(heightEntries, selectedDateKey);
     if (!showBmi || weightKg === null || heightCm === null) {
       return null;
     }
     return calculateBmi(weightKg, heightCm);
-  }, [weightInput, heightEntries, selectedDateKey, showBmi]);
+  }, [weightInput, heightEntries, selectedDateKey, showBmi, units]);
 
   useEffect(() => {
     const existing = entries.find((entry) => entry.date === selectedDateKey);
-    setWeightInput(existing ? formatKg(existing.weightKg) : '');
-  }, [entries, selectedDateKey]);
+    setWeightInput(existing ? formatWeightValue(existing.weightKg, units) : '');
+  }, [entries, selectedDateKey, units]);
 
   const isDisabled = isSaving || isDataLoading;
 
-  const adjustWeight = (delta: number) => {
-    const current = parseKg(weightInput) ?? getLatestChange(entries).latest?.weightKg ?? null;
+  const adjustWeight = (direction: -1 | 1) => {
+    const current =
+      parseWeightInput(weightInput, units) ?? getLatestChange(entries).latest?.weightKg ?? null;
     if (current === null) {
       return;
     }
-    setWeightInput(formatKg(Math.round((current + delta) * 100) / 100));
+
+    const deltaKg =
+      units === 'imperial' ? lbToKg(WEIGHT_STEP_LB) * direction : WEIGHT_STEP_KG * direction;
+    setWeightInput(formatWeightValue(Math.round((current + deltaKg) * 100) / 100, units));
   };
 
   const handleSave = async () => {
-    const weightKg = parseKg(weightInput);
+    const weightKg = parseWeightInput(weightInput, units);
     if (weightKg === null) {
-      showError(getWeightRangeMessage());
+      showError(getWeightRangeMessage(units));
       return;
     }
 
@@ -107,7 +114,7 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
       <View style={styles.weightEntryRow}>
         <Pressable
           style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
-          onPress={() => adjustWeight(-STEP_KG)}
+          onPress={() => adjustWeight(-1)}
           disabled={isDisabled}
           accessibilityRole="button"
           accessibilityLabel={t('entryForm.decreaseWeight')}
@@ -123,16 +130,16 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             keyboardType="decimal-pad"
-            placeholder="0.00"
+            placeholder={weightPlaceholder}
             placeholderTextColor={colors.textSubtle}
             editable={!isDisabled}
           />
-          <Text style={styles.weightInputUnit}>{t('common.kg')}</Text>
+          <Text style={styles.weightInputUnit}>{getWeightUnitLabel(units)}</Text>
         </View>
 
         <Pressable
           style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
-          onPress={() => adjustWeight(STEP_KG)}
+          onPress={() => adjustWeight(1)}
           disabled={isDisabled}
           accessibilityRole="button"
           accessibilityLabel={t('entryForm.increaseWeight')}

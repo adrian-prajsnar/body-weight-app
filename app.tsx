@@ -21,6 +21,7 @@ import { UserProfileProvider } from './src/context/user-profile-context';
 import { WeightEntriesProvider } from './src/context/weight-entries-context';
 import { RootNavigator } from './src/navigation/root-navigator';
 import { LanguageProvider } from './src/i18n/language-context';
+import { UnitProvider } from './src/context/unit-context';
 import { ThemeProvider, useTheme } from './src/theme/theme-context';
 import { fontFamily } from './src/theme/tokens';
 
@@ -96,9 +97,11 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <FontGate>
-            <ThemedApp />
-          </FontGate>
+          <UnitProvider>
+            <FontGate>
+              <ThemedApp />
+            </FontGate>
+          </UnitProvider>
         </LanguageProvider>
       </ThemeProvider>
     </SafeAreaProvider>

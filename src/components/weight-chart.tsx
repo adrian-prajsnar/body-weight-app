@@ -8,7 +8,8 @@ import Svg, {
   Path,
   Stop,
 } from 'react-native-svg';
-import { formatKg } from '../format';
+import { formatChartWeightRange } from '../format';
+import { useUnits } from '../context/unit-context';
 import { useTranslation } from '../i18n/language-context';
 import { getDateLocale } from '../i18n/resolve-locale';
 import { dateKeyToDate } from '../stats';
@@ -49,6 +50,7 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
   const styles = useAppStyles();
   const colors = useColors();
   const { t, locale } = useTranslation();
+  const { units } = useUnits();
   const [width, setWidth] = useState(0);
   const dateLocale = getDateLocale(locale);
 
@@ -148,7 +150,7 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
       <View style={styles.chartAxisRow}>
         <Text style={styles.chartAxisLabel}>{formatAxisDate(series.points[0].date)}</Text>
         <Text style={styles.chartAxisLabel}>
-          {t('chart.rangeLabel', { min: formatKg(series.min), max: formatKg(series.max) })}
+          {formatChartWeightRange(series.min, series.max, units)}
         </Text>
         <Text style={styles.chartAxisLabel}>
           {formatAxisDate(series.points[series.points.length - 1].date)}

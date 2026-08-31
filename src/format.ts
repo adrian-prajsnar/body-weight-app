@@ -1,37 +1,87 @@
 import { getI18nLocale, t } from './i18n';
 import { getDateLocale } from './i18n/resolve-locale';
+import {
+  cmToFeetInches,
+  feetInchesToCm,
+  kgToLb,
+  lbToKg,
+  MAX_HEIGHT_CM,
+  MAX_WEIGHT_KG,
+  MAX_WEIGHT_LB,
+  MIN_HEIGHT_CM,
+  MIN_WEIGHT_KG,
+  MIN_WEIGHT_LB,
+  UnitSystem,
+} from './units';
 import { DateRange } from './types';
 
-const MIN_WEIGHT_KG = 20;
-const MAX_WEIGHT_KG = 300;
-
-export function getWeightRangeMessage(): string {
-  return t('validation.weightRange', {
-    min: MIN_WEIGHT_KG.toFixed(2),
-    max: MAX_WEIGHT_KG.toFixed(2),
-  });
+export function getWeightUnitLabel(units: UnitSystem): string {
+  return units === 'imperial' ? t('common.lb') : t('common.kg');
 }
 
-export function formatKg(value: number): string {
-  return value.toFixed(2);
+export function formatWeightValue(weightKg: number, units: UnitSystem): string {
+  if (units === 'imperial') {
+    return kgToLb(weightKg).toFixed(1);
+  }
+  return weightKg.toFixed(2);
 }
 
-export function parseKg(input: string): number | null {
+export function parseWeightInput(input: string, units: UnitSystem): number | null {
   const trimmed = input.trim().replace(',', '.');
   if (!trimmed) {
     return null;
+  }
+
+  if (units === 'imperial') {
+    if (!/^\d+(\.\d{0,1})?$/.test(trimmed)) {
+      return null;
+    }
+    const pounds = Number(trimmed);
+    if (!Number.isFinite(pounds) || pounds < MIN_WEIGHT_LB || pounds > MAX_WEIGHT_LB) {
+      return null;
+    }
+    const weightKg = Math.round(lbToKg(pounds) * 100) / 100;
+    if (weightKg < MIN_WEIGHT_KG || weightKg > MAX_WEIGHT_KG) {
+      return null;
+    }
+    return weightKg;
   }
 
   if (!/^\d+(\.\d{0,2})?$/.test(trimmed)) {
     return null;
   }
 
-  const value = Math.round(Number(trimmed) * 100) / 100;
-  if (!Number.isFinite(value) || value < MIN_WEIGHT_KG || value > MAX_WEIGHT_KG) {
+  const weightKg = Math.round(Number(trimmed) * 100) / 100;
+  if (!Number.isFinite(weightKg) || weightKg < MIN_WEIGHT_KG || weightKg > MAX_WEIGHT_KG) {
     return null;
   }
 
-  return value;
+  return weightKg;
+}
+
+export function getWeightRangeMessage(units: UnitSystem): string {
+  if (units === 'imperial') {
+    return t('validation.weightRangeImperial', {
+      min: MIN_WEIGHT_LB.toFixed(1),
+      max: MAX_WEIGHT_LB.toFixed(1),
+    });
+  }
+  return t('validation.weightRangeMetric', {
+    min: MIN_WEIGHT_KG.toFixed(2),
+    max: MAX_WEIGHT_KG.toFixed(2),
+  });
+}
+
+export function formatWeightLabel(weightKg: number, units: UnitSystem): string {
+  return `${formatWeightValue(weightKg, units)} ${getWeightUnitLabel(units)}`;
+}
+
+export function formatWeightDifference(deltaKg: number | null, units: UnitSystem): string {
+  if (deltaKg === null) {
+    return t('common.emDash');
+  }
+  const sign = deltaKg > 0 ? '+' : '';
+  return `${sign}${formatWeightValue(deltaKg, units)} ${getWeightUnitLabel(units)}`;
 }
 
 export function toDateKey(date: Date): string {
@@ -130,27 +180,31 @@ export function parseDateKey(input: string): string | null {
   return toDateKey(date);
 }
 
-export function formatDifferenceKg(value: number | null): string {
-  if (value === null) {
-    return t('common.emDash');
+export function getHeightRangeMessage(units: UnitSystem): string {
+  if (units === 'imperial') {
+    const min = cmToFeetInches(MIN_HEIGHT_CM);
+    const max = cmToFeetInches(MAX_HEIGHT_CM);
+    return t('validation.heightRangeImperial', {
+      minFt: min.feet,
+      minIn: min.inches,
+      maxFt: max.feet,
+      maxIn: max.inches,
+    });
   }
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${formatKg(value)} ${t('common.kg')}`;
-}
-
-const MIN_HEIGHT_CM = 100;
-const MAX_HEIGHT_CM = 250;
-
-export function getHeightRangeMessage(): string {
-  return t('validation.heightRange', {
+  return t('validation.heightRangeMetric', {
     min: MIN_HEIGHT_CM,
     max: MAX_HEIGHT_CM,
   });
 }
 
-export function formatHeightCm(heightCm: number | null): string {
+export function formatHeight(heightCm: number | null, units: UnitSystem): string {
   if (heightCm === null) {
     return t('common.notSet');
+  }
+
+  if (units === 'imperial') {
+    const { feet, inches } = cmToFeetInches(heightCm);
+    return `${feet} ${t('common.ft')} ${inches} ${t('common.in')}`;
   }
 
   const meters = Math.floor(heightCm / 100);
@@ -158,31 +212,66 @@ export function formatHeightCm(heightCm: number | null): string {
   return `${meters} m ${centimeters} cm`;
 }
 
-export function heightCmToParts(heightCm: number | null): { meters: string; centimeters: string } {
+export function heightToInputParts(
+  heightCm: number | null,
+  units: UnitSystem,
+): { primary: string; secondary: string } {
   if (heightCm === null) {
-    return { meters: '', centimeters: '' };
+    return { primary: '', secondary: '' };
+  }
+
+  if (units === 'imperial') {
+    const { feet, inches } = cmToFeetInches(heightCm);
+    return {
+      primary: String(feet),
+      secondary: String(inches),
+    };
   }
 
   return {
-    meters: String(Math.floor(heightCm / 100)),
-    centimeters: String(heightCm % 100).padStart(2, '0'),
+    primary: String(Math.floor(heightCm / 100)),
+    secondary: String(heightCm % 100).padStart(2, '0'),
   };
 }
 
-export function parseHeightCm(metersInput: string, centimetersInput: string): number | null {
-  const meters = metersInput.trim();
-  const centimeters = centimetersInput.trim();
+export function parseHeightInput(
+  units: UnitSystem,
+  primaryInput: string,
+  secondaryInput: string,
+): number | null {
+  const primary = primaryInput.trim();
+  const secondary = secondaryInput.trim();
 
-  if (!meters || !centimeters) {
+  if (!primary || !secondary) {
     return null;
   }
 
-  if (!/^\d{1,2}$/.test(meters) || !/^\d{1,2}$/.test(centimeters)) {
+  if (units === 'imperial') {
+    if (!/^\d{1,2}$/.test(primary) || !/^\d{1,2}$/.test(secondary)) {
+      return null;
+    }
+
+    const feet = Number(primary);
+    const inches = Number(secondary);
+
+    if (inches < 0 || inches > 11) {
+      return null;
+    }
+
+    const total = feetInchesToCm(feet, inches);
+    if (total < MIN_HEIGHT_CM || total > MAX_HEIGHT_CM) {
+      return null;
+    }
+
+    return total;
+  }
+
+  if (!/^\d{1,2}$/.test(primary) || !/^\d{1,2}$/.test(secondary)) {
     return null;
   }
 
-  const metersValue = Number(meters);
-  const centimetersValue = Number(centimeters);
+  const metersValue = Number(primary);
+  const centimetersValue = Number(secondary);
 
   if (centimetersValue < 0 || centimetersValue > 99) {
     return null;
@@ -194,4 +283,17 @@ export function parseHeightCm(metersInput: string, centimetersInput: string): nu
   }
 
   return total;
+}
+
+export function formatChartWeightRange(minKg: number, maxKg: number, units: UnitSystem): string {
+  if (units === 'imperial') {
+    return t('chart.rangeLabelImperial', {
+      min: formatWeightValue(minKg, units),
+      max: formatWeightValue(maxKg, units),
+    });
+  }
+  return t('chart.rangeLabelMetric', {
+    min: formatWeightValue(minKg, units),
+    max: formatWeightValue(maxKg, units),
+  });
 }

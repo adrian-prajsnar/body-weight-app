@@ -1,5 +1,6 @@
 import { Text, View } from 'react-native';
-import { formatDateRange } from '../format';
+import { formatDateRange, formatWeightValue, getWeightUnitLabel } from '../format';
+import { useUnits } from '../context/unit-context';
 import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry, WeightStats } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -33,6 +34,8 @@ export function ComparisonResult({
   const styles = useAppStyles();
   const colors = useColors();
   const { t } = useTranslation();
+  const { units } = useUnits();
+  const weightUnit = getWeightUnitLabel(units);
 
   const differenceColor =
     difference === null || Math.abs(difference) < 0.005
@@ -53,7 +56,7 @@ export function ComparisonResult({
           <Text style={[styles.differenceValue, { color: differenceColor }]}>
             {difference === null
               ? t('common.emDash')
-              : `${difference > 0 ? '+' : ''}${difference.toFixed(2)} ${t('common.kg')}`}
+              : `${difference > 0 ? '+' : ''}${formatWeightValue(difference, units)} ${weightUnit}`}
           </Text>
           <Text style={styles.cardSubtitle}>{t('comparison.differenceNote')}</Text>
         </View>

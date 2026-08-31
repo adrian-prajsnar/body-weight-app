@@ -1,9 +1,9 @@
 import { Text, TextStyle, View } from 'react-native';
 import { calculateBmi } from '../bmi';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
-import { formatKg } from '../format';
+import { useUnits } from '../context/unit-context';
+import { formatWeightLabel } from '../format';
 import { getHeightAtDate } from '../height';
-import { useTranslation } from '../i18n/language-context';
 import { HeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { BmiBadge } from './bmi-badge';
@@ -26,11 +26,11 @@ export function WeightWithBmi({
   layout = 'inline',
 }: WeightWithBmiProps) {
   const styles = useAppStyles();
+  const { units } = useUnits();
   const { showBmi } = useSharedBmiDisplay();
-  const { t } = useTranslation();
   const heightCm = getHeightAtDate(heightEntries, entryDate);
   const bmi = showBmi && heightCm !== null ? calculateBmi(weightKg, heightCm) : null;
-  const weightLabel = `${formatKg(weightKg)} ${t('common.kg')}`;
+  const weightLabel = formatWeightLabel(weightKg, units);
 
   if (layout === 'stacked') {
     return (

@@ -14,6 +14,9 @@ const pl = {
     emDash: '—',
     kg: 'kg',
     unitKg: 'kg',
+    lb: 'lb',
+    ft: 'ft',
+    in: 'cali',
   },
   navigation: {
     dashboard: 'Panel',
@@ -166,6 +169,12 @@ const pl = {
     height: 'Wzrost',
     meters: 'Metry',
     centimeters: 'Centymetry',
+    feet: 'Stopy',
+    inches: 'Cale',
+    unitsHint: 'Wybierz jednostki wagi i wzrostu.',
+    unitsSystem: 'System',
+    unitsMetric: 'Metryczne',
+    unitsImperial: 'Imperialne',
     saveHeight: 'Zapisz wzrost',
     heightSaved: 'Wzrost zapisany.',
     appearance: 'Wygląd',
@@ -195,7 +204,8 @@ const pl = {
   chart: {
     noDataTitle: 'Brak danych w tym zakresie',
     noDataMessage: 'Zapisz wagę, aby zacząć budować trend.',
-    rangeLabel: '%{min} – %{max} kg',
+    rangeLabelMetric: '%{min} – %{max} kg',
+    rangeLabelImperial: '%{min} – %{max} lb',
   },
   dateField: {
     selectDate: 'Wybierz datę',
@@ -218,9 +228,14 @@ const pl = {
     obese: 'Otyłość',
   },
   validation: {
-    weightRange: 'Wprowadź wagę od %{min} do %{max} kg z maksymalnie 2 miejscami po przecinku.',
-    heightRange:
+    weightRangeMetric:
+      'Wprowadź wagę od %{min} do %{max} kg z maksymalnie 2 miejscami po przecinku.',
+    weightRangeImperial:
+      'Wprowadź wagę od %{min} do %{max} lb z maksymalnie 1 miejscem po przecinku.',
+    heightRangeMetric:
       'Wprowadź wzrost od 1 m 00 cm do 2 m 50 cm (łącznie %{min}–%{max} cm).',
+    heightRangeImperial:
+      'Wprowadź wzrost od %{minFt} ft %{minIn} cal do %{maxFt} ft %{maxIn} cal.',
   },
 };
 

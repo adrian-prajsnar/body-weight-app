@@ -3,7 +3,8 @@ import { Text, View } from 'react-native';
 import { calculateBmi } from '../bmi';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
-import { formatDateLabel, formatKg } from '../format';
+import { formatDateLabel, formatWeightValue, getWeightUnitLabel } from '../format';
+import { useUnits } from '../context/unit-context';
 import { getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { getChartSeries, getLatestChange } from '../stats';
@@ -26,6 +27,7 @@ type HeroWeightCardProps = {
 export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeightCardProps) {
   const styles = useAppStyles();
   const { t, locale } = useTranslation();
+  const { units } = useUnits();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const [range, setRange] = useState<ChartRange>('30d');
@@ -68,8 +70,8 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
       {latest ? (
         <>
           <View style={styles.heroValueRow}>
-            <Text style={styles.heroValue}>{formatKg(latest.weightKg)}</Text>
-            <Text style={styles.heroUnit}>{t('common.kg')}</Text>
+            <Text style={styles.heroValue}>{formatWeightValue(latest.weightKg, units)}</Text>
+            <Text style={styles.heroUnit}>{getWeightUnitLabel(units)}</Text>
           </View>
           <View style={styles.heroMetaRow}>
             <DeltaChip value={change} />

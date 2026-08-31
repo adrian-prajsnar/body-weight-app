@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -23,11 +23,13 @@ import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import { getDateLocale } from '../i18n/resolve-locale';
+import { useUnits } from '../context/unit-context';
+import { UnitPreference } from '../storage/unit-preference';
 import {
-  formatHeightCm,
-  heightCmToParts,
+  formatHeight,
   getHeightRangeMessage,
-  parseHeightCm,
+  heightToInputParts,
+  parseHeightInput,
 } from '../format';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { LanguagePreference } from '../storage/language-preference';
@@ -78,6 +80,7 @@ export function ProfileScreen() {
   const { t, locale, preference: languagePreference, setPreference: setLanguagePreference } =
     useTranslation();
   const { preference, setPreference } = useTheme();
+  const { units, preference: unitPreference, setPreference: setUnitPreference } = useUnits();
   const { session, signOut, deleteAccount } = useSupabaseAuth();
   const { entries } = useSharedWeightEntries();
   const {
@@ -115,27 +118,36 @@ export function ProfileScreen() {
     [t],
   );
 
+  const unitOptions = useMemo<SegmentedOption<UnitPreference>[]>(
+    () => [
+      { value: 'system', label: t('profile.unitsSystem') },
+      { value: 'metric', label: t('profile.unitsMetric') },
+      { value: 'imperial', label: t('profile.unitsImperial') },
+    ],
+    [t],
+  );
+
   const [isEditingHeight, setIsEditingHeight] = useState(false);
-  const [metersInput, setMetersInput] = useState('');
-  const [centimetersInput, setCentimetersInput] = useState('');
+  const [heightPrimaryInput, setHeightPrimaryInput] = useState('');
+  const [heightSecondaryInput, setHeightSecondaryInput] = useState('');
 
   const startEditingHeight = () => {
-    const parts = heightCmToParts(currentHeightCm);
-    setMetersInput(parts.meters);
-    setCentimetersInput(parts.centimeters);
+    const parts = heightToInputParts(currentHeightCm, units);
+    setHeightPrimaryInput(parts.primary);
+    setHeightSecondaryInput(parts.secondary);
     setIsEditingHeight(true);
   };
 
   const cancelEditingHeight = () => {
     setIsEditingHeight(false);
-    setMetersInput('');
-    setCentimetersInput('');
+    setHeightPrimaryInput('');
+    setHeightSecondaryInput('');
   };
 
   const handleSaveHeight = async () => {
-    const heightCm = parseHeightCm(metersInput, centimetersInput);
+    const heightCm = parseHeightInput(units, heightPrimaryInput, heightSecondaryInput);
     if (heightCm === null) {
-      showError(getHeightRangeMessage());
+      showError(getHeightRangeMessage(units));
       return;
     }
 
@@ -148,6 +160,22 @@ export function ProfileScreen() {
       showError(message);
     }
   };
+
+  useEffect(() => {
+    if (!isEditingHeight) {
+      return;
+    }
+
+    const parsed = parseHeightInput(units, heightPrimaryInput, heightSecondaryInput);
+    const heightCm = parsed ?? currentHeightCm;
+    if (heightCm === null) {
+      return;
+    }
+
+    const parts = heightToInputParts(heightCm, units);
+    setHeightPrimaryInput(parts.primary);
+    setHeightSecondaryInput(parts.secondary);
+  }, [units]);
 
   const handleSignOut = () => {
     void confirm({
@@ -258,26 +286,30 @@ export function ProfileScreen() {
                 {isEditingHeight ? (
                   <View style={styles.heightInputRow}>
                     <View style={styles.heightInputGroup}>
-                      <Text style={styles.fieldLabel}>{t('profile.meters')}</Text>
+                      <Text style={styles.fieldLabel}>
+                        {units === 'imperial' ? t('profile.feet') : t('profile.meters')}
+                      </Text>
                       <TextInput
                         style={styles.input}
-                        value={metersInput}
-                        onChangeText={setMetersInput}
+                        value={heightPrimaryInput}
+                        onChangeText={setHeightPrimaryInput}
                         keyboardType="number-pad"
-                        placeholder="1"
+                        placeholder={units === 'imperial' ? '5' : '1'}
                         placeholderTextColor={colors.textSubtle}
                         maxLength={2}
                         editable={!isSaving}
                       />
                     </View>
                     <View style={styles.heightInputGroup}>
-                      <Text style={styles.fieldLabel}>{t('profile.centimeters')}</Text>
+                      <Text style={styles.fieldLabel}>
+                        {units === 'imperial' ? t('profile.inches') : t('profile.centimeters')}
+                      </Text>
                       <TextInput
                         style={styles.input}
-                        value={centimetersInput}
-                        onChangeText={setCentimetersInput}
+                        value={heightSecondaryInput}
+                        onChangeText={setHeightSecondaryInput}
                         keyboardType="number-pad"
-                        placeholder="75"
+                        placeholder={units === 'imperial' ? '10' : '75'}
                         placeholderTextColor={colors.textSubtle}
                         maxLength={2}
                         editable={!isSaving}
@@ -285,7 +317,7 @@ export function ProfileScreen() {
                     </View>
                   </View>
                 ) : (
-                  <Text style={styles.accountValue}>{formatHeightCm(currentHeightCm)}</Text>
+                  <Text style={styles.accountValue}>{formatHeight(currentHeightCm, units)}</Text>
                 )}
 
                 {isEditingHeight ? (
@@ -325,6 +357,15 @@ export function ProfileScreen() {
             options={themeOptions}
             value={preference}
             onChange={(next) => void setPreference(next)}
+          />
+
+          <View style={styles.divider} />
+
+          <Text style={styles.settingHint}>{t('profile.unitsHint')}</Text>
+          <SegmentedControl
+            options={unitOptions}
+            value={unitPreference}
+            onChange={(next) => void setUnitPreference(next)}
           />
 
           <View style={styles.divider} />

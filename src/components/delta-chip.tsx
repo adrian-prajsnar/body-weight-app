@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
-import { formatKg } from '../format';
+import { useUnits } from '../context/unit-context';
+import { formatWeightValue, getWeightUnitLabel } from '../format';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -14,7 +15,8 @@ type DeltaChipProps = {
 export function DeltaChip({ value, suffix }: DeltaChipProps) {
   const styles = useAppStyles();
   const colors = useColors();
-  const { t } = useTranslation();
+  const { units } = useUnits();
+  const weightUnit = getWeightUnitLabel(units);
 
   if (value === null) {
     return null;
@@ -37,7 +39,7 @@ export function DeltaChip({ value, suffix }: DeltaChipProps) {
       <Ionicons name={icon} size={13} color={tint.text} />
       <Text style={[styles.deltaChipText, { color: tint.text }]}>
         {sign}
-        {formatKg(Math.abs(value))} {t('common.kg')}
+        {formatWeightValue(Math.abs(value), units)} {weightUnit}
         {suffix ? ` ${suffix}` : ''}
       </Text>
     </View>
