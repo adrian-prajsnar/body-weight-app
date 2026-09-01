@@ -10,3 +10,8 @@ export type RootTabParamList = {
   Comparison: undefined;
   Profile: undefined;
 };
+
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
+  HeightHistory: undefined;
+};

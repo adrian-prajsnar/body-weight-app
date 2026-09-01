@@ -12,6 +12,7 @@ type DateFieldProps = {
   value: Date | null;
   onChange: (date: Date | null) => void;
   optional?: boolean;
+  readOnly?: boolean;
   maximumDate?: Date;
   minimumDate?: Date;
 };
@@ -21,6 +22,7 @@ export function DateField({
   value,
   onChange,
   optional = false,
+  readOnly = false,
   maximumDate,
   minimumDate,
 }: DateFieldProps) {
@@ -33,36 +35,50 @@ export function DateField({
     <View style={styles.rangeRow}>
       <View style={styles.filterFieldHeader}>
         <Text style={styles.fieldLabel}>{label}</Text>
-        {optional && value ? (
+        {optional && value && !readOnly ? (
           <Pressable onPress={() => onChange(null)} hitSlop={8}>
             <Text style={styles.linkText}>{t('common.clear')}</Text>
           </Pressable>
         ) : null}
       </View>
-      <Pressable
-        style={({ pressed }) => [styles.dateButton, pressed && styles.buttonPressed]}
-        onPress={() => setShowPicker(true)}
-      >
-        <View style={styles.filterFieldHeader}>
-          <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
+      {readOnly ? (
+        <View style={[styles.dateButton, styles.dateButtonReadOnly]}>
+          <Text style={styles.dateButtonValue}>
             {value
               ? formatDateLabel(toDateKey(value))
               : optional
                 ? t('common.any')
                 : t('dateField.selectDate')}
           </Text>
-          <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
         </View>
-      </Pressable>
-      <DatePickerSheet
-        visible={showPicker}
-        value={value ?? getTodayDate()}
-        title={label}
-        minimumDate={minimumDate}
-        maximumDate={maximumDate}
-        onClose={() => setShowPicker(false)}
-        onConfirm={onChange}
-      />
+      ) : (
+        <Pressable
+          style={({ pressed }) => [styles.dateButton, pressed && styles.buttonPressed]}
+          onPress={() => setShowPicker(true)}
+        >
+          <View style={styles.filterFieldHeader}>
+            <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
+              {value
+                ? formatDateLabel(toDateKey(value))
+                : optional
+                  ? t('common.any')
+                  : t('dateField.selectDate')}
+            </Text>
+            <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
+          </View>
+        </Pressable>
+      )}
+      {!readOnly ? (
+        <DatePickerSheet
+          visible={showPicker}
+          value={value ?? getTodayDate()}
+          title={label}
+          minimumDate={minimumDate}
+          maximumDate={maximumDate}
+          onClose={() => setShowPicker(false)}
+          onConfirm={onChange}
+        />
+      ) : null}
     </View>
   );
 }

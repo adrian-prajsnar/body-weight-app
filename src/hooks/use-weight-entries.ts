@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../i18n';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
+import { useRefreshOnAppForeground } from './use-refresh-on-app-foreground';
 import { deleteEntry, getEntries } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
 
@@ -47,15 +48,21 @@ export function useWeightEntries() {
     void refreshEntries();
   }, [refreshEntries]);
 
+  useRefreshOnAppForeground(refreshEntries, isAuthenticated);
+
   const removeEntry = useCallback(
     async (date: string) => {
       setDeletingDate(date);
-      try {
-        await deleteEntry(date);
-        await refreshEntries();
-      } finally {
-        setDeletingDate(null);
-      }
+    try {
+      await deleteEntry(date);
+      await refreshEntries();
+    } catch (deleteError) {
+      throw deleteError instanceof Error
+        ? deleteError
+        : new Error(t('history.deleteFailed'));
+    } finally {
+      setDeletingDate(null);
+    }
     },
     [refreshEntries],
   );

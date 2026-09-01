@@ -134,12 +134,11 @@ function getYearComparisonRanges(todayInput?: Date): {
   rangeB: DateRange;
 } {
   const today = normalizeToday(todayInput);
-  const rangeAEnd = today;
-  const rangeAStart = addDays(today, -364);
-  const rangeBEnd = addDays(rangeAStart, -1);
-  const rangeBStart = addDays(rangeBEnd, -364);
+  const rangeAStart = new Date(today.getFullYear(), 0, 1);
+  const rangeBStart = new Date(today.getFullYear() - 1, 0, 1);
+  const rangeBEnd = new Date(today.getFullYear(), 0, 0);
   return {
-    rangeA: toRange(rangeAStart, rangeAEnd),
+    rangeA: toRange(rangeAStart, today),
     rangeB: toRange(rangeBStart, rangeBEnd),
   };
 }
@@ -171,8 +170,8 @@ export function getComparison(
       const ranges = getYearComparisonRanges();
       rangeA = ranges.rangeA;
       rangeB = ranges.rangeB;
-      labelA = t('periods.last365Days');
-      labelB = t('periods.previous365Days');
+      labelA = t('periods.thisYear');
+      labelB = t('periods.lastYear');
       break;
     }
     case 'custom':

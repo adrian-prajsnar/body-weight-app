@@ -8,9 +8,17 @@ type UserProfileContextValue = {
   isLoading: boolean;
   isRefreshing: boolean;
   isSaving: boolean;
+  deletingEffectiveDate: string | null;
   error: string | null;
   refreshProfile: () => Promise<void>;
-  updateHeight: (heightCm: number) => Promise<void>;
+  saveHeightEntry: (effectiveDate: string, heightCm: number) => Promise<void>;
+  saveFixedHeightEntry: (heightCm: number) => Promise<void>;
+  updateHeightEntry: (
+    previousEffectiveDate: string,
+    effectiveDate: string,
+    heightCm: number,
+  ) => Promise<void>;
+  removeHeightEntry: (effectiveDate: string) => Promise<void>;
 };
 
 const UserProfileContext = createContext<UserProfileContextValue | null>(null);

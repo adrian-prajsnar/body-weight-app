@@ -1,12 +1,12 @@
 # Body Weight Tracker
 
-A minimal Android app for logging daily body weight in kilograms (2 decimal places), with data stored in Supabase.
+A minimal Android app for logging daily body weight, with metric (kg) or imperial (lb) display and data stored in Supabase.
 
 ## Features
 
 - Sign in / sign up (required — no access without login)
-- Profile page — email, height, sign out, delete account
-- Log one weight per day (editing the same date overwrites the previous value)
+- Profile page — email, height history (effective dates), sign out, delete account
+- Log one weight per day (editing the same date overwrites the previous value); **height required first**; metric or imperial units in Profile
 - Dashboard averages: this week, last week, this month, and more
 - Compare periods week/month/year or custom ranges
 - Cloud database via Supabase (free tier)

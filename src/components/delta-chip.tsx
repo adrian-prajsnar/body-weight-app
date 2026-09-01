@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 import { useUnits } from '../context/unit-context';
 import { formatWeightValue, getWeightUnitLabel } from '../format';
-import { useTranslation } from '../i18n/language-context';
+import { lbToKg } from '../units';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 
@@ -22,7 +22,8 @@ export function DeltaChip({ value, suffix }: DeltaChipProps) {
     return null;
   }
 
-  const isFlat = Math.abs(value) < 0.05;
+  const flatThresholdKg = units === 'imperial' ? lbToKg(0.1) : 0.05;
+  const isFlat = Math.abs(value) < flatThresholdKg;
   const isDown = value < 0;
 
   const tint = isFlat

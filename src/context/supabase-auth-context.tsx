@@ -2,6 +2,7 @@ import { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createSessionFromUrl, getAuthRedirectUrl, isPasswordRecoveryUrl } from '../auth-redirect';
+import { registerSupabaseAppLifecycle, refreshSessionOnForeground } from '../supabase/app-lifecycle';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
 
 type SignUpResult = {
@@ -51,10 +52,16 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    void supabase.auth.getSession().then(({ data: { session: activeSession } }) => {
-      setSession(activeSession);
-      setIsLoading(false);
-    });
+    registerSupabaseAppLifecycle();
+
+    void refreshSessionOnForeground()
+      .then(() => supabase.auth.getSession())
+      .then(({ data: { session: activeSession } }) => {
+        setSession(activeSession);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, activeSession) => {
       setSession(activeSession);

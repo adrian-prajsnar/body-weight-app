@@ -1,7 +1,8 @@
 import { HeightEntry } from '../types';
+import { FIXED_HEIGHT_EFFECTIVE_DATE } from '../height';
 import { getUserId } from './auth-user';
 import { supabase } from './client';
-import { toSupabaseError } from './errors';
+import { withAuthRetry } from './with-auth-retry';
 
 type HeightEntryRow = {
   effective_date: string;
@@ -16,33 +17,75 @@ function mapRow(row: HeightEntryRow): HeightEntry {
 }
 
 export async function getHeightEntries(): Promise<HeightEntry[]> {
-  const userId = await getUserId();
-  const { data, error } = await supabase
-    .from('height_entries')
-    .select('effective_date, height_cm')
-    .eq('user_id', userId)
-    .order('effective_date', { ascending: false });
+  return withAuthRetry(async () => {
+    const userId = await getUserId();
+    const { data, error } = await supabase
+      .from('height_entries')
+      .select('effective_date, height_cm')
+      .eq('user_id', userId)
+      .order('effective_date', { ascending: false });
 
-  if (error) {
-    throw toSupabaseError(error);
-  }
+    if (error) {
+      throw error;
+    }
 
-  return (data ?? []).map(mapRow);
+    return (data ?? []).map(mapRow);
+  });
 }
 
 export async function saveHeight(effectiveDate: string, heightCm: number): Promise<void> {
-  const userId = await getUserId();
-  const { error } = await supabase.from('height_entries').upsert(
-    {
-      user_id: userId,
-      effective_date: effectiveDate,
-      height_cm: heightCm,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'user_id,effective_date' },
-  );
+  return withAuthRetry(async () => {
+    const userId = await getUserId();
+    const { error } = await supabase.from('height_entries').upsert(
+      {
+        user_id: userId,
+        effective_date: effectiveDate,
+        height_cm: heightCm,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,effective_date' },
+    );
 
-  if (error) {
-    throw toSupabaseError(error);
-  }
+    if (error) {
+      throw error;
+    }
+  });
+}
+
+export async function replaceAllHeightWithSingle(
+  effectiveDate: string,
+  heightCm: number,
+): Promise<void> {
+  return withAuthRetry(async () => {
+    const userId = await getUserId();
+    const { error: deleteError } = await supabase
+      .from('height_entries')
+      .delete()
+      .eq('user_id', userId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    await saveHeight(effectiveDate, heightCm);
+  });
+}
+
+export async function saveFixedHeight(heightCm: number): Promise<void> {
+  await replaceAllHeightWithSingle(FIXED_HEIGHT_EFFECTIVE_DATE, heightCm);
+}
+
+export async function deleteHeight(effectiveDate: string): Promise<void> {
+  return withAuthRetry(async () => {
+    const userId = await getUserId();
+    const { error } = await supabase
+      .from('height_entries')
+      .delete()
+      .eq('user_id', userId)
+      .eq('effective_date', effectiveDate);
+
+    if (error) {
+      throw error;
+    }
+  });
 }

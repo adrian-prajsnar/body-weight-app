@@ -1,5 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { ProfileScreen } from '../screens/profile-screen';
+import { ProfileNavigator } from './profile-navigator';
 import { ComparisonScreen } from '../screens/comparison-screen';
 import { DashboardScreen } from '../screens/dashboard-screen';
 import { HistoryScreen } from '../screens/history-screen';
@@ -35,7 +35,7 @@ export function MainTabNavigator() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileNavigator}
         options={{ title: t('navigation.profile') }}
       />
     </Tab.Navigator>

@@ -217,6 +217,9 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       color: colors.text,
       fontFamily: fontFamily.medium,
     },
+    dateButtonReadOnly: {
+      backgroundColor: colors.surfaceSunken,
+    },
 
     primaryButton: {
       backgroundColor: colors.accent,

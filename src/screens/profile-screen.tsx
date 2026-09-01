@@ -1,17 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   Switch,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
 import { ErrorCard } from '../components/error-card';
+import { HeightSection } from '../components/height-section';
 import { ProfileDetailsSkeleton } from '../components/profile-details-skeleton';
 import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
@@ -22,15 +21,13 @@ import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { ProfileStackParamList } from '../navigation/types';
 import { getDateLocale } from '../i18n/resolve-locale';
 import { useUnits } from '../context/unit-context';
 import { UnitPreference } from '../storage/unit-preference';
-import {
-  formatHeight,
-  getHeightRangeMessage,
-  heightToInputParts,
-  parseHeightInput,
-} from '../format';
+import { getHeightRangeMessage } from '../format';
+import { usesHeightTimeline } from '../height';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { LanguagePreference } from '../storage/language-preference';
 import { ThemePreference } from '../storage/theme-preference';
@@ -74,7 +71,7 @@ function ProfileRow({
   );
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>) {
   const styles = useAppStyles();
   const colors = useColors();
   const { t, locale, preference: languagePreference, setPreference: setLanguagePreference } =
@@ -84,13 +81,14 @@ export function ProfileScreen() {
   const { session, signOut, deleteAccount } = useSupabaseAuth();
   const { entries } = useSharedWeightEntries();
   const {
+    heightEntries,
     currentHeightCm,
     isLoading,
     isRefreshing,
     isSaving,
     error,
     refreshProfile,
-    updateHeight,
+    saveFixedHeightEntry,
   } = useSharedUserProfile();
   const { showBmi, setShowBmi } = useSharedBmiDisplay();
   const { showError, showInfo, showSuccess } = useToast();
@@ -127,33 +125,9 @@ export function ProfileScreen() {
     [t],
   );
 
-  const [isEditingHeight, setIsEditingHeight] = useState(false);
-  const [heightPrimaryInput, setHeightPrimaryInput] = useState('');
-  const [heightSecondaryInput, setHeightSecondaryInput] = useState('');
-
-  const startEditingHeight = () => {
-    const parts = heightToInputParts(currentHeightCm, units);
-    setHeightPrimaryInput(parts.primary);
-    setHeightSecondaryInput(parts.secondary);
-    setIsEditingHeight(true);
-  };
-
-  const cancelEditingHeight = () => {
-    setIsEditingHeight(false);
-    setHeightPrimaryInput('');
-    setHeightSecondaryInput('');
-  };
-
-  const handleSaveHeight = async () => {
-    const heightCm = parseHeightInput(units, heightPrimaryInput, heightSecondaryInput);
-    if (heightCm === null) {
-      showError(getHeightRangeMessage(units));
-      return;
-    }
-
+  const handleSaveFixedHeight = async (heightCm: number) => {
     try {
-      await updateHeight(heightCm);
-      setIsEditingHeight(false);
+      await saveFixedHeightEntry(heightCm);
       showSuccess(t('profile.heightSaved'));
     } catch (saveError) {
       const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
@@ -161,21 +135,32 @@ export function ProfileScreen() {
     }
   };
 
-  useEffect(() => {
-    if (!isEditingHeight) {
+  const handleConsolidateToFixedHeight = async () => {
+    if (!usesHeightTimeline(heightEntries)) {
       return;
     }
 
-    const parsed = parseHeightInput(units, heightPrimaryInput, heightSecondaryInput);
-    const heightCm = parsed ?? currentHeightCm;
-    if (heightCm === null) {
+    const confirmed = await confirm({
+      title: t('profile.stillGrowingOffConfirmTitle'),
+      message: t('profile.stillGrowingOffConfirmMessage'),
+      confirmLabel: t('common.confirm'),
+      destructive: false,
+    });
+
+    if (!confirmed) {
+      throw new Error('cancelled');
+    }
+
+    if (currentHeightCm === null) {
       return;
     }
 
-    const parts = heightToInputParts(heightCm, units);
-    setHeightPrimaryInput(parts.primary);
-    setHeightSecondaryInput(parts.secondary);
-  }, [units]);
+    await saveFixedHeightEntry(currentHeightCm);
+  };
+
+  const handleInvalidHeight = () => {
+    showError(getHeightRangeMessage(units));
+  };
 
   const handleSignOut = () => {
     void confirm({
@@ -223,10 +208,7 @@ export function ProfileScreen() {
     });
   };
 
-  const entryCountLabel =
-    entries.length === 1
-      ? t('history.entryCount_one')
-      : t('history.entryCount_other', { count: entries.length });
+  const entryCountLabel = t('history.entryCount', { count: entries.length });
 
   return (
     <View style={styles.screen}>
@@ -267,77 +249,16 @@ export function ProfileScreen() {
 
               <View style={styles.divider} />
 
-              <View style={styles.accountRow}>
-                <View style={styles.filterFieldHeader}>
-                  <Text style={styles.accountLabel}>{t('profile.height')}</Text>
-                  {!isEditingHeight ? (
-                    <Pressable onPress={startEditingHeight} hitSlop={8} disabled={isSaving}>
-                      <Text style={styles.linkText}>
-                        {currentHeightCm === null ? t('common.add') : t('common.edit')}
-                      </Text>
-                    </Pressable>
-                  ) : (
-                    <Pressable onPress={cancelEditingHeight} hitSlop={8} disabled={isSaving}>
-                      <Text style={styles.linkText}>{t('common.cancel')}</Text>
-                    </Pressable>
-                  )}
-                </View>
-
-                {isEditingHeight ? (
-                  <View style={styles.heightInputRow}>
-                    <View style={styles.heightInputGroup}>
-                      <Text style={styles.fieldLabel}>
-                        {units === 'imperial' ? t('profile.feet') : t('profile.meters')}
-                      </Text>
-                      <TextInput
-                        style={styles.input}
-                        value={heightPrimaryInput}
-                        onChangeText={setHeightPrimaryInput}
-                        keyboardType="number-pad"
-                        placeholder={units === 'imperial' ? '5' : '1'}
-                        placeholderTextColor={colors.textSubtle}
-                        maxLength={2}
-                        editable={!isSaving}
-                      />
-                    </View>
-                    <View style={styles.heightInputGroup}>
-                      <Text style={styles.fieldLabel}>
-                        {units === 'imperial' ? t('profile.inches') : t('profile.centimeters')}
-                      </Text>
-                      <TextInput
-                        style={styles.input}
-                        value={heightSecondaryInput}
-                        onChangeText={setHeightSecondaryInput}
-                        keyboardType="number-pad"
-                        placeholder={units === 'imperial' ? '10' : '75'}
-                        placeholderTextColor={colors.textSubtle}
-                        maxLength={2}
-                        editable={!isSaving}
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  <Text style={styles.accountValue}>{formatHeight(currentHeightCm, units)}</Text>
-                )}
-
-                {isEditingHeight ? (
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.primaryButton,
-                      isSaving && styles.buttonDisabled,
-                      pressed && styles.buttonPressed,
-                    ]}
-                    onPress={() => void handleSaveHeight()}
-                    disabled={isSaving}
-                  >
-                    {isSaving ? (
-                      <ActivityIndicator color={colors.onAccent} />
-                    ) : (
-                      <Text style={styles.primaryButtonText}>{t('profile.saveHeight')}</Text>
-                    )}
-                  </Pressable>
-                ) : null}
-              </View>
+              <HeightSection
+                heightEntries={heightEntries}
+                currentHeightCm={currentHeightCm}
+                isLoading={isLoading}
+                isSaving={isSaving}
+                onSaveFixedHeight={handleSaveFixedHeight}
+                onInvalidHeight={handleInvalidHeight}
+                onConsolidateToFixedHeight={handleConsolidateToFixedHeight}
+                onOpenHeightHistory={() => navigation.navigate('HeightHistory')}
+              />
             </>
           )}
         </AppCard>

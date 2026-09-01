@@ -5,11 +5,28 @@ import { AppLocale } from './resolve-locale';
 
 export type TranslationTree = typeof en;
 
+function polishPluralKeys(_i18n: I18n, count: number): string[] {
+  const absolute = Math.abs(count);
+  const mod10 = absolute % 10;
+  const mod100 = absolute % 100;
+
+  if (absolute === 1) {
+    return ['one', 'other'];
+  }
+
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return ['few', 'other'];
+  }
+
+  return ['many', 'other'];
+}
+
 const i18n = new I18n({ en, pl });
 
 i18n.defaultLocale = 'en';
 i18n.locale = 'en';
 i18n.enableFallback = true;
+i18n.pluralization.register('pl', polishPluralKeys);
 
 export function setI18nLocale(locale: AppLocale): void {
   i18n.locale = locale;

@@ -12,9 +12,13 @@ import { PeriodSelector } from '../components/period-selector';
 import { ScreenHeader } from '../components/screen-header';
 import { StatsSummary } from '../components/stats-summary';
 import { StatsSummarySkeleton } from '../components/stats-summary-skeleton';
+import { WeightEntryModal } from '../components/weight-entry-modal';
+import { useConfirm } from '../context/confirm-context';
+import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
+import { formatDateLabel } from '../format';
 import { RootTabParamList } from '../navigation/types';
 import { formatDateRange } from '../format';
 import {
@@ -30,9 +34,40 @@ type Props = BottomTabScreenProps<RootTabParamList, 'Dashboard'>;
 export function DashboardScreen({ navigation }: Props) {
   const styles = useAppStyles();
   const { t } = useTranslation();
-  const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
+  const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
+    useSharedWeightEntries();
+  const { showError, showSuccess } = useToast();
+  const { confirm } = useConfirm();
   const { scrollY, onScroll } = useScrollHeader();
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+
+  const handleEdit = (date: string) => {
+    setEditingDate(date);
+  };
+
+  const handleDelete = (date: string) => {
+    const dateLabel = formatDateLabel(date);
+    void confirm({
+      title: t('history.deleteEntry'),
+      message: t('history.deleteConfirm', { date: dateLabel }),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void (async () => {
+        try {
+          await removeEntry(date);
+          showSuccess(t('history.deleted', { date: dateLabel }));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : t('history.deleteFailed');
+          showError(message);
+        }
+      })();
+    });
+  };
 
   const range = useMemo(() => getDashboardPeriodRange(period), [period]);
   const stats = useMemo(() => getStatsForRange(entries, range), [entries, range]);
@@ -78,7 +113,6 @@ export function DashboardScreen({ navigation }: Props) {
 
         <AppCard
           title={t('dashboard.recentHistory')}
-          subtitle={t('dashboard.last7Days')}
           isBusy={isRefreshing}
           delay={180}
           right={
@@ -90,10 +124,25 @@ export function DashboardScreen({ navigation }: Props) {
           {isLoading ? (
             <HistoryListSkeleton rows={3} />
           ) : (
-            <HistoryList entries={recentEntries} emptyMessage={t('dashboard.emptyRecent')} />
+            <HistoryList
+              entries={recentEntries}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              deletingDate={deletingDate}
+              emptyMessage={t('dashboard.emptyRecent')}
+            />
           )}
         </AppCard>
       </Animated.ScrollView>
+
+      <WeightEntryModal
+        visible={editingDate !== null}
+        date={editingDate}
+        entries={entries}
+        onClose={() => setEditingDate(null)}
+        onSaved={refreshEntries}
+        isDataLoading={isLoading}
+      />
     </View>
   );
 }

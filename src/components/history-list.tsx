@@ -13,6 +13,7 @@ import { WeightWithBmi } from './weight-with-bmi';
 
 type HistoryListProps = {
   entries: WeightEntry[];
+  onEdit?: (date: string) => void;
   onDelete?: (date: string) => void;
   deletingDate?: string | null;
   emptyMessage?: string;
@@ -21,6 +22,7 @@ type HistoryListProps = {
 
 export function HistoryList({
   entries,
+  onEdit,
   onDelete,
   deletingDate = null,
   emptyMessage,
@@ -60,24 +62,43 @@ export function HistoryList({
           compactBmi
         />
       </View>
-      {onDelete ? (
-        <Pressable
-          onPress={() => onDelete(item.date)}
-          disabled={deletingDate !== null}
-          style={({ pressed }) => [
-            styles.historyDeleteButton,
-            pressed && styles.iconButtonDanger,
-          ]}
-          hitSlop={6}
-          accessibilityRole="button"
-          accessibilityLabel={t('history.deleteA11y', { date: formatDateLabel(item.date) })}
-        >
-          {deletingDate === item.date ? (
-            <ActivityIndicator size="small" color={colors.danger} />
-          ) : (
-            <Ionicons name="trash-outline" size={19} color={colors.danger} />
-          )}
-        </Pressable>
+      {onEdit || onDelete ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          {onEdit ? (
+            <Pressable
+              onPress={() => onEdit(item.date)}
+              disabled={deletingDate !== null}
+              style={({ pressed }) => [
+                styles.historyDeleteButton,
+                pressed && styles.buttonPressed,
+              ]}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={t('history.editA11y', { date: formatDateLabel(item.date) })}
+            >
+              <Ionicons name="create-outline" size={19} color={colors.textMuted} />
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              onPress={() => onDelete(item.date)}
+              disabled={deletingDate !== null}
+              style={({ pressed }) => [
+                styles.historyDeleteButton,
+                pressed && styles.iconButtonDanger,
+              ]}
+              hitSlop={6}
+              accessibilityRole="button"
+              accessibilityLabel={t('history.deleteA11y', { date: formatDateLabel(item.date) })}
+            >
+              {deletingDate === item.date ? (
+                <ActivityIndicator size="small" color={colors.danger} />
+              ) : (
+                <Ionicons name="trash-outline" size={19} color={colors.danger} />
+              )}
+            </Pressable>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );

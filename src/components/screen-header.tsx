@@ -12,10 +12,11 @@ type ScreenHeaderProps = {
   title: string;
   subtitle: string;
   scrollY?: SharedValue<number>;
+  leading?: ReactNode;
   right?: ReactNode;
 };
 
-export function ScreenHeader({ title, subtitle, scrollY, right }: ScreenHeaderProps) {
+export function ScreenHeader({ title, subtitle, scrollY, leading, right }: ScreenHeaderProps) {
   const styles = useAppStyles();
   const insets = useSafeAreaInsets();
 
@@ -27,6 +28,7 @@ export function ScreenHeader({ title, subtitle, scrollY, right }: ScreenHeaderPr
     <View>
       <View style={[styles.screenHeader, { paddingTop: insets.top + 12 }]}>
         <View style={styles.screenHeaderRow}>
+          {leading ? <View style={{ marginRight: 8 }}>{leading}</View> : null}
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>

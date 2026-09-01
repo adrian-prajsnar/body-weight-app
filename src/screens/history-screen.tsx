@@ -8,6 +8,7 @@ import { ErrorCard } from '../components/error-card';
 import { HistoryList } from '../components/history-list';
 import { HistoryListSkeleton } from '../components/history-list-skeleton';
 import { ScreenHeader } from '../components/screen-header';
+import { WeightEntryModal } from '../components/weight-entry-modal';
 import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
@@ -30,6 +31,7 @@ export function HistoryScreen() {
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
   const today = getTodayDate();
 
   const isFilterActive = fromDate !== null || toDate !== null;
@@ -46,6 +48,10 @@ export function HistoryScreen() {
     }
     return filterEntriesByBounds(entries, fromKey, toKey);
   }, [entries, fromKey, toKey, isFilterActive, isInvalid]);
+
+  const handleEdit = (date: string) => {
+    setEditingDate(date);
+  };
 
   const handleDelete = (date: string) => {
     const dateLabel = formatDateLabel(date);
@@ -83,10 +89,7 @@ export function HistoryScreen() {
 
   const showFilterCard = isFilterOpen || isFilterActive;
 
-  const subtitle =
-    filteredEntries.length === 1
-      ? t('history.entryCount_one')
-      : t('history.entryCount_other', { count: filteredEntries.length });
+  const subtitle = t('history.entryCount', { count: filteredEntries.length });
 
   return (
     <View style={styles.screen}>
@@ -163,6 +166,7 @@ export function HistoryScreen() {
           ) : (
             <HistoryList
               entries={filteredEntries}
+              onEdit={handleEdit}
               onDelete={handleDelete}
               deletingDate={deletingDate}
               emptyMessage={emptyMessage}
@@ -171,6 +175,15 @@ export function HistoryScreen() {
           )}
         </AppCard>
       </Animated.ScrollView>
+
+      <WeightEntryModal
+        visible={editingDate !== null}
+        date={editingDate}
+        entries={entries}
+        onClose={() => setEditingDate(null)}
+        onSaved={refreshEntries}
+        isDataLoading={isLoading}
+      />
     </View>
   );
 }

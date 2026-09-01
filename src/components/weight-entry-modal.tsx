@@ -1,0 +1,74 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { fromDateKey } from '../format';
+import { useTranslation } from '../i18n/language-context';
+import { WeightEntry } from '../types';
+import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
+import { WeightEntryFormBody } from './weight-entry-form-body';
+
+type WeightEntryModalProps = {
+  visible: boolean;
+  date: string | null;
+  entries: WeightEntry[];
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+  isDataLoading?: boolean;
+};
+
+export function WeightEntryModal({
+  visible,
+  date,
+  entries,
+  onClose,
+  onSaved,
+  isDataLoading = false,
+}: WeightEntryModalProps) {
+  const styles = useAppStyles();
+  const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+
+  if (!date) {
+    return null;
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.modalSheetBackdrop}>
+        <Pressable style={styles.modalSheetDismissArea} onPress={onClose} />
+        <View
+          style={[
+            styles.datePickerSheet,
+            { paddingBottom: Math.max(insets.bottom, 16), maxHeight: '90%' },
+          ]}
+        >
+          <View style={styles.datePickerSheetHeader}>
+            <Text style={styles.datePickerSheetTitle}>{t('entryForm.editTitle')}</Text>
+            <Pressable
+              style={({ pressed }) => [styles.iconButton, pressed && styles.buttonPressed]}
+              onPress={onClose}
+              hitSlop={8}
+              accessibilityLabel={t('common.cancel')}
+            >
+              <Ionicons name="close" size={20} color={colors.textMuted} />
+            </Pressable>
+          </View>
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <WeightEntryFormBody
+              key={date}
+              entries={entries}
+              onSaved={onSaved}
+              isDataLoading={isDataLoading}
+              initialDate={fromDateKey(date)}
+              onSaveSuccess={onClose}
+              autoFocusWeight
+              dateReadOnly
+            />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
