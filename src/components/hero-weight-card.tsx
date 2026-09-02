@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
 import { calculateBmi } from '../bmi';
+import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatDateLabel, formatWeightValue, getWeightUnitLabel } from '../format';
@@ -30,6 +31,7 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
   const { units } = useUnits();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
+  const { openWeighIn } = useBmiDetails();
   const [range, setRange] = useState<ChartRange>('30d');
 
   const rangeOptions = useMemo<SegmentedOption<ChartRange>[]>(
@@ -45,12 +47,12 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
   const series = useMemo(() => getChartSeries(entries, range), [entries, range]);
 
   const bmi = useMemo(() => {
-    if (!showBmi || !latest) {
+    if (!latest) {
       return null;
     }
     const heightCm = getHeightAtDate(heightEntries, latest.date);
     return heightCm === null ? null : calculateBmi(latest.weightKg, heightCm);
-  }, [heightEntries, latest, showBmi]);
+  }, [heightEntries, latest]);
 
   if (isLoading) {
     return (
@@ -75,7 +77,20 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
           </View>
           <View style={styles.heroMetaRow}>
             <DeltaChip value={change} />
-            {bmi ? <BmiBadge bmi={bmi} compact /> : null}
+            {showBmi ? (
+              <BmiBadge
+                bmi={bmi}
+                compact
+                onPress={() =>
+                  openWeighIn({
+                    date: latest.date,
+                    weightKg: latest.weightKg,
+                    createdAt: latest.createdAt,
+                    updatedAt: latest.updatedAt,
+                  })
+                }
+              />
+            ) : null}
           </View>
           <Text style={styles.cardSubtitle}>
             {t('hero.loggedOn', { date: formatDateLabel(latest.date) })}

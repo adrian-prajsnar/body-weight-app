@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   RefreshControl,
@@ -26,9 +26,9 @@ import { ProfileStackParamList } from '../navigation/types';
 import { getDateLocale } from '../i18n/resolve-locale';
 import { useUnits } from '../context/unit-context';
 import { UnitPreference } from '../storage/unit-preference';
-import { getHeightRangeMessage } from '../format';
-import { usesHeightTimeline } from '../height';
 import { useSharedUserProfile } from '../context/user-profile-context';
+import { getTodayDate, toDateKey } from '../format';
+import { hasAnyHeight } from '../height';
 import { LanguagePreference } from '../storage/language-preference';
 import { ThemePreference } from '../storage/theme-preference';
 import { useAppStyles } from '../theme/styles';
@@ -71,7 +71,10 @@ function ProfileRow({
   );
 }
 
-export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>) {
+export function ProfileScreen({
+  navigation,
+  route,
+}: NativeStackScreenProps<ProfileStackParamList, 'ProfileMain'>) {
   const styles = useAppStyles();
   const colors = useColors();
   const { t, locale, preference: languagePreference, setPreference: setLanguagePreference } =
@@ -80,22 +83,13 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
   const { units, preference: unitPreference, setPreference: setUnitPreference } = useUnits();
   const { session, signOut, deleteAccount } = useSupabaseAuth();
   const { entries } = useSharedWeightEntries();
-  const {
-    heightEntries,
-    currentHeightCm,
-    isLoading,
-    isRefreshing,
-    isSaving,
-    error,
-    refreshProfile,
-    saveFixedHeightEntry,
-  } = useSharedUserProfile();
+  const { heightEntries, birthDate, isLoading, isRefreshing, isSaving, error, refreshProfile, saveBirthDateEntry } =
+    useSharedUserProfile();
   const { showBmi, setShowBmi } = useSharedBmiDisplay();
   const { showError, showInfo, showSuccess } = useToast();
   const { confirm } = useConfirm();
   const { scrollY, onScroll } = useScrollHeader();
   const user = session?.user;
-  const canShowBmi = currentHeightCm !== null;
   const dateLocale = getDateLocale(locale);
 
   const languageOptions = useMemo<SegmentedOption<LanguagePreference>[]>(
@@ -124,43 +118,6 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
     ],
     [t],
   );
-
-  const handleSaveFixedHeight = async (heightCm: number) => {
-    try {
-      await saveFixedHeightEntry(heightCm);
-      showSuccess(t('profile.heightSaved'));
-    } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
-      showError(message);
-    }
-  };
-
-  const handleConsolidateToFixedHeight = async () => {
-    if (!usesHeightTimeline(heightEntries)) {
-      return;
-    }
-
-    const confirmed = await confirm({
-      title: t('profile.stillGrowingOffConfirmTitle'),
-      message: t('profile.stillGrowingOffConfirmMessage'),
-      confirmLabel: t('common.confirm'),
-      destructive: false,
-    });
-
-    if (!confirmed) {
-      throw new Error('cancelled');
-    }
-
-    if (currentHeightCm === null) {
-      return;
-    }
-
-    await saveFixedHeightEntry(currentHeightCm);
-  };
-
-  const handleInvalidHeight = () => {
-    showError(getHeightRangeMessage(units));
-  };
 
   const handleSignOut = () => {
     void confirm({
@@ -209,6 +166,43 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
   };
 
   const entryCountLabel = t('history.entryCount', { count: entries.length });
+  const focusSection = route.params?.focusSection;
+  const [shouldOpenBirthDatePicker, setShouldOpenBirthDatePicker] = useState(false);
+  const minimumBirthDate = useMemo(() => {
+    const date = getTodayDate();
+    date.setFullYear(date.getFullYear() - 120);
+    return date;
+  }, []);
+
+  useEffect(() => {
+    if (isLoading || !focusSection) {
+      return;
+    }
+
+    if (focusSection === 'birthDate' && !birthDate) {
+      setShouldOpenBirthDatePicker(true);
+    }
+
+    if (focusSection === 'height' && heightEntries.length === 0) {
+      navigation.navigate('HeightHistory');
+    }
+
+    navigation.setParams({ focusSection: undefined });
+  }, [focusSection, isLoading, birthDate, heightEntries.length, navigation]);
+
+  const handleBirthDateChange = (date: Date | null) => {
+    void (async () => {
+      try {
+        await saveBirthDateEntry(date ? toDateKey(date) : null);
+        if (date) {
+          showSuccess(t('profile.birthDateSaved'));
+        }
+      } catch (saveError) {
+        const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
+        showError(message);
+      }
+    })();
+  };
 
   return (
     <View style={styles.screen}>
@@ -241,6 +235,7 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
                 label={t('profile.memberSince')}
                 value={formatMemberSince(user?.created_at, dateLocale)}
               />
+
               <ProfileRow
                 icon="list-outline"
                 label={t('profile.weightEntries')}
@@ -250,13 +245,12 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
               <View style={styles.divider} />
 
               <HeightSection
+                birthDate={birthDate}
+                onBirthDateChange={handleBirthDateChange}
+                birthDateAutoOpen={shouldOpenBirthDatePicker}
+                minimumBirthDate={minimumBirthDate}
+                maximumBirthDate={getTodayDate()}
                 heightEntries={heightEntries}
-                currentHeightCm={currentHeightCm}
-                isLoading={isLoading}
-                isSaving={isSaving}
-                onSaveFixedHeight={handleSaveFixedHeight}
-                onInvalidHeight={handleInvalidHeight}
-                onConsolidateToFixedHeight={handleConsolidateToFixedHeight}
                 onOpenHeightHistory={() => navigation.navigate('HeightHistory')}
               />
             </>
@@ -294,18 +288,18 @@ export function ProfileScreen({ navigation }: NativeStackScreenProps<ProfileStac
           <View style={styles.settingRow}>
             <View style={styles.settingText}>
               <Text style={styles.settingLabel}>{t('profile.showBmi')}</Text>
-              <Text style={styles.settingHint}>
-                {canShowBmi ? t('profile.showBmiHint') : t('profile.showBmiDisabled')}
-              </Text>
+              <Text style={styles.settingHint}>{t('profile.showBmiHint')}</Text>
+              {!hasAnyHeight(heightEntries) ? (
+                <Text style={styles.settingHintWarning}>{t('profile.showBmiNoHeightHint')}</Text>
+              ) : null}
             </View>
             <Switch
-              value={canShowBmi && showBmi}
+              value={showBmi}
               onValueChange={(value) => {
                 void setShowBmi(value);
               }}
-              disabled={!canShowBmi}
               trackColor={{ false: colors.borderStrong, true: colors.accentBorder }}
-              thumbColor={canShowBmi && showBmi ? colors.accent : colors.surfaceMuted}
+              thumbColor={showBmi ? colors.accent : colors.surfaceMuted}
             />
           </View>
         </AppCard>

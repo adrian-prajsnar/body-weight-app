@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { formatDateLabel, getTodayDate, toDateKey } from '../format';
 import { useTranslation } from '../i18n/language-context';
@@ -13,6 +13,7 @@ type DateFieldProps = {
   onChange: (date: Date | null) => void;
   optional?: boolean;
   readOnly?: boolean;
+  autoOpen?: boolean;
   maximumDate?: Date;
   minimumDate?: Date;
 };
@@ -23,6 +24,7 @@ export function DateField({
   onChange,
   optional = false,
   readOnly = false,
+  autoOpen = false,
   maximumDate,
   minimumDate,
 }: DateFieldProps) {
@@ -30,6 +32,12 @@ export function DateField({
   const colors = useColors();
   const { t } = useTranslation();
   const [showPicker, setShowPicker] = useState(false);
+
+  useEffect(() => {
+    if (autoOpen && !readOnly) {
+      setShowPicker(true);
+    }
+  }, [autoOpen, readOnly]);
 
   return (
     <View style={styles.rangeRow}>

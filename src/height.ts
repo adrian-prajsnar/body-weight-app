@@ -2,7 +2,7 @@ import { calculateBmi } from './bmi';
 import { filterEntriesByRange } from './stats';
 import { DateRange, HeightEntry, WeightEntry } from './types';
 
-/** Effective date for a single height that applies to all weight entry dates. */
+/** @deprecated Legacy fixed-height sentinel; may exist in older data. */
 export const FIXED_HEIGHT_EFFECTIVE_DATE = '1970-01-01';
 
 export type BmiStats = {
@@ -10,7 +10,14 @@ export type BmiStats = {
   min: number | null;
   max: number | null;
   count: number;
+  totalCount: number;
+  minDate: string | null;
+  maxDate: string | null;
 };
+
+export function getSortedHeightEntries(heightEntries: HeightEntry[]): HeightEntry[] {
+  return [...heightEntries].sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
+}
 
 export function getHeightAtDate(heightEntries: HeightEntry[], date: string): number | null {
   let best: HeightEntry | null = null;
@@ -30,33 +37,13 @@ export function hasAnyHeight(heightEntries: HeightEntry[]): boolean {
   return heightEntries.length > 0;
 }
 
-export function canLogWeightAtDate(heightEntries: HeightEntry[], date: string): boolean {
-  return getHeightAtDate(heightEntries, date) !== null;
-}
-
-export function usesHeightTimeline(heightEntries: HeightEntry[]): boolean {
-  if (heightEntries.length === 0) {
-    return false;
-  }
-  if (heightEntries.length > 1) {
-    return true;
-  }
-  return heightEntries[0].effectiveDate !== FIXED_HEIGHT_EFFECTIVE_DATE;
-}
-
-export function getTimelineHeightEntries(heightEntries: HeightEntry[]): HeightEntry[] {
-  return heightEntries
-    .filter((entry) => entry.effectiveDate !== FIXED_HEIGHT_EFFECTIVE_DATE)
-    .sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
-}
-
-export function getRecentTimelineEntries(heightEntries: HeightEntry[], limit: number): HeightEntry[] {
-  const timeline = getTimelineHeightEntries(heightEntries);
-  if (timeline.length <= limit) {
-    return timeline;
+export function getRecentHeightEntries(heightEntries: HeightEntry[], limit: number): HeightEntry[] {
+  const sorted = getSortedHeightEntries(heightEntries);
+  if (sorted.length <= limit) {
+    return sorted;
   }
 
-  return [...timeline]
+  return [...sorted]
     .sort((a, b) => b.effectiveDate.localeCompare(a.effectiveDate))
     .slice(0, limit)
     .sort((a, b) => a.effectiveDate.localeCompare(b.effectiveDate));
@@ -79,7 +66,7 @@ export function getBmiStatsForRange(
   range: DateRange,
 ): BmiStats {
   const filtered = filterEntriesByRange(weightEntries, range);
-  const values: number[] = [];
+  const values: { date: string; value: number }[] = [];
 
   for (const entry of filtered) {
     const heightCm = getHeightAtDate(heightEntries, entry.date);
@@ -89,20 +76,37 @@ export function getBmiStatsForRange(
 
     const bmi = calculateBmi(entry.weightKg, heightCm);
     if (bmi) {
-      values.push(bmi.value);
+      values.push({ date: entry.date, value: bmi.value });
     }
   }
 
   if (values.length === 0) {
-    return { average: null, min: null, max: null, count: 0 };
+    return {
+      average: null,
+      min: null,
+      max: null,
+      count: 0,
+      totalCount: filtered.length,
+      minDate: null,
+      maxDate: null,
+    };
   }
 
-  const total = values.reduce((sum, value) => sum + value, 0);
+  const total = values.reduce((sum, item) => sum + item.value, 0);
+  const min = Math.min(...values.map((item) => item.value));
+  const max = Math.max(...values.map((item) => item.value));
+  const earliestDate = (value: number) =>
+    values
+      .filter((item) => item.value === value)
+      .sort((a, b) => a.date.localeCompare(b.date))[0].date;
 
   return {
     average: Math.round((total / values.length) * 10) / 10,
-    min: Math.min(...values),
-    max: Math.max(...values),
+    min,
+    max,
     count: values.length,
+    totalCount: filtered.length,
+    minDate: earliestDate(min),
+    maxDate: earliestDate(max),
   };
 }

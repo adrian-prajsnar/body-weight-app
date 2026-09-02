@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { View } from 'react-native';
 import { bmiInfoFromValue } from '../bmi';
+import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
@@ -24,6 +25,7 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const { units } = useUnits();
   const { heightEntries } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
+  const { openPeriod } = useBmiDetails();
   const weightUnit = getWeightUnitLabel(units);
   const bmiStats = useMemo(
     () => getBmiStatsForRange(entries, heightEntries, range),
@@ -35,8 +37,14 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const formatValue = (value: number | null): string =>
     value === null ? emDash : formatWeightValue(value, units);
 
-  const bmiBadge = (value: number | null) =>
-    showBmi && value !== null ? <BmiBadge bmi={bmiInfoFromValue(value)} compact /> : null;
+  const bmiBadge = (value: number | null, metric: 'average' | 'min' | 'max') =>
+    showBmi ? (
+      <BmiBadge
+        bmi={value === null ? null : bmiInfoFromValue(value)}
+        compact
+        onPress={() => openPeriod({ metric, range, entries })}
+      />
+    ) : null;
 
   return (
     <View style={styles.statGrid}>
@@ -44,19 +52,19 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
         label={t('stats.average')}
         value={formatValue(stats.average)}
         unit={stats.average === null ? undefined : weightUnit}
-        badge={bmiBadge(bmiStats.average)}
+        badge={bmiBadge(bmiStats.average, 'average')}
       />
       <StatTile
         label={t('stats.lowest')}
         value={formatValue(stats.min)}
         unit={stats.min === null ? undefined : weightUnit}
-        badge={bmiBadge(bmiStats.min)}
+        badge={bmiBadge(bmiStats.min, 'min')}
       />
       <StatTile
         label={t('stats.highest')}
         value={formatValue(stats.max)}
         unit={stats.max === null ? undefined : weightUnit}
-        badge={bmiBadge(bmiStats.max)}
+        badge={bmiBadge(bmiStats.max, 'max')}
       />
       <StatTile label={t('stats.entries')} value={String(stats.count)} />
     </View>

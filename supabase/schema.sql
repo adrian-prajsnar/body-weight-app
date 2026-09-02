@@ -9,6 +9,7 @@ create table if not exists public.weight_entries (
   user_id uuid not null references auth.users (id) on delete cascade,
   entry_date date not null,
   weight_kg numeric(6, 2) not null check (weight_kg >= 20 and weight_kg <= 300),
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (user_id, entry_date)
 );
@@ -99,6 +100,7 @@ grant execute on function public.delete_own_account() to authenticated;
 -- Optional profile table (legacy height_cm removed; use height_entries).
 create table if not exists public.user_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
+  birth_date date,
   updated_at timestamptz not null default now()
 );
 

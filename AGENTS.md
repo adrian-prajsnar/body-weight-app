@@ -57,8 +57,8 @@ When changing app code that reads/writes Supabase, ensure the migration ships **
 ## Data
 
 - **No local weight storage** — all entries read/write via `src/supabase/weight-sync.ts`
-- Height history in `height_entries` via `src/supabase/height-sync.ts` (one row per effective date; upsert overwrites same day). **At least one height record is required before logging weight**; BMI uses height effective on each weight entry date (`getHeightAtDate` in `src/height.ts`)
-- AsyncStorage is only used by Supabase for auth session persistence, the BMI display preference (`src/storage/bmi-display-preference.ts`), the theme preference (`src/storage/theme-preference.ts`), the language preference (`src/storage/language-preference.ts`), the unit preference (`src/storage/unit-preference.ts`), and the still-growing preference (`src/storage/still-growing-preference.ts`)
+- Height history in `height_entries` via `src/supabase/height-sync.ts` (one row per effective date; upsert overwrites same day). Weight can be logged without height. BMI is computed in the app from height effective on each weigh-in date (`getHeightAtDate` in `src/height.ts`); if no height covers that date, BMI shows as `"-"`
+- AsyncStorage is only used by Supabase for auth session persistence, the BMI display preference (`src/storage/bmi-display-preference.ts`), the theme preference (`src/storage/theme-preference.ts`), the language preference (`src/storage/language-preference.ts`), and the unit preference (`src/storage/unit-preference.ts`)
 - One weight entry per date per user; save overwrites same day
 - RLS enforces `user_id = auth.uid()`
 

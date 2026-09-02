@@ -6,7 +6,7 @@ A minimal Android app for logging daily body weight, with metric (kg) or imperia
 
 - Sign in / sign up (required — no access without login)
 - Profile page — email, height history (effective dates), sign out, delete account
-- Log one weight per day (editing the same date overwrites the previous value); **height required first**; metric or imperial units in Profile
+- Log one weight per day (editing the same date overwrites the previous value); metric or imperial units in Profile; BMI uses height at that date (or `"-"` if none)
 - Dashboard averages: this week, last week, this month, and more
 - Compare periods week/month/year or custom ranges
 - Cloud database via Supabase (free tier)
@@ -32,7 +32,7 @@ npx expo start -c
 1. **SQL Editor** → **New query**
 2. Paste and run [`supabase/schema.sql`](supabase/schema.sql) once (new projects only)
 
-**Already have data?** Do not re-run `schema.sql` to apply changes. Add a new file under [`supabase/migrations/`](supabase/migrations/) instead — see **Database migrations** in [`AGENTS.md`](AGENTS.md).
+**Already have data?** Do not re-run `schema.sql` to apply changes. Add a new file under [`supabase/migrations/`](supabase/migrations/) instead — see **Database migrations** in [`AGENTS.md`](AGENTS.md). If your `weight_entries` table exists without `created_at`, run [`supabase/migrations/2026-09-01-weight-entry-created-at.sql`](supabase/migrations/2026-09-01-weight-entry-created-at.sql).
 
 **Already set up `weight_entries`?** Run only [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) to add `height_entries` without touching existing weight policies.
 

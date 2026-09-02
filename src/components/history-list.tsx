@@ -55,8 +55,7 @@ export function HistoryList({
       <View style={styles.historyRowContent}>
         <Text style={styles.historyDate}>{formatDateLabel(item.date)}</Text>
         <WeightWithBmi
-          weightKg={item.weightKg}
-          entryDate={item.date}
+          entry={item}
           heightEntries={heightEntries}
           layout="stacked"
           compactBmi

@@ -1,5 +1,4 @@
 import { HeightEntry } from '../types';
-import { FIXED_HEIGHT_EFFECTIVE_DATE } from '../height';
 import { getUserId } from './auth-user';
 import { supabase } from './client';
 import { withAuthRetry } from './with-auth-retry';
@@ -50,29 +49,6 @@ export async function saveHeight(effectiveDate: string, heightCm: number): Promi
       throw error;
     }
   });
-}
-
-export async function replaceAllHeightWithSingle(
-  effectiveDate: string,
-  heightCm: number,
-): Promise<void> {
-  return withAuthRetry(async () => {
-    const userId = await getUserId();
-    const { error: deleteError } = await supabase
-      .from('height_entries')
-      .delete()
-      .eq('user_id', userId);
-
-    if (deleteError) {
-      throw deleteError;
-    }
-
-    await saveHeight(effectiveDate, heightCm);
-  });
-}
-
-export async function saveFixedHeight(heightCm: number): Promise<void> {
-  await replaceAllHeightWithSingle(FIXED_HEIGHT_EFFECTIVE_DATE, heightCm);
 }
 
 export async function deleteHeight(effectiveDate: string): Promise<void> {

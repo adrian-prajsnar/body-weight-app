@@ -6,12 +6,16 @@ import { withAuthRetry } from './with-auth-retry';
 type WeightEntryRow = {
   entry_date: string;
   weight_kg: number;
+  created_at: string;
+  updated_at: string;
 };
 
 function mapRow(row: WeightEntryRow): WeightEntry {
   return {
     date: row.entry_date,
     weightKg: Number(row.weight_kg),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -20,7 +24,7 @@ export async function getEntries(): Promise<WeightEntry[]> {
     const userId = await getUserId();
     const { data, error } = await supabase
       .from('weight_entries')
-      .select('entry_date, weight_kg')
+      .select('entry_date, weight_kg, created_at, updated_at')
       .eq('user_id', userId)
       .order('entry_date', { ascending: false });
 

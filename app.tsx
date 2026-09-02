@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SupabaseAuthProvider } from './src/context/supabase-auth-context';
+import { BmiDetailsProvider } from './src/context/bmi-details-context';
 import { BmiDisplayProvider } from './src/context/bmi-display-context';
 import { ConfirmProvider } from './src/context/confirm-context';
 import { ToastProvider } from './src/context/toast-context';
@@ -51,10 +52,12 @@ function ThemedApp() {
             <UserProfileProvider>
               <BmiDisplayProvider>
                 <WeightEntriesProvider>
-                  <NavigationContainer theme={navigationTheme}>
-                    <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-                    <RootNavigator />
-                  </NavigationContainer>
+                  <BmiDetailsProvider>
+                    <NavigationContainer theme={navigationTheme}>
+                      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+                      <RootNavigator />
+                    </NavigationContainer>
+                  </BmiDetailsProvider>
                 </WeightEntriesProvider>
               </BmiDisplayProvider>
             </UserProfileProvider>

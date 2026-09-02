@@ -15,7 +15,10 @@ import { StatsSummarySkeleton } from '../components/stats-summary-skeleton';
 import { WeightEntryModal } from '../components/weight-entry-modal';
 import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
+import { DismissibleInfoBanner } from '../components/dismissible-info-banner';
+import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
+import { useDashboardAlertDismissals } from '../hooks/use-dashboard-alert-dismissals';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import { formatDateLabel } from '../format';
@@ -36,6 +39,8 @@ export function DashboardScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
     useSharedWeightEntries();
+  const { birthDate, heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
+  const { isReady: areDismissalsReady, isDismissed, dismiss } = useDashboardAlertDismissals();
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();
   const { scrollY, onScroll } = useScrollHeader();
@@ -73,6 +78,24 @@ export function DashboardScreen({ navigation }: Props) {
   const stats = useMemo(() => getStatsForRange(entries, range), [entries, range]);
   const recentEntries = useMemo(() => getLast7DaysEntries(entries), [entries]);
 
+  const showBirthDateAlert =
+    areDismissalsReady &&
+    !isProfileLoading &&
+    !birthDate &&
+    !isDismissed('missingBirthDate');
+  const showHeightAlert =
+    areDismissalsReady &&
+    !isProfileLoading &&
+    heightEntries.length === 0 &&
+    !isDismissed('missingHeight');
+
+  const openProfileSection = (focusSection: 'birthDate' | 'height') => {
+    navigation.navigate('Profile', {
+      screen: 'ProfileMain',
+      params: { focusSection },
+    });
+  };
+
   return (
     <View style={styles.screen}>
       <ScreenHeader
@@ -91,6 +114,24 @@ export function DashboardScreen({ navigation }: Props) {
       >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
+        ) : null}
+
+        {showBirthDateAlert ? (
+          <DismissibleInfoBanner
+            message={t('dashboard.missingBirthDateMessage')}
+            actionLabel={t('dashboard.addBirthDate')}
+            onAction={() => openProfileSection('birthDate')}
+            onDismiss={() => void dismiss('missingBirthDate')}
+          />
+        ) : null}
+
+        {showHeightAlert ? (
+          <DismissibleInfoBanner
+            message={t('dashboard.missingHeightMessage')}
+            actionLabel={t('dashboard.addHeight')}
+            onAction={() => openProfileSection('height')}
+            onDismiss={() => void dismiss('missingHeight')}
+          />
         ) : null}
 
         <HeroWeightCard entries={entries} isLoading={isLoading} isBusy={isRefreshing} />

@@ -1,18 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { calculateBmi } from '../bmi';
 import { BmiBadge } from './bmi-badge';
 import { DateField } from './date-field';
-import { EmptyState } from './empty-state';
+import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
 import { useToast } from '../context/toast-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import {
-  formatDateLabel,
   formatWeightValue,
   getTodayDate,
   getWeightRangeMessage,
@@ -20,9 +17,8 @@ import {
   parseWeightInput,
   toDateKey,
 } from '../format';
-import { canLogWeightAtDate, getHeightAtDate, hasAnyHeight } from '../height';
+import { getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
-import { RootTabParamList } from '../navigation/types';
 import { getLatestChange } from '../stats';
 import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
@@ -55,10 +51,10 @@ export function WeightEntryFormBody({
   const styles = useAppStyles();
   const colors = useColors();
   const { t } = useTranslation();
-  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { units } = useUnits();
   const { heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
+  const { openWeighIn } = useBmiDetails();
   const { showError, showSuccess } = useToast();
   const [selectedDate, setSelectedDate] = useState(initialDate ?? getTodayDate);
   const [weightInput, setWeightInput] = useState('');
@@ -69,16 +65,17 @@ export function WeightEntryFormBody({
   const selectedDateKey = useMemo(() => toDateKey(selectedDate), [selectedDate]);
   const weightPlaceholder = units === 'imperial' ? '0.0' : '0.00';
   const heightAtDate = getHeightAtDate(heightEntries, selectedDateKey);
-  const canLogWeight = canLogWeightAtDate(heightEntries, selectedDateKey);
-  const needsHeightSetup = !hasAnyHeight(heightEntries);
+  const parsedWeightKg = useMemo(
+    () => parseWeightInput(weightInput, units),
+    [weightInput, units],
+  );
 
   const previewBmi = useMemo(() => {
-    const weightKg = parseWeightInput(weightInput, units);
-    if (!showBmi || weightKg === null || heightAtDate === null) {
+    if (!showBmi || parsedWeightKg === null || heightAtDate === null) {
       return null;
     }
-    return calculateBmi(weightKg, heightAtDate);
-  }, [weightInput, heightAtDate, showBmi, units]);
+    return calculateBmi(parsedWeightKg, heightAtDate);
+  }, [parsedWeightKg, heightAtDate, showBmi]);
 
   useEffect(() => {
     if (initialDate) {
@@ -99,8 +96,7 @@ export function WeightEntryFormBody({
     return () => clearTimeout(timer);
   }, [autoFocusWeight, initialDate]);
 
-  const isBlocked = isProfileLoading || !canLogWeight;
-  const isDisabled = isSaving || isDataLoading || isBlocked;
+  const isDisabled = isSaving || isDataLoading || isProfileLoading;
 
   const adjustWeight = (direction: -1 | 1) => {
     const current =
@@ -115,15 +111,6 @@ export function WeightEntryFormBody({
   };
 
   const handleSave = async () => {
-    if (!canLogWeight) {
-      showError(
-        needsHeightSetup
-          ? t('entryForm.heightRequiredSave')
-          : t('entryForm.noHeightForDateSave', { date: formatDateLabel(selectedDateKey) }),
-      );
-      return;
-    }
-
     const weightKg = parseWeightInput(weightInput, units);
     if (weightKg === null) {
       showError(getWeightRangeMessage(units));
@@ -148,28 +135,6 @@ export function WeightEntryFormBody({
     }
   };
 
-  const openProfile = () => {
-    navigation.navigate('Profile');
-  };
-
-  if (needsHeightSetup && !isProfileLoading) {
-    return (
-      <View style={{ gap: 12 }}>
-        <EmptyState
-          icon="body-outline"
-          title={t('entryForm.heightRequiredTitle')}
-          message={t('entryForm.heightRequiredMessage')}
-        />
-        <Pressable
-          style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-          onPress={openProfile}
-        >
-          <Text style={styles.secondaryButtonText}>{t('entryForm.openProfile')}</Text>
-        </Pressable>
-      </View>
-    );
-  }
-
   return (
     <View style={{ gap: spacing.md }}>
       <DateField
@@ -184,87 +149,82 @@ export function WeightEntryFormBody({
         readOnly={dateReadOnly}
       />
 
-      {!canLogWeight ? (
-        <View style={{ gap: spacing.md }}>
-          <EmptyState
-            icon="calendar-outline"
-            title={t('entryForm.noHeightForDateTitle')}
-            message={t('entryForm.noHeightForDateMessage')}
-          />
-          <Pressable
-            style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-            onPress={openProfile}
-          >
-            <Text style={styles.secondaryButtonText}>{t('entryForm.openProfile')}</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={{ gap: spacing.md }}>
-          <View style={{ gap: spacing.sm }}>
-            <Text style={styles.fieldLabel}>{t('entryForm.weight')}</Text>
-            <View style={styles.weightEntryRow}>
-              <Pressable
-                style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
-                onPress={() => adjustWeight(-1)}
-                disabled={isDisabled}
-                accessibilityRole="button"
-                accessibilityLabel={t('entryForm.decreaseWeight')}
-              >
-                <Ionicons name="remove" size={22} color={colors.textMuted} />
-              </Pressable>
+      <View style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.sm }}>
+          <Text style={styles.fieldLabel}>{t('entryForm.weight')}</Text>
+          <View style={styles.weightEntryRow}>
+            <Pressable
+              style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
+              onPress={() => adjustWeight(-1)}
+              disabled={isDisabled}
+              accessibilityRole="button"
+              accessibilityLabel={t('entryForm.decreaseWeight')}
+            >
+              <Ionicons name="remove" size={22} color={colors.textMuted} />
+            </Pressable>
 
-              <View style={[styles.weightInputWrapper, isFocused && styles.inputFocused]}>
-                <TextInput
-                  ref={weightInputRef}
-                  style={styles.weightInput}
-                  value={weightInput}
-                  onChangeText={setWeightInput}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  keyboardType="decimal-pad"
-                  placeholder={weightPlaceholder}
-                  placeholderTextColor={colors.textSubtle}
-                  editable={!isDisabled}
-                />
-                <Text style={styles.weightInputUnit}>{getWeightUnitLabel(units)}</Text>
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
-                onPress={() => adjustWeight(1)}
-                disabled={isDisabled}
-                accessibilityRole="button"
-                accessibilityLabel={t('entryForm.increaseWeight')}
-              >
-                <Ionicons name="add" size={22} color={colors.textMuted} />
-              </Pressable>
+            <View style={[styles.weightInputWrapper, isFocused && styles.inputFocused]}>
+              <TextInput
+                ref={weightInputRef}
+                style={styles.weightInput}
+                value={weightInput}
+                onChangeText={setWeightInput}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                keyboardType="decimal-pad"
+                placeholder={weightPlaceholder}
+                placeholderTextColor={colors.textSubtle}
+                editable={!isDisabled}
+              />
+              <Text style={styles.weightInputUnit}>{getWeightUnitLabel(units)}</Text>
             </View>
+
+            <Pressable
+              style={({ pressed }) => [styles.stepperButton, pressed && styles.buttonPressed]}
+              onPress={() => adjustWeight(1)}
+              disabled={isDisabled}
+              accessibilityRole="button"
+              accessibilityLabel={t('entryForm.increaseWeight')}
+            >
+              <Ionicons name="add" size={22} color={colors.textMuted} />
+            </Pressable>
           </View>
-
-          {previewBmi ? (
-            <View style={styles.bmiPreviewRow}>
-              <Text style={styles.fieldLabel}>{t('entryForm.estimatedBmi')}</Text>
-              <BmiBadge bmi={previewBmi} />
-            </View>
-          ) : null}
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.primaryButton,
-              isDisabled && styles.buttonDisabled,
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={() => void handleSave()}
-            disabled={isDisabled}
-          >
-            {isSaving ? (
-              <ActivityIndicator color={colors.onAccent} />
-            ) : (
-              <Text style={styles.primaryButtonText}>{t('entryForm.saveEntry')}</Text>
-            )}
-          </Pressable>
         </View>
-      )}
+
+        {previewBmi !== null && parsedWeightKg !== null ? (
+          <View style={styles.bmiPreviewRow}>
+            <Text style={styles.fieldLabel}>{t('entryForm.estimatedBmi')}</Text>
+            <BmiBadge
+              bmi={previewBmi}
+              onPress={() => {
+                const existing = entries.find((entry) => entry.date === selectedDateKey);
+                openWeighIn({
+                  date: selectedDateKey,
+                  weightKg: parsedWeightKg,
+                  createdAt: existing?.createdAt ?? null,
+                  updatedAt: existing?.updatedAt ?? null,
+                });
+              }}
+            />
+          </View>
+        ) : null}
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.primaryButton,
+            isDisabled && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+          onPress={() => void handleSave()}
+          disabled={isDisabled}
+        >
+          {isSaving ? (
+            <ActivityIndicator color={colors.onAccent} />
+          ) : (
+            <Text style={styles.primaryButtonText}>{t('entryForm.saveEntry')}</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }

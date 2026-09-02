@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useUnits } from '../context/unit-context';
-import { getTimelineHeightEntries, getRecentTimelineEntries } from '../height';
+import { getRecentHeightEntries, getSortedHeightEntries } from '../height';
 import {
   formatDateLabel,
   formatHeight,
@@ -32,7 +32,7 @@ export function HeightHistoryPreview({ heightEntries, onShowAll }: HeightHistory
   const { units } = useUnits();
 
   const latestEntry = useMemo(
-    () => getRecentTimelineEntries(heightEntries, PREVIEW_LIMIT)[0],
+    () => getRecentHeightEntries(heightEntries, PREVIEW_LIMIT)[0],
     [heightEntries],
   );
 
@@ -87,9 +87,9 @@ export function HeightTimelineEditor({
   const [heightPrimaryInput, setHeightPrimaryInput] = useState('');
   const [heightSecondaryInput, setHeightSecondaryInput] = useState('');
 
-  const canDelete = getTimelineHeightEntries(heightEntries).length > 1 && onDelete !== undefined;
+  const canDelete = onDelete !== undefined;
 
-  const sortedEntries = useMemo(() => getTimelineHeightEntries(heightEntries), [heightEntries]);
+  const sortedEntries = useMemo(() => getSortedHeightEntries(heightEntries), [heightEntries]);
 
   const resetForm = () => {
     setFormMode(null);
@@ -181,7 +181,7 @@ export function HeightTimelineEditor({
                 </Pressable>
                 {canDelete ? (
                   <Pressable
-                    onPress={() => onDelete(entry.effectiveDate)}
+                    onPress={() => onDelete?.(entry.effectiveDate)}
                     disabled={deletingEffectiveDate !== null || isSaving || isFormOpen}
                     style={({ pressed }) => [
                       styles.historyDeleteButton,

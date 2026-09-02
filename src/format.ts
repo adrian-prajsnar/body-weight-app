@@ -123,6 +123,25 @@ function getLocaleTag(): string {
   return getDateLocale(getI18nLocale());
 }
 
+export function formatDateTime(isoDate: string | null | undefined): string {
+  if (!isoDate) {
+    return t('common.emDash');
+  }
+
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return t('common.emDash');
+  }
+
+  return parsed.toLocaleString(getLocaleTag(), {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function formatDateLabel(dateKey: string): string {
   const [year, month, day] = dateKey.split('-').map(Number);
   return new Date(year, month - 1, day).toLocaleDateString(getLocaleTag(), {

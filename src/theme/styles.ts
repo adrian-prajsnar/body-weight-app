@@ -99,6 +99,32 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       lineHeight: 20,
       fontFamily: fontFamily.regular,
     },
+    infoBanner: {
+      backgroundColor: colors.accentSoft,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.accentBorder,
+    },
+    infoBannerHeader: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+    },
+    infoBannerText: {
+      flex: 1,
+      fontSize: 14,
+      color: colors.accentText,
+      lineHeight: 20,
+      fontFamily: fontFamily.regular,
+    },
+    infoBannerLink: {
+      alignSelf: 'flex-start',
+      color: colors.accent,
+      fontSize: 14,
+      fontFamily: fontFamily.semibold,
+    },
     content: {
       padding: spacing.xl,
       paddingTop: spacing.xs,
@@ -662,6 +688,36 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       justifyContent: 'space-between',
       gap: spacing.sm,
     },
+    bmiDetailsRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    bmiDetailsLabel: {
+      color: colors.textMuted,
+      fontSize: 14,
+      fontFamily: fontFamily.medium,
+    },
+    bmiDetailsValue: {
+      flex: 1,
+      textAlign: 'right',
+      color: colors.text,
+      fontSize: 14,
+      fontFamily: fontFamily.semibold,
+    },
+    bmiDetailsNote: {
+      color: colors.textMuted,
+      fontSize: 14,
+      lineHeight: 20,
+      fontFamily: fontFamily.regular,
+    },
+    bmiDetailsSection: {
+      marginTop: spacing.sm,
+      color: colors.text,
+      fontSize: 15,
+      fontFamily: fontFamily.semibold,
+    },
 
     settingRow: {
       flexDirection: 'row',
@@ -682,6 +738,12 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       fontSize: 13,
       color: colors.textMuted,
       lineHeight: 18,
+      fontFamily: fontFamily.regular,
+    },
+    settingHintWarning: {
+      fontSize: 12,
+      color: colors.warningText,
+      lineHeight: 16,
       fontFamily: fontFamily.regular,
     },
 
@@ -772,6 +834,95 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
     },
     datePickerSheetConfirm: {
       marginTop: spacing.xs,
+    },
+    datePickerPeriodRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    datePickerPeriodButton: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surfaceMuted,
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.md,
+    },
+    datePickerPeriodButtonActive: {
+      borderColor: colors.accentBorder,
+      backgroundColor: colors.accentSoft,
+    },
+    datePickerPeriodButtonText: {
+      fontSize: 15,
+      color: colors.text,
+      fontFamily: fontFamily.semibold,
+    },
+    datePickerPeriodButtonTextActive: {
+      color: colors.accentText,
+    },
+    datePickerMonthGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    datePickerMonthCell: {
+      width: '30%',
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surfaceMuted,
+      paddingVertical: spacing.md,
+    },
+    datePickerMonthCellSelected: {
+      borderColor: colors.accentBorder,
+      backgroundColor: colors.accent,
+    },
+    datePickerMonthCellDisabled: {
+      opacity: 0.4,
+    },
+    datePickerMonthCellText: {
+      fontSize: 14,
+      color: colors.text,
+      fontFamily: fontFamily.medium,
+    },
+    datePickerMonthCellTextSelected: {
+      color: colors.onAccent,
+      fontFamily: fontFamily.semibold,
+    },
+    datePickerMonthCellTextDisabled: {
+      color: colors.textSubtle,
+    },
+    datePickerYearList: {
+      maxHeight: 240,
+    },
+    datePickerYearListContent: {
+      paddingVertical: spacing.xs,
+    },
+    datePickerYearRow: {
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radius.md,
+      marginBottom: spacing.xs,
+    },
+    datePickerYearRowSelected: {
+      backgroundColor: colors.accentSoft,
+    },
+    datePickerYearRowText: {
+      fontSize: 16,
+      color: colors.text,
+      fontFamily: fontFamily.medium,
+    },
+    datePickerYearRowTextSelected: {
+      color: colors.accentText,
+      fontFamily: fontFamily.semibold,
     },
     toastContainer: {
       position: 'absolute',

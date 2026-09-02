@@ -1,6 +1,8 @@
 export type WeightEntry = {
   date: string;
   weightKg: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type WeightStats = {
@@ -58,6 +60,7 @@ export type PeriodComparison = {
 
 export type UserProfile = {
   heightEntries: HeightEntry[];
+  birthDate: string | null;
 };
 
 export type HeightEntry = {

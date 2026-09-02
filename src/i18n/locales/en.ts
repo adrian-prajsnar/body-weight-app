@@ -84,6 +84,13 @@ export default {
     last7Days: 'Last 7 days',
     viewAll: 'View all',
     emptyRecent: 'No weigh-ins in the last 7 days.',
+    missingBirthDateMessage:
+      'Add your birth date on your profile to unlock the full potential of the app.',
+    missingHeightMessage:
+      'Add your height on your profile to unlock BMI tracking and other features.',
+    addBirthDate: 'Add birth date on profile',
+    addHeight: 'Add height on profile',
+    dismissAlert: 'Dismiss',
   },
   entryForm: {
     title: 'Log weight',
@@ -96,16 +103,6 @@ export default {
     increaseWeight: 'Increase weight',
     saved: 'Weight saved.',
     saveFailed: 'Could not save weight.',
-    heightRequiredTitle: 'Add your height first',
-    heightRequiredMessage:
-      'Set your height in Profile. You need it to save weigh-ins and calculate BMI.',
-    heightRequiredSave: 'Add your height in Profile before saving a weigh-in.',
-    noHeightForDateTitle: 'No height for this date',
-    noHeightForDateMessage:
-      'This date is before your first height record. Add an earlier height in Profile, then try again.',
-    noHeightForDateSave:
-      'No height covers %{date}. Add a height in Profile for that day or earlier, then save.',
-    openProfile: 'Go to Profile',
   },
   hero: {
     currentWeight: 'Latest weight',
@@ -179,6 +176,8 @@ export default {
     subtitleFallback: 'Your account',
     account: 'Account',
     memberSince: 'Joined',
+    birthDate: 'Birth date',
+    birthDateSaved: 'Birth date saved.',
     weightEntries: 'Weigh-ins',
     height: 'Height',
     meters: 'Meters',
@@ -194,23 +193,19 @@ export default {
     heightSaved: 'Height saved.',
     heightUpdated: 'Height updated.',
     heightHistoryTitle: 'Height history',
-    heightHistorySubtitle: 'Each record applies from that date onward',
+    heightHistorySubtitle: 'Add height and the date it applies from. Each weigh-in uses the height from that day.',
     showMoreHeightRecords: 'Show more',
-    manageHeightRecords: 'Edit height history',
-    heightRequiredHint: 'Add your height so you can log weight and see BMI.',
+    manageHeightRecords: 'Manage height records',
+    heightHint:
+      'Add your height and when it applies. One record is enough (e.g. since birth), or add more when your height changes.',
     heightTimelineEmptyHint:
-      'Add your height and the date it started. Each weigh-in uses the height from that day.',
-    stillGrowing: 'Still growing?',
-    stillGrowingHint:
-      'Select this option if you are still growing and enter your height for different periods.',
-    stillGrowingOffConfirmTitle: 'Keep one height?',
-    stillGrowingOffConfirmMessage:
-      'We’ll keep your latest height for all dates and delete older height records.',
-    effectiveFrom: 'Starting from',
+      'No height yet. Add your height and the date it started — for example, your birth date if it has not changed.',
+    deleteHeight: 'Delete height record',
+    deleteHeightConfirm:
+      'Delete the height from %{date}?\n\nBMI on affected weigh-ins may change or show as unavailable. Your data may be less accurate.',
+    effectiveFrom: 'Applies from',
     heightFrom: 'Since %{date}',
-    addHeightRecord: 'Add height',
-    deleteHeight: 'Delete height',
-    deleteHeightConfirm: 'Delete the height from %{date}?',
+    addHeightRecord: 'Add height record',
     heightDeleted: 'Height from %{date} deleted.',
     deleteHeightFailed: 'Could not delete height.',
     deleteHeightA11y: 'Delete height from %{date}',
@@ -226,7 +221,7 @@ export default {
     themeDark: 'Dark',
     showBmi: 'Show BMI',
     showBmiHint: 'Calculated from your height on that weigh-in date.',
-    showBmiDisabled: 'Add your height first to show BMI.',
+    showBmiNoHeightHint: 'BMI won’t be shown until you add your height.',
     session: 'Security',
     signOut: 'Sign out',
     signOutConfirm: 'Sign out of your account?',
@@ -247,6 +242,8 @@ export default {
   },
   dateField: {
     selectDate: 'Select date',
+    selectMonth: 'Select month',
+    selectYear: 'Select year',
   },
   errors: {
     couldNotLoadData: 'Could not load data',
@@ -264,11 +261,32 @@ export default {
     info: 'Info',
   },
   bmi: {
-    label: 'BMI %{value} · %{category}',
+    label: 'BMI %{value}',
+    unavailableLabel: 'BMI N/A',
+    category: 'Category',
     underweight: 'Underweight',
     normal: 'Healthy',
     overweight: 'Overweight',
     obese: 'Obese',
+    detailsTitle: 'BMI details',
+    periodAverageTitle: 'Average BMI',
+    periodMinTitle: 'Lowest BMI',
+    periodMaxTitle: 'Highest BMI',
+    date: 'Date',
+    height: 'Height',
+    weight: 'Weight',
+    value: 'BMI',
+    created: 'Created',
+    updated: 'Updated',
+    notSavedYet: 'This weigh-in is not saved yet.',
+    coverage: 'BMI from %{withBmi} of %{total} weigh-ins.',
+    coverageNone: 'No weigh-ins in this period have a height for that date, so BMI is “-”.',
+    missingHeight: {
+      one: '1 weigh-in has no height for that date.',
+      other: '%{count} weigh-ins have no height for that date.',
+    },
+    sourceEntry: 'From this weigh-in',
+    openDetailsA11y: 'Show BMI details',
   },
   validation: {
     weightRangeMetric:

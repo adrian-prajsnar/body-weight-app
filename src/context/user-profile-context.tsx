@@ -4,6 +4,7 @@ import { HeightEntry } from '../types';
 
 type UserProfileContextValue = {
   heightEntries: HeightEntry[];
+  birthDate: string | null;
   currentHeightCm: number | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -11,8 +12,8 @@ type UserProfileContextValue = {
   deletingEffectiveDate: string | null;
   error: string | null;
   refreshProfile: () => Promise<void>;
+  saveBirthDateEntry: (birthDate: string | null) => Promise<void>;
   saveHeightEntry: (effectiveDate: string, heightCm: number) => Promise<void>;
-  saveFixedHeightEntry: (heightCm: number) => Promise<void>;
   updateHeightEntry: (
     previousEffectiveDate: string,
     effectiveDate: string,

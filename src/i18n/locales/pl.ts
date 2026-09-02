@@ -86,6 +86,13 @@ const pl = {
     last7Days: 'Ostatnie 7 dni',
     viewAll: 'Zobacz wszystkie',
     emptyRecent: 'Dodaj swoją pierwszą wagę w sekcji powyżej, aby zobaczyć ją później tutaj.',
+    missingBirthDateMessage:
+      'Dodaj datę urodzenia w profilu, aby wyświetlać porównania na podstawie twojego wieku. ',
+    missingHeightMessage:
+      'Dodaj wzrost w profilu, aby odblokować wyświetlanie BMI w momencie pomiaru.',
+    addBirthDate: 'Dodaj datę urodzenia w profilu',
+    addHeight: 'Dodaj wzrost w profilu',
+    dismissAlert: 'Zamknij',
   },
   entryForm: {
     title: 'Dodaj wagę',
@@ -98,16 +105,6 @@ const pl = {
     increaseWeight: 'Zwiększ wagę',
     saved: 'Waga zapisana.',
     saveFailed: 'Nie udało się zapisać wagi.',
-    heightRequiredTitle: 'Najpierw dodaj wzrost',
-    heightRequiredMessage:
-      'Ustaw wzrost w Profilu. Jest potrzebny, żeby zapisać wagę i obliczyć BMI.',
-    heightRequiredSave: 'Dodaj wzrost w Profilu, zanim zapiszesz wagę.',
-    noHeightForDateTitle: 'Brak wzrostu dla tej daty',
-    noHeightForDateMessage:
-      'Ta data jest wcześniejsza niż pierwszy wpis wzrostu. Dodaj wcześniejszy wzrost w Profilu i spróbuj ponownie.',
-    noHeightForDateSave:
-      'Brak wzrostu dla %{date}. Dodaj w Profilu wzrost na ten dzień lub wcześniej, a potem zapisz wagę.',
-    openProfile: 'Przejdź do Profilu',
   },
   hero: {
     currentWeight: 'Ostatnia waga',
@@ -183,6 +180,8 @@ const pl = {
     subtitleFallback: 'Twoje konto',
     account: 'Konto',
     memberSince: 'Konto od',
+    birthDate: 'Data urodzenia',
+    birthDateSaved: 'Data urodzenia zapisana.',
     weightEntries: 'Pomiary wagi',
     height: 'Wzrost',
     meters: 'Metry',
@@ -198,23 +197,20 @@ const pl = {
     heightSaved: 'Wzrost zapisany.',
     heightUpdated: 'Wzrost zaktualizowany.',
     heightHistoryTitle: 'Historia wzrostu',
-    heightHistorySubtitle: 'Dodaj wzrost i datę, od której obowiązuje oraz sprawdź jak zmieniał się w czasie.',
+    heightHistorySubtitle:
+      'Dodawaj wpisy i zarządzaj historią wzrostu.',
     showMoreHeightRecords: 'Pokaż więcej',
-    manageHeightRecords: 'Edytuj historię wzrostu',
-    heightRequiredHint: 'Dodaj wzrost, żeby zapisywać wagę i widzieć BMI.',
+    manageHeightRecords: 'Zarządzaj wpisami wzrostu',
+    heightHint:
+      'Dodaj wzrost i datę, od której obowiązuje.',
     heightTimelineEmptyHint:
-      'Dodaj wzrost i datę, od której obowiązuje. Pomiar wagi uwzględni wzrost z danego okresu.',
-    stillGrowing: 'Nadal rośniesz?',
-    stillGrowingHint:
-      'Wybierz tę opcję, jeśli nadal rośniesz, i podaj swój wzrost dla różnych okresów.',
-    stillGrowingOffConfirmTitle: 'Zachować jeden wzrost?',
-    stillGrowingOffConfirmMessage:
-      'Zachowamy najnowszy wzrost dla wszystkich dat i usuniemy wcześniejsze wpisy wzrostu.',
-    effectiveFrom: 'Od dnia',
+      'Brak danych. Dodaj swój wzrost i datę, od której obowiązuje.',
+    deleteHeight: 'Usuń wpis wzrostu',
+    deleteHeightConfirm:
+      'Usunąć wzrost od %{date}?\n\nMoże to wpłynąć negatywnie na wyniki BMI przy pomiarach z tego okresu.',
+    effectiveFrom: 'Obowiązuje od',
     heightFrom: 'Od %{date}',
-    addHeightRecord: 'Dodaj wzrost',
-    deleteHeight: 'Usuń wzrost',
-    deleteHeightConfirm: 'Usunąć wzrost z %{date}?',
+    addHeightRecord: 'Dodaj wpis wzrostu',
     heightDeleted: 'Usunięto wzrost z %{date}.',
     deleteHeightFailed: 'Nie udało się usunąć wzrostu.',
     deleteHeightA11y: 'Usuń wzrost z %{date}',
@@ -230,7 +226,7 @@ const pl = {
     themeDark: 'Ciemny',
     showBmi: 'Pokaż BMI',
     showBmiHint: 'Liczone na podstawie wzrostu obowiązującego w dniu pomiaru.',
-    showBmiDisabled: 'Najpierw dodaj wzrost, żeby pokazać BMI.',
+    showBmiNoHeightHint: 'BMI nie będzie widoczne, dopóki nie dodasz wzrostu.',
     session: 'Bezpieczeństwo',
     signOut: 'Wyloguj się',
     signOutConfirm: 'Wylogować się z konta?',
@@ -251,6 +247,8 @@ const pl = {
   },
   dateField: {
     selectDate: 'Wybierz datę',
+    selectMonth: 'Wybierz miesiąc',
+    selectYear: 'Wybierz rok',
   },
   errors: {
     couldNotLoadData: 'Nie udało się załadować danych',
@@ -268,11 +266,35 @@ const pl = {
     info: 'Informacja',
   },
   bmi: {
-    label: 'BMI %{value} · %{category}',
+    label: 'BMI %{value}',
+    unavailableLabel: 'BMI ND',
+    category: 'Kategoria',
     underweight: 'Niedowaga',
     normal: 'W normie',
     overweight: 'Nadwaga',
     obese: 'Otyłość',
+    detailsTitle: 'Szczegóły BMI',
+    periodAverageTitle: 'Średnie BMI',
+    periodMinTitle: 'Najniższe BMI',
+    periodMaxTitle: 'Najwyższe BMI',
+    date: 'Data',
+    height: 'Wzrost',
+    weight: 'Waga',
+    value: 'BMI',
+    created: 'Utworzono',
+    updated: 'Zaktualizowano',
+    notSavedYet: 'Ten pomiar wagi nie jest jeszcze zapisany.',
+    coverage: 'BMI z %{withBmi} z %{total} pomiarów.',
+    coverageNone:
+      'Żaden pomiar w tym okresie nie ma wzrostu na tę datę, więc BMI to „-”.',
+    missingHeight: {
+      one: '1 pomiar nie ma wzrostu na tę datę.',
+      few: '%{count} pomiary nie mają wzrostu na tę datę.',
+      many: '%{count} pomiarów nie ma wzrostu na tę datę.',
+      other: '%{count} pomiaru nie ma wzrostu na tę datę.',
+    },
+    sourceEntry: 'Z tego pomiaru',
+    openDetailsA11y: 'Pokaż szczegóły BMI',
   },
   validation: {
     weightRangeMetric:

@@ -3,12 +3,14 @@ import { t } from '../i18n';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useRefreshOnAppForeground } from './use-refresh-on-app-foreground';
 import { getCurrentHeight } from '../height';
-import { getHeightEntries, saveFixedHeight, saveHeight, deleteHeight } from '../supabase/height-sync';
+import { getBirthDate, saveBirthDate } from '../supabase/profile-sync';
+import { getHeightEntries, saveHeight, deleteHeight } from '../supabase/height-sync';
 import { HeightEntry } from '../types';
 
 export function useUserProfile() {
   const { isAuthenticated } = useSupabaseAuth();
   const [heightEntries, setHeightEntries] = useState<HeightEntry[]>([]);
+  const [birthDate, setBirthDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -19,6 +21,7 @@ export function useUserProfile() {
   const refreshProfile = useCallback(async () => {
     if (!isAuthenticated) {
       setHeightEntries([]);
+      setBirthDate(null);
       setIsLoading(false);
       setIsRefreshing(false);
       setError(null);
@@ -33,8 +36,9 @@ export function useUserProfile() {
     }
 
     try {
-      const loaded = await getHeightEntries();
+      const [loaded, loadedBirthDate] = await Promise.all([getHeightEntries(), getBirthDate()]);
       setHeightEntries(loaded);
+      setBirthDate(loadedBirthDate);
       setError(null);
       hasLoadedRef.current = true;
     } catch (loadError) {
@@ -57,19 +61,6 @@ export function useUserProfile() {
       setIsSaving(true);
       try {
         await saveHeight(effectiveDate, heightCm);
-        await refreshProfile();
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [refreshProfile],
-  );
-
-  const saveFixedHeightEntry = useCallback(
-    async (heightCm: number) => {
-      setIsSaving(true);
-      try {
-        await saveFixedHeight(heightCm);
         await refreshProfile();
       } finally {
         setIsSaving(false);
@@ -111,10 +102,24 @@ export function useUserProfile() {
     [refreshProfile],
   );
 
+  const saveBirthDateEntry = useCallback(
+    async (nextBirthDate: string | null) => {
+      setIsSaving(true);
+      try {
+        await saveBirthDate(nextBirthDate);
+        setBirthDate(nextBirthDate);
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [],
+  );
+
   const currentHeightCm = getCurrentHeight(heightEntries);
 
   return {
     heightEntries,
+    birthDate,
     currentHeightCm,
     isLoading,
     isRefreshing,
@@ -122,8 +127,8 @@ export function useUserProfile() {
     deletingEffectiveDate,
     error,
     refreshProfile,
+    saveBirthDateEntry,
     saveHeightEntry,
-    saveFixedHeightEntry,
     updateHeightEntry,
     removeHeightEntry,
   };
