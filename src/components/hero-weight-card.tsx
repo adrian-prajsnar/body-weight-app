@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
+import { formatAge, getAgeOnDate } from '../age';
 import { calculateBmi } from '../bmi';
 import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
@@ -29,7 +30,7 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
   const styles = useAppStyles();
   const { t, locale } = useTranslation();
   const { units } = useUnits();
-  const { heightEntries } = useSharedUserProfile();
+  const { heightEntries, birthDate, sex } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { openWeighIn } = useBmiDetails();
   const [range, setRange] = useState<ChartRange>('30d');
@@ -51,8 +52,14 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
       return null;
     }
     const heightCm = getHeightAtDate(heightEntries, latest.date);
-    return heightCm === null ? null : calculateBmi(latest.weightKg, heightCm);
-  }, [heightEntries, latest]);
+    return heightCm === null
+      ? null
+      : calculateBmi(latest.weightKg, heightCm, {
+          date: latest.date,
+          birthDate,
+          sex,
+        });
+  }, [heightEntries, latest, birthDate, sex]);
 
   if (isLoading) {
     return (
@@ -78,22 +85,29 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
           <View style={styles.heroMetaRow}>
             <DeltaChip value={change} />
             {showBmi ? (
-              <BmiBadge
-                bmi={bmi}
-                compact
-                onPress={() =>
-                  openWeighIn({
-                    date: latest.date,
-                    weightKg: latest.weightKg,
-                    createdAt: latest.createdAt,
-                    updatedAt: latest.updatedAt,
-                  })
-                }
-              />
+              <View>
+                <BmiBadge
+                  bmi={bmi}
+                  compact
+                  onPress={() =>
+                    openWeighIn({
+                      date: latest.date,
+                      weightKg: latest.weightKg,
+                      createdAt: latest.createdAt,
+                      updatedAt: latest.updatedAt,
+                    })
+                  }
+                />
+              </View>
             ) : null}
           </View>
           <Text style={styles.cardSubtitle}>
-            {t('hero.loggedOn', { date: formatDateLabel(latest.date) })}
+            {birthDate
+              ? t('hero.loggedOnWithAge', {
+                  date: formatDateLabel(latest.date),
+                  age: formatAge(getAgeOnDate(birthDate, latest.date)),
+                })
+              : t('hero.loggedOn', { date: formatDateLabel(latest.date) })}
           </Text>
         </>
       ) : (

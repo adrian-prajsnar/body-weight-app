@@ -1,3 +1,4 @@
+import { getAgeOnDate, getPreviousAgeYearRange, getThisAgeYearRange } from './age';
 import {
   addDays,
   fromDateKey,
@@ -41,10 +42,18 @@ function toRange(start: Date, end: Date): DateRange {
 export function getDashboardPeriodRange(
   period: DashboardPeriod,
   todayInput?: Date,
+  birthDate?: string | null,
 ): DateRange {
   const today = normalizeToday(todayInput);
 
   switch (period) {
+    case 'thisAgeYear': {
+      if (!birthDate) {
+        const start = addDays(today, -364);
+        return toRange(start, today);
+      }
+      return getThisAgeYearRange(birthDate, today);
+    }
     case 'thisWeek': {
       const start = getMondayWeekStart(today);
       return toRange(start, today);
@@ -147,6 +156,7 @@ export function getComparison(
   entries: WeightEntry[],
   mode: ComparisonMode,
   customRanges?: { rangeA: DateRange; rangeB: DateRange },
+  birthDate?: string | null,
 ): PeriodComparison | null {
   let rangeA: DateRange;
   let rangeB: DateRange;
@@ -154,6 +164,22 @@ export function getComparison(
   let labelB: string;
 
   switch (mode) {
+    case 'ageYear': {
+      if (!birthDate) {
+        return null;
+      }
+      rangeA = getThisAgeYearRange(birthDate);
+      rangeB = getPreviousAgeYearRange(birthDate);
+      const ageA = getAgeOnDate(birthDate, rangeA.end);
+      const ageB = getAgeOnDate(birthDate, rangeB.end);
+      labelA = t('periods.thisAgeYearComparison', {
+        age: ageA ? t('age.years', { count: ageA.years }) : t('common.emDash'),
+      });
+      labelB = t('periods.lastAgeYearComparison', {
+        age: ageB ? t('age.years', { count: ageB.years }) : t('common.emDash'),
+      });
+      break;
+    }
     case 'week':
       rangeA = getDashboardPeriodRange('thisWeek');
       rangeB = getDashboardPeriodRange('lastWeek');

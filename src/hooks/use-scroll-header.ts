@@ -1,4 +1,5 @@
-import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { useCallback, useRef } from 'react';
+import { runOnJS, useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 
 /**
  * Tracks vertical scroll offset so a screen header can reveal its hairline
@@ -6,10 +7,16 @@ import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimate
  */
 export function useScrollHeader() {
   const scrollY = useSharedValue(0);
+  const scrollOffsetRef = useRef(0);
+
+  const setScrollOffset = useCallback((offset: number) => {
+    scrollOffsetRef.current = offset;
+  }, []);
 
   const onScroll = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
+    runOnJS(setScrollOffset)(event.contentOffset.y);
   });
 
-  return { scrollY, onScroll };
+  return { scrollY, onScroll, scrollOffsetRef };
 }

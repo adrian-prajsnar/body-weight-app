@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { RefreshControl, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
 import { ComparisonResult } from '../components/comparison-result';
@@ -8,11 +8,11 @@ import { DateField } from '../components/date-field';
 import { EmptyState } from '../components/empty-state';
 import { ErrorCard } from '../components/error-card';
 import { ScreenHeader } from '../components/screen-header';
-import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
+import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
-import { getTodayDate, toDateKey } from '../format';
+import { toDateKey } from '../format';
 import { getComparison } from '../stats';
 import { ComparisonMode } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -20,10 +20,10 @@ import { useAppStyles } from '../theme/styles';
 type RangePickerProps = {
   title: string;
   delay: number;
-  start: Date;
-  end: Date;
-  onStartChange: (date: Date) => void;
-  onEndChange: (date: Date) => void;
+  start: Date | null;
+  end: Date | null;
+  onStartChange: (date: Date | null) => void;
+  onEndChange: (date: Date | null) => void;
 };
 
 function RangePicker({
@@ -41,20 +41,12 @@ function RangePicker({
       <DateField
         label={t('comparison.start')}
         value={start}
-        onChange={(date) => {
-          if (date) {
-            onStartChange(date);
-          }
-        }}
+        onChange={onStartChange}
       />
       <DateField
         label={t('comparison.end')}
         value={end}
-        onChange={(date) => {
-          if (date) {
-            onEndChange(date);
-          }
-        }}
+        onChange={onEndChange}
       />
     </AppCard>
   );
@@ -64,27 +56,46 @@ export function ComparisonScreen() {
   const styles = useAppStyles();
   const { t, locale } = useTranslation();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
+  const { birthDate } = useSharedUserProfile();
   const { scrollY, onScroll } = useScrollHeader();
   const [mode, setMode] = useState<ComparisonMode>('week');
-  const today = getTodayDate();
 
-  const [rangeAStart, setRangeAStart] = useState(today);
-  const [rangeAEnd, setRangeAEnd] = useState(today);
-  const [rangeBStart, setRangeBStart] = useState(today);
-  const [rangeBEnd, setRangeBEnd] = useState(today);
+  const [rangeAStart, setRangeAStart] = useState<Date | null>(null);
+  const [rangeAEnd, setRangeAEnd] = useState<Date | null>(null);
+  const [rangeBStart, setRangeBStart] = useState<Date | null>(null);
+  const [rangeBEnd, setRangeBEnd] = useState<Date | null>(null);
 
-  const modeOptions = useMemo<SegmentedOption<ComparisonMode>[]>(
-    () => [
+  const resetCustomRanges = () => {
+    setRangeAStart(null);
+    setRangeAEnd(null);
+    setRangeBStart(null);
+    setRangeBEnd(null);
+  };
+
+  useEffect(() => {
+    if (!birthDate && mode === 'ageYear') {
+      setMode('week');
+    }
+  }, [birthDate, mode]);
+
+  const modeOptions = useMemo(() => {
+    const options: { value: ComparisonMode; label: string }[] = [
       { value: 'week', label: t('comparison.week') },
       { value: 'month', label: t('comparison.month') },
       { value: 'year', label: t('comparison.year') },
-      { value: 'custom', label: t('comparison.custom') },
-    ],
-    [t],
-  );
+    ];
+    if (birthDate) {
+      options.push({ value: 'ageYear', label: t('comparison.ageYear') });
+    }
+    options.push({ value: 'custom', label: t('comparison.custom') });
+    return options;
+  }, [birthDate, t, locale]);
 
   const customRanges = useMemo(() => {
     if (mode !== 'custom') {
+      return null;
+    }
+    if (!rangeAStart || !rangeAEnd || !rangeBStart || !rangeBEnd) {
       return null;
     }
     return {
@@ -93,15 +104,19 @@ export function ComparisonScreen() {
     };
   }, [mode, rangeAStart, rangeAEnd, rangeBStart, rangeBEnd]);
 
+  const customIncomplete =
+    mode === 'custom' &&
+    (!rangeAStart || !rangeAEnd || !rangeBStart || !rangeBEnd);
+
   const comparison = useMemo(() => {
     if (mode === 'custom') {
       if (!customRanges) {
         return null;
       }
-      return getComparison(entries, 'custom', customRanges);
+      return getComparison(entries, 'custom', customRanges, birthDate);
     }
-    return getComparison(entries, mode);
-  }, [entries, mode, customRanges, locale]);
+    return getComparison(entries, mode, undefined, birthDate);
+  }, [entries, mode, customRanges, locale, birthDate]);
 
   const customInvalid =
     mode === 'custom' &&
@@ -130,7 +145,43 @@ export function ComparisonScreen() {
         ) : null}
 
         <AppCard title={t('comparison.period')}>
-          <SegmentedControl options={modeOptions} value={mode} onChange={setMode} />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.presetScroll}
+            contentContainerStyle={styles.presetScrollContent}
+          >
+            {modeOptions.map((option) => {
+              const isActive = mode === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  style={({ pressed }) => [
+                    styles.presetButton,
+                    isActive && styles.presetButtonActive,
+                    pressed && styles.buttonPressed,
+                  ]}
+                  onPress={() => {
+                    if (option.value === 'custom' && mode !== 'custom') {
+                      resetCustomRanges();
+                    }
+                    setMode(option.value);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <Text
+                    style={[
+                      styles.presetButtonText,
+                      isActive && styles.presetButtonTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </AppCard>
 
         {mode === 'custom' ? (
@@ -154,7 +205,7 @@ export function ComparisonScreen() {
           </>
         ) : null}
 
-        {isLoading ? (
+        {customIncomplete ? null : isLoading ? (
           <AppCard>
             <ComparisonResultSkeleton />
           </AppCard>

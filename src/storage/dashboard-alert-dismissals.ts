@@ -2,9 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = '@body-weight-app/dashboard-alert-dismissals';
 
-export type DashboardAlertId = 'missingBirthDate' | 'missingHeight';
+export type DashboardAlertId =
+  | 'missingBirthDate'
+  | 'missingHeight'
+  | 'missingSex'
+  | 'missingProfile';
 
-const VALID_IDS: DashboardAlertId[] = ['missingBirthDate', 'missingHeight'];
+const VALID_IDS: DashboardAlertId[] = [
+  'missingBirthDate',
+  'missingHeight',
+  'missingSex',
+  'missingProfile',
+];
 
 function isDashboardAlertId(value: string): value is DashboardAlertId {
   return VALID_IDS.includes(value as DashboardAlertId);
@@ -27,10 +36,26 @@ export async function getDismissedDashboardAlerts(): Promise<DashboardAlertId[]>
   }
 }
 
-export async function dismissDashboardAlert(id: DashboardAlertId): Promise<void> {
-  const dismissed = await getDismissedDashboardAlerts();
-  if (dismissed.includes(id)) {
+export async function dismissDashboardAlerts(ids: DashboardAlertId[]): Promise<void> {
+  if (ids.length === 0) {
     return;
   }
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([...dismissed, id]));
+
+  const dismissed = await getDismissedDashboardAlerts();
+  const next = [...dismissed];
+  for (const id of ids) {
+    if (!next.includes(id)) {
+      next.push(id);
+    }
+  }
+
+  if (next.length === dismissed.length) {
+    return;
+  }
+
+  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+}
+
+export async function dismissDashboardAlert(id: DashboardAlertId): Promise<void> {
+  await dismissDashboardAlerts([id]);
 }

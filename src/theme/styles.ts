@@ -246,6 +246,9 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
     dateButtonReadOnly: {
       backgroundColor: colors.surfaceSunken,
     },
+    dateButtonInStepper: {
+      flex: 1,
+    },
 
     primaryButton: {
       backgroundColor: colors.accent,
@@ -607,6 +610,30 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       gap: spacing.xs + 2,
     },
 
+    insightRow: {
+      gap: spacing.xs,
+      paddingVertical: spacing.sm,
+    },
+    insightRowHeader: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    insightValue: {
+      fontSize: 18,
+      color: colors.text,
+      fontFamily: fontFamily.bold,
+      ...tabularNums,
+    },
+    insightMeta: {
+      fontSize: 13,
+      color: colors.textMuted,
+      fontFamily: fontFamily.medium,
+    },
+    insightList: {
+      gap: 0,
+    },
     accountRow: {
       gap: spacing.xs + 2,
       paddingVertical: spacing.xs,

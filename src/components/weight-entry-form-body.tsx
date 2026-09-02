@@ -52,7 +52,7 @@ export function WeightEntryFormBody({
   const colors = useColors();
   const { t } = useTranslation();
   const { units } = useUnits();
-  const { heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
+  const { heightEntries, birthDate, sex, isLoading: isProfileLoading } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { openWeighIn } = useBmiDetails();
   const { showError, showSuccess } = useToast();
@@ -74,8 +74,12 @@ export function WeightEntryFormBody({
     if (!showBmi || parsedWeightKg === null || heightAtDate === null) {
       return null;
     }
-    return calculateBmi(parsedWeightKg, heightAtDate);
-  }, [parsedWeightKg, heightAtDate, showBmi]);
+    return calculateBmi(parsedWeightKg, heightAtDate, {
+      date: selectedDateKey,
+      birthDate,
+      sex,
+    });
+  }, [parsedWeightKg, heightAtDate, showBmi, selectedDateKey, birthDate, sex]);
 
   useEffect(() => {
     if (initialDate) {
@@ -147,6 +151,7 @@ export function WeightEntryFormBody({
         }}
         maximumDate={getTodayDate()}
         readOnly={dateReadOnly}
+        showDayStepper={!dateReadOnly}
       />
 
       <View style={{ gap: spacing.md }}>

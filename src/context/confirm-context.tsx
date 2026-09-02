@@ -3,12 +3,14 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
+import { useColors } from '../theme/theme-context';
 
 export type ConfirmOptions = {
   title: string;
@@ -16,6 +18,8 @@ export type ConfirmOptions = {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
+  confirmationPhrase?: string;
+  confirmationPhraseHint?: string;
 };
 
 type ConfirmContextValue = {
@@ -28,10 +32,16 @@ const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const styles = useAppStyles();
+  const colors = useColors();
   const { t } = useTranslation();
   const [pending, setPending] = useState<PendingConfirm | null>(null);
+  const [phraseInput, setPhraseInput] = useState('');
   const resolverRef = useRef<((value: boolean) => void) | null>(null);
   const idRef = useRef(0);
+
+  useEffect(() => {
+    setPhraseInput('');
+  }, [pending?.id]);
 
   const close = useCallback((result: boolean) => {
     setPending(null);
@@ -49,6 +59,9 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const cancelLabel = pending?.cancelLabel ?? t('common.cancel');
   const confirmLabel = pending?.confirmLabel ?? t('common.confirm');
+  const phraseRequired = Boolean(pending?.confirmationPhrase);
+  const phraseMatches =
+    !phraseRequired || phraseInput === pending?.confirmationPhrase;
 
   return (
     <ConfirmContext.Provider value={{ confirm }}>
@@ -71,6 +84,22 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               >
                 <Text style={styles.confirmDialogTitle}>{pending.title}</Text>
                 <Text style={styles.confirmDialogMessage}>{pending.message}</Text>
+                {pending.confirmationPhrase ? (
+                  <View style={styles.passwordFieldGroup}>
+                    {pending.confirmationPhraseHint ? (
+                      <Text style={styles.fieldLabel}>{pending.confirmationPhraseHint}</Text>
+                    ) : null}
+                    <TextInput
+                      style={styles.input}
+                      value={phraseInput}
+                      onChangeText={setPhraseInput}
+                      autoCapitalize="characters"
+                      autoCorrect={false}
+                      placeholder={pending.confirmationPhrase}
+                      placeholderTextColor={colors.textSubtle}
+                    />
+                  </View>
+                ) : null}
                 <View style={styles.confirmDialogActions}>
                   <Pressable
                     style={({ pressed }) => [
@@ -83,12 +112,14 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                     <Text style={styles.secondaryButtonText}>{cancelLabel}</Text>
                   </Pressable>
                   <Pressable
+                    disabled={!phraseMatches}
                     style={({ pressed }) => [
                       styles.confirmDialogButton,
                       pending.destructive
                         ? styles.confirmDialogDestructiveButton
                         : styles.primaryButton,
-                      pressed && styles.buttonPressed,
+                      !phraseMatches && styles.buttonDisabled,
+                      pressed && phraseMatches && styles.buttonPressed,
                     ]}
                     onPress={() => close(true)}
                   >

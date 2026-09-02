@@ -1,5 +1,5 @@
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
@@ -12,6 +12,7 @@ import { PeriodSelector } from '../components/period-selector';
 import { ScreenHeader } from '../components/screen-header';
 import { StatsSummary } from '../components/stats-summary';
 import { StatsSummarySkeleton } from '../components/stats-summary-skeleton';
+import { WeightHighlightsCard } from '../components/weight-highlights-card';
 import { WeightEntryModal } from '../components/weight-entry-modal';
 import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
@@ -30,6 +31,10 @@ import {
   getStatsForRange,
 } from '../stats';
 import { DashboardPeriod } from '../types';
+import {
+  PROFILE_SETUP_DISMISS_IDS,
+  shouldShowProfileSetupBanner,
+} from '../profile-setup-banner';
 import { useAppStyles } from '../theme/styles';
 
 type Props = BottomTabScreenProps<RootTabParamList, 'Dashboard'>;
@@ -39,13 +44,19 @@ export function DashboardScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
     useSharedWeightEntries();
-  const { birthDate, heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
+  const { birthDate, sex, heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
   const { isReady: areDismissalsReady, isDismissed, dismiss } = useDashboardAlertDismissals();
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();
   const { scrollY, onScroll } = useScrollHeader();
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
   const [editingDate, setEditingDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!birthDate && period === 'thisAgeYear') {
+      setPeriod('thisWeek');
+    }
+  }, [birthDate, period]);
 
   const handleEdit = (date: string) => {
     setEditingDate(date);
@@ -74,25 +85,36 @@ export function DashboardScreen({ navigation }: Props) {
     });
   };
 
-  const range = useMemo(() => getDashboardPeriodRange(period), [period]);
+  const range = useMemo(
+    () => getDashboardPeriodRange(period, undefined, birthDate),
+    [period, birthDate],
+  );
   const stats = useMemo(() => getStatsForRange(entries, range), [entries, range]);
   const recentEntries = useMemo(() => getLast7DaysEntries(entries), [entries]);
 
-  const showBirthDateAlert =
-    areDismissalsReady &&
-    !isProfileLoading &&
-    !birthDate &&
-    !isDismissed('missingBirthDate');
-  const showHeightAlert =
-    areDismissalsReady &&
-    !isProfileLoading &&
-    heightEntries.length === 0 &&
-    !isDismissed('missingHeight');
+  const showProfileBanner = useMemo(() => {
+    if (!areDismissalsReady || isProfileLoading) {
+      return false;
+    }
+    return shouldShowProfileSetupBanner(
+      Boolean(birthDate),
+      Boolean(sex),
+      heightEntries.length > 0,
+      isDismissed,
+    );
+  }, [
+    areDismissalsReady,
+    isProfileLoading,
+    birthDate,
+    sex,
+    heightEntries.length,
+    isDismissed,
+  ]);
 
-  const openProfileSection = (focusSection: 'birthDate' | 'height') => {
+  const openProfileSection = (focusSection: 'birthDate' | 'height' | 'sex' | undefined) => {
     navigation.navigate('Profile', {
       screen: 'ProfileMain',
-      params: { focusSection },
+      params: focusSection ? { focusSection } : undefined,
     });
   };
 
@@ -116,21 +138,12 @@ export function DashboardScreen({ navigation }: Props) {
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
         ) : null}
 
-        {showBirthDateAlert ? (
+        {showProfileBanner ? (
           <DismissibleInfoBanner
-            message={t('dashboard.missingBirthDateMessage')}
-            actionLabel={t('dashboard.addBirthDate')}
-            onAction={() => openProfileSection('birthDate')}
-            onDismiss={() => void dismiss('missingBirthDate')}
-          />
-        ) : null}
-
-        {showHeightAlert ? (
-          <DismissibleInfoBanner
-            message={t('dashboard.missingHeightMessage')}
-            actionLabel={t('dashboard.addHeight')}
-            onAction={() => openProfileSection('height')}
-            onDismiss={() => void dismiss('missingHeight')}
+            message={t('dashboard.profileBannerMessage')}
+            actionLabel={t('dashboard.profileBannerAction')}
+            onAction={() => openProfileSection(undefined)}
+            onDismiss={() => void dismiss(PROFILE_SETUP_DISMISS_IDS)}
           />
         ) : null}
 
@@ -144,7 +157,11 @@ export function DashboardScreen({ navigation }: Props) {
           isBusy={isRefreshing}
           delay={120}
         >
-          <PeriodSelector selected={period} onSelect={setPeriod} />
+          <PeriodSelector
+            selected={period}
+            onSelect={setPeriod}
+            showAgeYear={Boolean(birthDate)}
+          />
           {isLoading ? (
             <StatsSummarySkeleton />
           ) : (
@@ -174,6 +191,14 @@ export function DashboardScreen({ navigation }: Props) {
             />
           )}
         </AppCard>
+
+        {birthDate && !isLoading && entries.length > 0 ? (
+          <WeightHighlightsCard
+            entries={entries}
+            birthDate={birthDate}
+            isBusy={isRefreshing}
+          />
+        ) : null}
       </Animated.ScrollView>
 
       <WeightEntryModal

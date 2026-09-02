@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { View } from 'react-native';
-import { bmiInfoFromValue } from '../bmi';
+import { classifyBmiValue } from '../bmi';
 import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
@@ -23,7 +23,7 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const styles = useAppStyles();
   const { t } = useTranslation();
   const { units } = useUnits();
-  const { heightEntries } = useSharedUserProfile();
+  const { heightEntries, birthDate, sex } = useSharedUserProfile();
   const { showBmi } = useSharedBmiDisplay();
   const { openPeriod } = useBmiDetails();
   const weightUnit = getWeightUnitLabel(units);
@@ -37,14 +37,30 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const formatValue = (value: number | null): string =>
     value === null ? emDash : formatWeightValue(value, units);
 
-  const bmiBadge = (value: number | null, metric: 'average' | 'min' | 'max') =>
-    showBmi ? (
+  const bmiBadge = (value: number | null, metric: 'average' | 'min' | 'max') => {
+    const sourceDate =
+      metric === 'min'
+        ? bmiStats.minDate
+        : metric === 'max'
+          ? bmiStats.maxDate
+          : range.end;
+    const bmi =
+      value === null
+        ? null
+        : classifyBmiValue(value, {
+            date: sourceDate ?? range.end,
+            birthDate,
+            sex,
+          });
+
+    return showBmi ? (
       <BmiBadge
-        bmi={value === null ? null : bmiInfoFromValue(value)}
+        bmi={bmi}
         compact
         onPress={() => openPeriod({ metric, range, entries })}
       />
     ) : null;
+  };
 
   return (
     <View style={styles.statGrid}>

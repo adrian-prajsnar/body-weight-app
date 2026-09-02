@@ -10,8 +10,8 @@ import {
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
 import { ErrorCard } from '../components/error-card';
-import { HeightSection } from '../components/height-section';
-import { ProfileDetailsSkeleton } from '../components/profile-details-skeleton';
+import { AboutYouSection, AboutYouSkeleton } from '../components/about-you-section';
+import { ProfileAccountSkeleton } from '../components/profile-details-skeleton';
 import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
@@ -27,6 +27,7 @@ import { getDateLocale } from '../i18n/resolve-locale';
 import { useUnits } from '../context/unit-context';
 import { UnitPreference } from '../storage/unit-preference';
 import { useSharedUserProfile } from '../context/user-profile-context';
+import { BiologicalSex } from '../types';
 import { getTodayDate, toDateKey } from '../format';
 import { hasAnyHeight } from '../height';
 import { LanguagePreference } from '../storage/language-preference';
@@ -83,7 +84,7 @@ export function ProfileScreen({
   const { units, preference: unitPreference, setPreference: setUnitPreference } = useUnits();
   const { session, signOut, deleteAccount } = useSupabaseAuth();
   const { entries } = useSharedWeightEntries();
-  const { heightEntries, birthDate, isLoading, isRefreshing, isSaving, error, refreshProfile, saveBirthDateEntry } =
+  const { heightEntries, birthDate, sex, isLoading, isRefreshing, isSaving, error, refreshProfile, saveBirthDateEntry, saveSexEntry } =
     useSharedUserProfile();
   const { showBmi, setShowBmi } = useSharedBmiDisplay();
   const { showError, showInfo, showSuccess } = useToast();
@@ -143,10 +144,15 @@ export function ProfileScreen({
   };
 
   const handleDeleteAccount = () => {
+    const confirmationPhrase = 'DELETE';
     void confirm({
       title: t('profile.deleteAccount'),
       message: t('profile.deleteAccountConfirm'),
       confirmLabel: t('profile.deleteAccount'),
+      confirmationPhrase,
+      confirmationPhraseHint: t('profile.deleteAccountTypeToConfirm', {
+        phrase: confirmationPhrase,
+      }),
       destructive: true,
     }).then((confirmed) => {
       if (!confirmed) {
@@ -204,6 +210,18 @@ export function ProfileScreen({
     })();
   };
 
+  const handleSexChange = (next: BiologicalSex | null) => {
+    void (async () => {
+      try {
+        await saveSexEntry(next);
+        showSuccess(t('profile.sexSaved'));
+      } catch (saveError) {
+        const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
+        showError(message);
+      }
+    })();
+  };
+
   return (
     <View style={styles.screen}>
       <ScreenHeader
@@ -224,9 +242,9 @@ export function ProfileScreen({
           <ErrorCard message={error} onRetry={() => void refreshProfile()} />
         ) : null}
 
-        <AppCard title={t('profile.account')} isBusy={isRefreshing || isSaving}>
+        <AppCard title={t('profile.account')} isBusy={isRefreshing}>
           {isLoading ? (
-            <ProfileDetailsSkeleton />
+            <ProfileAccountSkeleton />
           ) : (
             <>
               <ProfileRow icon="mail-outline" label={t('auth.email')} value={user?.email ?? '—'} />
@@ -235,29 +253,34 @@ export function ProfileScreen({
                 label={t('profile.memberSince')}
                 value={formatMemberSince(user?.created_at, dateLocale)}
               />
-
               <ProfileRow
                 icon="list-outline"
                 label={t('profile.weightEntries')}
                 value={entryCountLabel}
               />
-
-              <View style={styles.divider} />
-
-              <HeightSection
-                birthDate={birthDate}
-                onBirthDateChange={handleBirthDateChange}
-                birthDateAutoOpen={shouldOpenBirthDatePicker}
-                minimumBirthDate={minimumBirthDate}
-                maximumBirthDate={getTodayDate()}
-                heightEntries={heightEntries}
-                onOpenHeightHistory={() => navigation.navigate('HeightHistory')}
-              />
             </>
           )}
         </AppCard>
 
-        <AppCard title={t('profile.appearance')} delay={60}>
+        <AppCard title={t('profile.aboutYou')} isBusy={isRefreshing || isSaving} delay={60}>
+          {isLoading ? (
+            <AboutYouSkeleton />
+          ) : (
+            <AboutYouSection
+              birthDate={birthDate}
+              onBirthDateChange={handleBirthDateChange}
+              birthDateAutoOpen={shouldOpenBirthDatePicker}
+              minimumBirthDate={minimumBirthDate}
+              maximumBirthDate={getTodayDate()}
+              sex={sex}
+              onSexChange={handleSexChange}
+              heightEntries={heightEntries}
+              onOpenHeightHistory={() => navigation.navigate('HeightHistory')}
+            />
+          )}
+        </AppCard>
+
+        <AppCard title={t('profile.appearance')} delay={120}>
           <Text style={styles.settingHint}>{t('profile.languageHint')}</Text>
           <SegmentedControl
             options={languageOptions}
@@ -304,7 +327,7 @@ export function ProfileScreen({
           </View>
         </AppCard>
 
-        <AppCard title={t('profile.session')} delay={120}>
+        <AppCard title={t('profile.session')} delay={180}>
           <Pressable
             style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
             onPress={handleSignOut}

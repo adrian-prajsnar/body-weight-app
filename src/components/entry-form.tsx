@@ -20,7 +20,6 @@ export function EntryForm({ entries, onSaved, isDataLoading = false }: EntryForm
         entries={entries}
         onSaved={onSaved}
         isDataLoading={isDataLoading}
-        resetDateAfterSave
       />
     </AppCard>
   );

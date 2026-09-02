@@ -101,6 +101,7 @@ grant execute on function public.delete_own_account() to authenticated;
 create table if not exists public.user_profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
   birth_date date,
+  sex text check (sex is null or sex in ('female', 'male')),
   updated_at timestamptz not null default now()
 );
 

@@ -4,7 +4,7 @@ import { useTranslation } from '../i18n/language-context';
 import { DashboardPeriod } from '../types';
 import { useAppStyles } from '../theme/styles';
 
-const PERIOD_VALUES: DashboardPeriod[] = [
+const BASE_PERIODS: DashboardPeriod[] = [
   'thisWeek',
   'lastWeek',
   'thisMonth',
@@ -20,25 +20,30 @@ const PERIOD_KEYS: Record<DashboardPeriod, string> = {
   lastMonth: 'periods.lastMonth',
   last6Months: 'periods.last6Months',
   lastYear: 'periods.lastYear',
+  thisAgeYear: 'periods.thisAgeYear',
 };
 
 type PeriodSelectorProps = {
   selected: DashboardPeriod;
   onSelect: (period: DashboardPeriod) => void;
+  showAgeYear?: boolean;
 };
 
-export function PeriodSelector({ selected, onSelect }: PeriodSelectorProps) {
+export function PeriodSelector({
+  selected,
+  onSelect,
+  showAgeYear = false,
+}: PeriodSelectorProps) {
   const styles = useAppStyles();
   const { t, locale } = useTranslation();
 
-  const options = useMemo(
-    () =>
-      PERIOD_VALUES.map((value) => ({
-        value,
-        label: t(PERIOD_KEYS[value]),
-      })),
-    [t, locale],
-  );
+  const options = useMemo(() => {
+    const values = showAgeYear ? [...BASE_PERIODS, 'thisAgeYear' as const] : BASE_PERIODS;
+    return values.map((value) => ({
+      value,
+      label: t(PERIOD_KEYS[value]),
+    }));
+  }, [showAgeYear, t, locale]);
 
   return (
     <ScrollView

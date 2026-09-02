@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { calculateBmi, BmiInfo, bmiInfoFromValue, formatBmiValue, getBmiTheme } from '../bmi';
+import { formatAge, getAgeOnDate } from '../age';
+import { calculateBmi, BmiInfo, classifyBmiValue, formatBmiValue, getBmiTheme } from '../bmi';
 import { useUnits } from '../context/unit-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import {
@@ -11,6 +12,7 @@ import {
   formatHeight,
   formatWeightLabel,
 } from '../format';
+import { t } from '../i18n';
 import { getBmiStatsForRange, getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry } from '../types';
@@ -87,6 +89,51 @@ function CategoryRow({ bmi }: { bmi: BmiInfo | null }) {
   );
 }
 
+function classificationLabel(bmi: BmiInfo): string {
+  if (bmi.classification === 'bmiForAge') {
+    return t('bmi.methodBmiForAge');
+  }
+  if (bmi.classification === 'unclassified') {
+    return t('bmi.methodUnclassified');
+  }
+  return t('bmi.methodAdult');
+}
+
+function unclassifiedNote(bmi: BmiInfo): string | null {
+  if (bmi.classification !== 'unclassified') {
+    return null;
+  }
+  if (bmi.ageYears !== null && bmi.ageYears < 2) {
+    return t('bmi.unclassifiedUnder2');
+  }
+  if (bmi.ageYears !== null && bmi.ageYears < 20) {
+    return t('bmi.unclassifiedNeedSex');
+  }
+  return t('bmi.unclassifiedNeedBirthDate');
+}
+
+function BmiClassificationRows({ bmi }: { bmi: BmiInfo | null }) {
+  const styles = useAppStyles();
+  const { t } = useTranslation();
+
+  if (!bmi) {
+    return <CategoryRow bmi={null} />;
+  }
+
+  const note = unclassifiedNote(bmi);
+
+  return (
+    <>
+      <CategoryRow bmi={bmi} />
+      <DetailRow label={t('bmi.method')} value={classificationLabel(bmi)} />
+      {bmi.percentile !== null ? (
+        <DetailRow label={t('bmi.percentile')} value={String(bmi.percentile)} />
+      ) : null}
+      {note ? <Text style={styles.bmiDetailsNote}>{note}</Text> : null}
+    </>
+  );
+}
+
 function WeighInDetails({
   date,
   weightKg,
@@ -96,14 +143,19 @@ function WeighInDetails({
   const styles = useAppStyles();
   const { t } = useTranslation();
   const { units } = useUnits();
-  const { heightEntries } = useSharedUserProfile();
+  const { heightEntries, birthDate, sex } = useSharedUserProfile();
   const heightCm = getHeightAtDate(heightEntries, date);
-  const bmi = heightCm === null ? null : calculateBmi(weightKg, heightCm);
+  const bmi =
+    heightCm === null
+      ? null
+      : calculateBmi(weightKg, heightCm, { date, birthDate, sex });
   const unavailable = t('common.emDash');
+  const age = birthDate ? getAgeOnDate(birthDate, date) : null;
 
   return (
     <>
       <DetailRow label={t('bmi.date')} value={formatDateLabel(date)} />
+      {age ? <DetailRow label={t('bmi.ageOnDate')} value={formatAge(age)} /> : null}
       <DetailRow
         label={t('bmi.height')}
         value={heightCm === null ? unavailable : formatHeight(heightCm, units)}
@@ -113,7 +165,7 @@ function WeighInDetails({
         label={t('bmi.value')}
         value={bmi ? formatBmiValue(bmi.value) : unavailable}
       />
-      <CategoryRow bmi={bmi} />
+      <BmiClassificationRows bmi={bmi} />
       {createdAt === null && updatedAt === null ? (
         <Text style={styles.bmiDetailsNote}>{t('bmi.notSavedYet')}</Text>
       ) : (
@@ -139,14 +191,22 @@ function periodTitleKey(metric: PeriodBmiMetric): string {
 function PeriodDetails({ metric, range, entries }: Omit<PeriodBmiDetails, 'type'>) {
   const styles = useAppStyles();
   const { t } = useTranslation();
-  const { heightEntries } = useSharedUserProfile();
+  const { heightEntries, birthDate, sex } = useSharedUserProfile();
   const stats = getBmiStatsForRange(entries, heightEntries, range);
   const missing = stats.totalCount - stats.count;
   const unavailable = t('common.emDash');
   const aggregate =
     metric === 'average' ? stats.average : metric === 'min' ? stats.min : stats.max;
-  const aggregateBmi = aggregate === null ? null : bmiInfoFromValue(aggregate);
-  const sourceDate = metric === 'min' ? stats.minDate : metric === 'max' ? stats.maxDate : null;
+  const sourceDate =
+    metric === 'min' ? stats.minDate : metric === 'max' ? stats.maxDate : range.end;
+  const aggregateBmi =
+    aggregate === null
+      ? null
+      : classifyBmiValue(aggregate, {
+          date: sourceDate ?? range.end,
+          birthDate,
+          sex,
+        });
   const sourceEntry = sourceDate ? entries.find((entry) => entry.date === sourceDate) : null;
 
   return (
@@ -156,7 +216,10 @@ function PeriodDetails({ metric, range, entries }: Omit<PeriodBmiDetails, 'type'
         label={t(periodTitleKey(metric))}
         value={aggregate === null ? unavailable : formatBmiValue(aggregate)}
       />
-      <CategoryRow bmi={aggregateBmi} />
+      <BmiClassificationRows bmi={aggregateBmi} />
+      {metric === 'average' ? (
+        <Text style={styles.bmiDetailsNote}>{t('bmi.periodAverageNote')}</Text>
+      ) : null}
       {stats.count === 0 ? (
         <Text style={styles.bmiDetailsNote}>{t('bmi.coverageNone')}</Text>
       ) : (
@@ -169,7 +232,7 @@ function PeriodDetails({ metric, range, entries }: Omit<PeriodBmiDetails, 'type'
           ) : null}
         </>
       )}
-      {sourceEntry ? (
+      {sourceEntry && metric !== 'average' ? (
         <>
           <Text style={styles.bmiDetailsSection}>{t('bmi.sourceEntry')}</Text>
           <WeighInDetails

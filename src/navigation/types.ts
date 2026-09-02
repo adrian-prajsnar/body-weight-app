@@ -7,7 +7,7 @@ export type AuthStackParamList = {
 };
 
 export type ProfileStackParamList = {
-  ProfileMain: { focusSection?: 'birthDate' | 'height' } | undefined;
+  ProfileMain: { focusSection?: 'birthDate' | 'height' | 'sex' } | undefined;
   HeightHistory: undefined;
 };
 

@@ -1,17 +1,31 @@
 import { getUserId } from './auth-user';
 import { supabase } from './client';
 import { withAuthRetry } from './with-auth-retry';
+import { BiologicalSex } from '../types';
 
 type UserProfileRow = {
   birth_date: string | null;
+  sex: string | null;
 };
 
-export async function getBirthDate(): Promise<string | null> {
+function parseSex(value: string | null | undefined): BiologicalSex | null {
+  if (value === 'female' || value === 'male') {
+    return value;
+  }
+  return null;
+}
+
+export type UserProfileFields = {
+  birthDate: string | null;
+  sex: BiologicalSex | null;
+};
+
+export async function getUserProfile(): Promise<UserProfileFields> {
   return withAuthRetry(async () => {
     const userId = await getUserId();
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('birth_date')
+      .select('birth_date, sex')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -19,17 +33,22 @@ export async function getBirthDate(): Promise<string | null> {
       throw error;
     }
 
-    return (data as UserProfileRow | null)?.birth_date ?? null;
+    const row = data as UserProfileRow | null;
+    return {
+      birthDate: row?.birth_date ?? null,
+      sex: parseSex(row?.sex),
+    };
   });
 }
 
-export async function saveBirthDate(birthDate: string | null): Promise<void> {
+export async function saveUserProfile(profile: UserProfileFields): Promise<void> {
   return withAuthRetry(async () => {
     const userId = await getUserId();
     const { error } = await supabase.from('user_profiles').upsert(
       {
         user_id: userId,
-        birth_date: birthDate,
+        birth_date: profile.birthDate,
+        sex: profile.sex,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' },

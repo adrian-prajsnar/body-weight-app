@@ -1,10 +1,11 @@
 import { createContext, ReactNode, useContext } from 'react';
 import { useUserProfile } from '../hooks/use-user-profile';
-import { HeightEntry } from '../types';
+import { BiologicalSex, HeightEntry } from '../types';
 
 type UserProfileContextValue = {
   heightEntries: HeightEntry[];
   birthDate: string | null;
+  sex: BiologicalSex | null;
   currentHeightCm: number | null;
   isLoading: boolean;
   isRefreshing: boolean;
@@ -13,6 +14,7 @@ type UserProfileContextValue = {
   error: string | null;
   refreshProfile: () => Promise<void>;
   saveBirthDateEntry: (birthDate: string | null) => Promise<void>;
+  saveSexEntry: (sex: BiologicalSex | null) => Promise<void>;
   saveHeightEntry: (effectiveDate: string, heightCm: number) => Promise<void>;
   updateHeightEntry: (
     previousEffectiveDate: string,

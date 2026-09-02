@@ -3,6 +3,7 @@ import { calculateBmi } from '../bmi';
 import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
+import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatWeightLabel } from '../format';
 import { getHeightAtDate } from '../height';
 import { HeightEntry, WeightEntry } from '../types';
@@ -28,8 +29,16 @@ export function WeightWithBmi({
   const { units } = useUnits();
   const { showBmi } = useSharedBmiDisplay();
   const { openWeighIn } = useBmiDetails();
+  const { birthDate, sex } = useSharedUserProfile();
   const heightCm = getHeightAtDate(heightEntries, entry.date);
-  const bmi = heightCm === null ? null : calculateBmi(entry.weightKg, heightCm);
+  const bmi =
+    heightCm === null
+      ? null
+      : calculateBmi(entry.weightKg, heightCm, {
+          date: entry.date,
+          birthDate,
+          sex,
+        });
   const weightLabel = formatWeightLabel(entry.weightKg, units);
 
   const badge = showBmi ? (

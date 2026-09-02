@@ -18,14 +18,15 @@ export type DashboardPeriod =
   | 'thisMonth'
   | 'lastMonth'
   | 'last6Months'
-  | 'lastYear';
+  | 'lastYear'
+  | 'thisAgeYear';
 
 export type DateRange = {
   start: string;
   end: string;
 };
 
-export type ComparisonMode = 'week' | 'month' | 'year' | 'custom';
+export type ComparisonMode = 'week' | 'month' | 'year' | 'ageYear' | 'custom';
 
 export type ChartRange = '30d' | '90d' | '1y';
 
@@ -58,9 +59,12 @@ export type PeriodComparison = {
   difference: number | null;
 };
 
+export type BiologicalSex = 'female' | 'male';
+
 export type UserProfile = {
   heightEntries: HeightEntry[];
   birthDate: string | null;
+  sex: BiologicalSex | null;
 };
 
 export type HeightEntry = {

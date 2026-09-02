@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { formatDateLabel, getTodayDate, toDateKey } from '../format';
+import { formatDateLabel, addDays, getTodayDate, toDateKey } from '../format';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -16,6 +16,7 @@ type DateFieldProps = {
   autoOpen?: boolean;
   maximumDate?: Date;
   minimumDate?: Date;
+  showDayStepper?: boolean;
 };
 
 export function DateField({
@@ -27,6 +28,7 @@ export function DateField({
   autoOpen = false,
   maximumDate,
   minimumDate,
+  showDayStepper = false,
 }: DateFieldProps) {
   const styles = useAppStyles();
   const colors = useColors();
@@ -39,6 +41,62 @@ export function DateField({
     }
   }, [autoOpen, readOnly]);
 
+  const canDecreaseDay =
+    value !== null &&
+    (minimumDate === undefined || toDateKey(value) > toDateKey(minimumDate));
+  const canIncreaseDay =
+    value !== null &&
+    (maximumDate === undefined || toDateKey(value) < toDateKey(maximumDate));
+
+  const adjustDay = (direction: -1 | 1) => {
+    if (!value) {
+      return;
+    }
+    const next = addDays(value, direction);
+    if (minimumDate && toDateKey(next) < toDateKey(minimumDate)) {
+      return;
+    }
+    if (maximumDate && toDateKey(next) > toDateKey(maximumDate)) {
+      return;
+    }
+    onChange(next);
+  };
+
+  const dateLabel = value
+    ? formatDateLabel(toDateKey(value))
+    : optional
+      ? t('common.any')
+      : t('dateField.selectDate');
+
+  const dateButton = readOnly ? (
+    <View style={[styles.dateButton, styles.dateButtonReadOnly]}>
+      <Text style={styles.dateButtonValue}>{dateLabel}</Text>
+    </View>
+  ) : (
+    <Pressable
+      style={({ pressed }) => [
+        styles.dateButton,
+        showDayStepper && styles.dateButtonInStepper,
+        pressed && styles.buttonPressed,
+      ]}
+      onPress={() => setShowPicker(true)}
+    >
+      <View
+        style={[
+          styles.filterFieldHeader,
+          showDayStepper ? { justifyContent: 'center' } : null,
+        ]}
+      >
+        <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
+          {dateLabel}
+        </Text>
+        {!showDayStepper ? (
+          <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
+
   return (
     <View style={styles.rangeRow}>
       <View style={styles.filterFieldHeader}>
@@ -49,32 +107,38 @@ export function DateField({
           </Pressable>
         ) : null}
       </View>
-      {readOnly ? (
-        <View style={[styles.dateButton, styles.dateButtonReadOnly]}>
-          <Text style={styles.dateButtonValue}>
-            {value
-              ? formatDateLabel(toDateKey(value))
-              : optional
-                ? t('common.any')
-                : t('dateField.selectDate')}
-          </Text>
+      {showDayStepper && value && !readOnly ? (
+        <View style={styles.weightEntryRow}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.stepperButton,
+              !canDecreaseDay && styles.buttonDisabled,
+              pressed && canDecreaseDay && styles.buttonPressed,
+            ]}
+            onPress={() => adjustDay(-1)}
+            disabled={!canDecreaseDay}
+            accessibilityRole="button"
+            accessibilityLabel={t('dateField.decreaseDay')}
+          >
+            <Ionicons name="remove" size={22} color={colors.textMuted} />
+          </Pressable>
+          {dateButton}
+          <Pressable
+            style={({ pressed }) => [
+              styles.stepperButton,
+              !canIncreaseDay && styles.buttonDisabled,
+              pressed && canIncreaseDay && styles.buttonPressed,
+            ]}
+            onPress={() => adjustDay(1)}
+            disabled={!canIncreaseDay}
+            accessibilityRole="button"
+            accessibilityLabel={t('dateField.increaseDay')}
+          >
+            <Ionicons name="add" size={22} color={colors.textMuted} />
+          </Pressable>
         </View>
       ) : (
-        <Pressable
-          style={({ pressed }) => [styles.dateButton, pressed && styles.buttonPressed]}
-          onPress={() => setShowPicker(true)}
-        >
-          <View style={styles.filterFieldHeader}>
-            <Text style={[styles.dateButtonValue, optional && !value && styles.filterPlaceholder]}>
-              {value
-                ? formatDateLabel(toDateKey(value))
-                : optional
-                  ? t('common.any')
-                  : t('dateField.selectDate')}
-            </Text>
-            <Ionicons name="calendar-outline" size={18} color={colors.textSubtle} />
-          </View>
-        </Pressable>
+        dateButton
       )}
       {!readOnly ? (
         <DatePickerSheet

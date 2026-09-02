@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
@@ -27,7 +27,10 @@ export function HistoryScreen() {
     useSharedWeightEntries();
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();
-  const { scrollY, onScroll } = useScrollHeader();
+  const { scrollY, onScroll, scrollOffsetRef } = useScrollHeader();
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  const viewportHeightRef = useRef(0);
+  const filterCardLayoutRef = useRef<{ y: number; height: number } | null>(null);
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -81,13 +84,43 @@ export function HistoryScreen() {
     setToDate(null);
   };
 
+  const showFilterCard = isFilterOpen || isFilterActive;
+
+  const isFilterCardVisible = () => {
+    if (!showFilterCard) {
+      return false;
+    }
+    const layout = filterCardLayoutRef.current;
+    if (!layout || viewportHeightRef.current === 0) {
+      return false;
+    }
+    const scroll = scrollOffsetRef.current;
+    const viewport = viewportHeightRef.current;
+    const top = layout.y;
+    const bottom = layout.y + layout.height;
+    return bottom > scroll && top < scroll + viewport;
+  };
+
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const toggleFilter = () => {
+    if (!isFilterCardVisible()) {
+      setIsFilterOpen(true);
+      scrollToTop();
+      return;
+    }
+    if (!isFilterActive) {
+      setIsFilterOpen((open) => !open);
+    }
+  };
+
   const emptyMessage = isInvalid
     ? t('history.invalidRangeEmpty')
     : isFilterActive
       ? t('history.emptyFiltered')
       : t('history.emptyDefault');
-
-  const showFilterCard = isFilterOpen || isFilterActive;
 
   const subtitle = t('history.entryCount', { count: filteredEntries.length });
 
@@ -104,7 +137,7 @@ export function HistoryScreen() {
               isFilterActive && { backgroundColor: colors.accentSoft },
               pressed && styles.buttonPressed,
             ]}
-            onPress={() => setIsFilterOpen((open) => !open)}
+            onPress={toggleFilter}
             accessibilityRole="button"
             accessibilityLabel={t('history.toggleFilter')}
           >
@@ -117,9 +150,13 @@ export function HistoryScreen() {
         }
       />
       <Animated.ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         onScroll={onScroll}
+        onLayout={(event) => {
+          viewportHeightRef.current = event.nativeEvent.layout.height;
+        }}
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
@@ -130,7 +167,13 @@ export function HistoryScreen() {
         ) : null}
 
         {showFilterCard ? (
-          <AppCard
+          <View
+            onLayout={(event) => {
+              const { y, height } = event.nativeEvent.layout;
+              filterCardLayoutRef.current = { y, height };
+            }}
+          >
+            <AppCard
             title={t('history.dateFilter')}
             right={
               isFilterActive ? (
@@ -158,6 +201,7 @@ export function HistoryScreen() {
               <Text style={styles.warningText}>{t('history.invalidRange')}</Text>
             ) : null}
           </AppCard>
+          </View>
         ) : null}
 
         <AppCard isBusy={isRefreshing} delay={60}>

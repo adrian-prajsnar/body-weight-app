@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   DashboardAlertId,
-  dismissDashboardAlert,
+  dismissDashboardAlerts,
   getDismissedDashboardAlerts,
 } from '../storage/dashboard-alert-dismissals';
 
@@ -17,9 +17,18 @@ export function useDashboardAlertDismissals() {
     [dismissed],
   );
 
-  const dismiss = useCallback(async (id: DashboardAlertId) => {
-    await dismissDashboardAlert(id);
-    setDismissed((current) => (current?.includes(id) ? current : [...(current ?? []), id]));
+  const dismiss = useCallback(async (ids: DashboardAlertId | DashboardAlertId[]) => {
+    const list = Array.isArray(ids) ? ids : [ids];
+    await dismissDashboardAlerts(list);
+    setDismissed((current) => {
+      const next = [...(current ?? [])];
+      for (const id of list) {
+        if (!next.includes(id)) {
+          next.push(id);
+        }
+      }
+      return next;
+    });
   }, []);
 
   return {

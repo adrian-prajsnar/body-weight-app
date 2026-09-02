@@ -2,7 +2,7 @@ import { View } from 'react-native';
 import { useAppStyles } from '../theme/styles';
 import { SkeletonBlock } from './skeleton';
 
-export function ProfileDetailsSkeleton() {
+export function ProfileAccountSkeleton() {
   const styles = useAppStyles();
 
   return (
@@ -18,10 +18,6 @@ export function ProfileDetailsSkeleton() {
       <View style={styles.accountRow}>
         <SkeletonBlock height={12} width="35%" />
         <SkeletonBlock height={16} width="25%" />
-      </View>
-      <View style={styles.accountRow}>
-        <SkeletonBlock height={12} width="20%" />
-        <SkeletonBlock height={16} width="40%" />
       </View>
     </View>
   );
