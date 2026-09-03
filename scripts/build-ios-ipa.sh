@@ -16,7 +16,7 @@ if [[ -z "${EXPO_PUBLIC_SUPABASE_URL:-}" || -z "${EXPO_PUBLIC_SUPABASE_ANON_KEY:
 fi
 
 echo "Generating native iOS project..."
-npx expo prebuild --platform ios --non-interactive
+npx expo prebuild --platform ios --non-interactive --no-install
 
 echo "Patching Podfile for unsigned build..."
 python3 scripts/patch-podfile-unsigned.py

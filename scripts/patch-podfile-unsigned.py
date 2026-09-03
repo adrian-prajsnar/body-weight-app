@@ -40,7 +40,6 @@ def main() -> int:
     match = re.search(
         r"(react_native_post_install\([\s\S]*?\)\n)",
         text,
-        count=1,
     )
     if not match:
         print("Could not find react_native_post_install in Podfile.", file=sys.stderr)
