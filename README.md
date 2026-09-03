@@ -112,6 +112,32 @@ npx eas-cli build -p android --profile production --local
 
 Before friends sign up, confirm Supabase **Authentication → URL Configuration** includes `body-weight-app://auth/callback`.
 
+## Build iOS IPA (free Apple ID + SideStore)
+
+No paid Apple Developer account required. GitHub Actions builds an **unsigned** IPA on a cloud Mac; SideStore re-signs it with your free Apple ID on your iPhone.
+
+### One-time setup
+
+1. Push this repo to GitHub (if it is not there already).
+2. In the repo: **Settings → Secrets and variables → Actions → New repository secret**
+   - `EXPO_PUBLIC_SUPABASE_URL` — same value as in your local `.env`
+   - `EXPO_PUBLIC_SUPABASE_ANON_KEY` — same value as in your local `.env`
+
+### Build
+
+1. GitHub repo → **Actions** → **Build iOS IPA** → **Run workflow**.
+2. Wait for the job to finish (~15–25 min on first run).
+3. Open the completed run → **Artifacts** → download `body-weight-app-ios` (contains `body-weight-app.ipa`).
+
+### Install with SideStore
+
+1. Transfer `body-weight-app.ipa` to your iPhone (AirDrop, iCloud Drive, or Safari).
+2. SideStore → **My Apps** → **+** → select the IPA.
+3. If prompted: **Settings → General → VPN & Device Management** → trust the profile.
+4. Refresh in SideStore about every **7 days** (free Apple ID limit).
+
+Supabase **Authentication → URL Configuration** must include `body-weight-app://auth/callback` (same as Android).
+
 ## Privacy
 
 - Each user only sees their own entries (Supabase row-level security)

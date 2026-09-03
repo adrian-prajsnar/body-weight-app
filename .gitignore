@@ -43,3 +43,5 @@ Thumbs.db
 # generated native folders
 /ios
 /android
+/ios-build
+/dist/ios
