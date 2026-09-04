@@ -92,6 +92,50 @@ Restart Expo: `npx expo start -c`
 
 All weight data is stored in Supabase only.
 
+## Production safety checklist
+
+This app is used on a live Supabase project with real user data. Follow this before and after any database or release change.
+
+### Backups (code and data)
+
+- [ ] **Code:** commit and push to GitHub so migrations and app changes are saved.
+- [ ] **Database:** Supabase keeps daily backups (Dashboard → **Database** → **Backups**). Before a risky migration, export a CSV from SQL Editor or note row counts:
+  ```sql
+  select count(*) from public.weight_entries;
+  select count(*) from public.height_entries;
+  select count(*) from public.user_profiles;
+  ```
+
+### Database changes (live project with data)
+
+- [ ] **Do not** re-run [`supabase/schema.sql`](supabase/schema.sql) to apply changes — it is for **new projects only**.
+- [ ] Copy [`supabase/migration-template.sql`](supabase/migration-template.sql) to `supabase/migrations/YYYY-MM-DD-short-description.sql`.
+- [ ] Keep the migration **additive** (`ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`, copy-then-alter). No `DROP TABLE`, `TRUNCATE`, or unscoped `DELETE` on data tables.
+- [ ] Run the migration in Supabase **SQL Editor** on production **before** (or with) the app update that needs it.
+- [ ] Verify row counts unchanged (unless the migration intentionally adds rows).
+- [ ] Update [`supabase/schema.sql`](supabase/schema.sql) so new projects match production.
+- [ ] Commit the migration file to git.
+
+Full migration rules: [`AGENTS.md`](AGENTS.md) → Database migrations.
+
+### App release
+
+- [ ] `npx tsc --noEmit` and `npx expo-doctor` pass.
+- [ ] Migration already applied if the build reads new columns or tables.
+- [ ] After `eas env:push`, confirm `EXPO_PUBLIC_SUPABASE_*` still point at the **intended** project (local dev and production APK share the same DB today).
+
+### Never do on production
+
+- Re-run `schema.sql` instead of adding a migration.
+- Run ad-hoc destructive SQL without a reviewed migration file.
+- Ship an APK that expects columns/tables that do not exist yet.
+- Commit `.env` or put the Supabase **service_role** key in the app (only the anon key belongs in the client).
+
+### Safe to re-run anytime
+
+- [`supabase/grants.sql`](supabase/grants.sql) — fixes permission errors, does not delete data.
+- `DROP POLICY IF EXISTS` + `CREATE POLICY` in a migration — changes permissions only, not rows.
+
 ## Build APK
 
 Cloud build (download link on your phone):

@@ -38,6 +38,8 @@ supabase/migration-template.sql
 
 **Never delete or break existing user data.** Entries belong to real users.
 
+Before touching production: follow **Production safety checklist** in [`README.md`](README.md).
+
 - **New Supabase project:** run `supabase/schema.sql` once.
 - **Project with data (you and friends):** add `supabase/migrations/YYYY-MM-DD-description.sql` (copy `supabase/migration-template.sql`). **Do not** re-run `schema.sql` on production to apply changes.
 
