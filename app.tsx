@@ -13,7 +13,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { OfflineScreen } from './src/components/offline-screen';
 import { SupabaseAuthProvider } from './src/context/supabase-auth-context';
+import { useNetworkStatus } from './src/hooks/use-network-status';
 import { BmiDetailsProvider } from './src/context/bmi-details-context';
 import { BmiDisplayProvider } from './src/context/bmi-display-context';
 import { ConfirmProvider } from './src/context/confirm-context';
@@ -95,6 +97,32 @@ function FontGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function NetworkGate({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const { isChecking, isOffline, isRefreshing, refresh } = useNetworkStatus();
+
+  if (isChecking) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  if (isOffline) {
+    return <OfflineScreen isRefreshing={isRefreshing} onRefresh={() => void refresh()} />;
+  }
+
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -102,7 +130,9 @@ export default function App() {
         <LanguageProvider>
           <UnitProvider>
             <FontGate>
-              <ThemedApp />
+              <NetworkGate>
+                <ThemedApp />
+              </NetworkGate>
             </FontGate>
           </UnitProvider>
         </LanguageProvider>

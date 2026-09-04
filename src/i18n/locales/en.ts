@@ -28,6 +28,10 @@ export default {
     setupRequired: 'Configuration required',
     setupSubtitle:
       'This app cannot connect to the server. If you received this build from someone else, ask them for a new APK. When developing locally, add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to .env and restart Expo.',
+    offlineTitle: 'No internet connection',
+    offlineSubtitle:
+      'This app needs an internet connection to sync your weight data. Check your connection and try again.',
+    offlineRefresh: 'Refresh',
   },
   auth: {
     welcomeBack: 'Welcome back',

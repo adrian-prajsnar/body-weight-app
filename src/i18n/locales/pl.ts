@@ -28,6 +28,10 @@ const pl = {
     setupRequired: 'Wymagana konfiguracja',
     setupSubtitle:
       'Aplikacja nie może połączyć się z serwerem. Jeśli masz ten plik od kogoś innego, poproś o nowy APK. Przy lokalnym developmencie dodaj EXPO_PUBLIC_SUPABASE_URL i EXPO_PUBLIC_SUPABASE_ANON_KEY do .env i uruchom Expo ponownie.',
+    offlineTitle: 'Brak połączenia z internetem',
+    offlineSubtitle:
+      'Ta aplikacja wymaga połączenia z internetem, aby synchronizować Twoje dane. Sprawdź połączenie i spróbuj ponownie.',
+    offlineRefresh: 'Odśwież',
   },
   auth: {
     welcomeBack: 'Witaj ponownie',
