@@ -42,6 +42,20 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.border,
     },
+    historyDateFilters: {
+      gap: spacing.sm,
+    },
+    scrollTopFab: {
+      position: 'absolute',
+      right: spacing.xl,
+      width: 48,
+      height: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      ...floatingSurface(colors, scheme),
+    },
     scrollView: {
       flex: 1,
     },

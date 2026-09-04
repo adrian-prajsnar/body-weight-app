@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatDateLabel, formatMonthLabel } from '../format';
@@ -20,7 +20,7 @@ type HistoryListProps = {
   grouped?: boolean;
 };
 
-export function HistoryList({
+export const HistoryList = memo(function HistoryList({
   entries,
   onEdit,
   onDelete,
@@ -116,4 +116,4 @@ export function HistoryList({
       ))}
     </View>
   );
-}
+});

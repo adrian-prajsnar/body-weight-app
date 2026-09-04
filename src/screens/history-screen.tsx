@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMemo, useRef, useState } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, InteractionManager, Pressable, RefreshControl, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppCard } from '../components/app-card';
 import { DateField } from '../components/date-field';
 import { ErrorCard } from '../components/error-card';
@@ -14,149 +16,170 @@ import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
-import { formatDateLabel, getTodayDate, toDateKey } from '../format';
+import {
+  clampHistoryDateRange,
+  formatDateLabel,
+  getDefaultHistoryDateRange,
+  getTodayDate,
+  toDateKey,
+} from '../format';
 import { filterEntriesByBounds } from '../stats';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
+import { spacing } from '../theme/tokens';
+import { waitForInteractions, waitForPaint } from '../wait-for-paint';
+
+const SCROLL_TOP_THRESHOLD = 160;
 
 export function HistoryScreen() {
   const styles = useAppStyles();
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
     useSharedWeightEntries();
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();
-  const { scrollY, onScroll, scrollOffsetRef } = useScrollHeader();
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const handleScrollOffset = useCallback((offset: number) => {
+    setShowScrollTop((current) => {
+      const next = offset > SCROLL_TOP_THRESHOLD;
+      return current === next ? current : next;
+    });
+  }, []);
+  const { scrollY, onScroll } = useScrollHeader(handleScrollOffset);
   const scrollRef = useRef<Animated.ScrollView>(null);
-  const viewportHeightRef = useRef(0);
-  const filterCardLayoutRef = useRef<{ y: number; height: number } | null>(null);
-  const [fromDate, setFromDate] = useState<Date | null>(null);
-  const [toDate, setToDate] = useState<Date | null>(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [editingDate, setEditingDate] = useState<string | null>(null);
   const today = getTodayDate();
+  const defaultRange = useMemo(() => getDefaultHistoryDateRange(today), [today]);
+  const [fromDate, setFromDate] = useState(() => defaultRange.from);
+  const [toDate, setToDate] = useState(() => defaultRange.to);
+  const [isListReady, setIsListReady] = useState(false);
+  const [isClearingFilter, setIsClearingFilter] = useState(false);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
 
-  const isFilterActive = fromDate !== null || toDate !== null;
-  const fromKey = fromDate ? toDateKey(fromDate) : null;
-  const toKey = toDate ? toDateKey(toDate) : null;
-  const isInvalid = Boolean(fromKey && toKey && fromKey > toKey);
+  useFocusEffect(
+    useCallback(() => {
+      setIsListReady(false);
+      const task = InteractionManager.runAfterInteractions(() => {
+        setIsListReady(true);
+      });
+      return () => task.cancel();
+    }, []),
+  );
+
+  const fromKey = toDateKey(fromDate);
+  const toKey = toDateKey(toDate);
+  const defaultFromKey = toDateKey(defaultRange.from);
+  const defaultToKey = toDateKey(defaultRange.to);
+  const isFilterCustom = fromKey !== defaultFromKey || toKey !== defaultToKey;
+  const isInvalid = fromKey > toKey;
+  const showListContent = !isLoading && isListReady;
 
   const filteredEntries = useMemo(() => {
-    if (!isFilterActive) {
-      return entries;
-    }
     if (isInvalid) {
       return [];
     }
     return filterEntriesByBounds(entries, fromKey, toKey);
-  }, [entries, fromKey, toKey, isFilterActive, isInvalid]);
+  }, [entries, fromKey, toKey, isInvalid]);
 
-  const handleEdit = (date: string) => {
-    setEditingDate(date);
-  };
-
-  const handleDelete = (date: string) => {
-    const dateLabel = formatDateLabel(date);
-    void confirm({
-      title: t('history.deleteEntry'),
-      message: t('history.deleteConfirm', { date: dateLabel }),
-      confirmLabel: t('common.delete'),
-      destructive: true,
-    }).then((confirmed) => {
-      if (!confirmed) {
+  const handleFromChange = useCallback(
+    async (date: Date | null) => {
+      if (!date) {
         return;
       }
-      void (async () => {
-        try {
-          await removeEntry(date);
-          showSuccess(t('history.deleted', { date: dateLabel }));
-        } catch (error) {
-          const message = error instanceof Error ? error.message : t('history.deleteFailed');
-          showError(message);
+      const next = clampHistoryDateRange(date, toDate, 'from', today);
+      setFromDate(next.from);
+      setToDate(next.to);
+      await waitForInteractions();
+    },
+    [toDate, today],
+  );
+
+  const handleToChange = useCallback(
+    async (date: Date | null) => {
+      if (!date) {
+        return;
+      }
+      const next = clampHistoryDateRange(fromDate, date, 'to', today);
+      setFromDate(next.from);
+      setToDate(next.to);
+      await waitForInteractions();
+    },
+    [fromDate, today],
+  );
+
+  const handleEdit = useCallback((date: string) => {
+    setEditingDate(date);
+  }, []);
+
+  const handleDelete = useCallback(
+    (date: string) => {
+      const dateLabel = formatDateLabel(date);
+      void confirm({
+        title: t('history.deleteEntry'),
+        message: t('history.deleteConfirm', { date: dateLabel }),
+        confirmLabel: t('common.delete'),
+        destructive: true,
+      }).then((confirmed) => {
+        if (!confirmed) {
+          return;
         }
-      })();
-    });
-  };
+        void (async () => {
+          try {
+            await removeEntry(date);
+            showSuccess(t('history.deleted', { date: dateLabel }));
+          } catch (error) {
+            const message = error instanceof Error ? error.message : t('history.deleteFailed');
+            showError(message);
+          }
+        })();
+      });
+    },
+    [confirm, removeEntry, showError, showSuccess, t],
+  );
 
-  const clearFilter = () => {
-    setFromDate(null);
-    setToDate(null);
-  };
-
-  const showFilterCard = isFilterOpen || isFilterActive;
-
-  const isFilterCardVisible = () => {
-    if (!showFilterCard) {
-      return false;
-    }
-    const layout = filterCardLayoutRef.current;
-    if (!layout || viewportHeightRef.current === 0) {
-      return false;
-    }
-    const scroll = scrollOffsetRef.current;
-    const viewport = viewportHeightRef.current;
-    const top = layout.y;
-    const bottom = layout.y + layout.height;
-    return bottom > scroll && top < scroll + viewport;
-  };
-
-  const scrollToTop = () => {
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-  };
-
-  const toggleFilter = () => {
-    if (!isFilterCardVisible()) {
-      setIsFilterOpen(true);
-      scrollToTop();
+  const clearFilter = useCallback(() => {
+    if (isClearingFilter) {
       return;
     }
-    if (!isFilterActive) {
-      setIsFilterOpen((open) => !open);
+    void (async () => {
+      setIsClearingFilter(true);
+      await waitForPaint();
+      setFromDate(defaultRange.from);
+      setToDate(defaultRange.to);
+      await waitForInteractions();
+      setIsClearingFilter(false);
+    })();
+  }, [defaultRange.from, defaultRange.to, isClearingFilter]);
+
+  const scrollToTop = useCallback(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, []);
+
+  const emptyMessage = isInvalid ? t('history.invalidRangeEmpty') : t('history.emptyFiltered');
+
+  const subtitle = useMemo(() => {
+    if (isLoading || !isListReady) {
+      return t('history.subtitleLoading');
     }
-  };
+    const totalLabel = t('history.totalWeighIns', { count: entries.length });
+    if (filteredEntries.length === entries.length) {
+      return totalLabel;
+    }
+    return `${totalLabel} · ${t('history.filteredWeighIns', { count: filteredEntries.length })}`;
+  }, [entries.length, filteredEntries.length, isListReady, isLoading, t]);
 
-  const emptyMessage = isInvalid
-    ? t('history.invalidRangeEmpty')
-    : isFilterActive
-      ? t('history.emptyFiltered')
-      : t('history.emptyDefault');
-
-  const subtitle = t('history.entryCount', { count: filteredEntries.length });
+  const scrollTopBottom = insets.bottom + spacing.sm + 64 + spacing.xl + spacing.sm;
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('history.title')}
-        subtitle={subtitle}
-        scrollY={scrollY}
-        right={
-          <Pressable
-            style={({ pressed }) => [
-              styles.iconButton,
-              isFilterActive && { backgroundColor: colors.accentSoft },
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={toggleFilter}
-            accessibilityRole="button"
-            accessibilityLabel={t('history.toggleFilter')}
-          >
-            <Ionicons
-              name="options-outline"
-              size={20}
-              color={isFilterActive ? colors.accent : colors.textMuted}
-            />
-          </Pressable>
-        }
-      />
+      <ScreenHeader title={t('history.title')} subtitle={subtitle} scrollY={scrollY} />
+
       <Animated.ScrollView
         ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         onScroll={onScroll}
-        onLayout={(event) => {
-          viewportHeightRef.current = event.nativeEvent.layout.height;
-        }}
         scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
@@ -166,48 +189,43 @@ export function HistoryScreen() {
           <ErrorCard message={error} onRetry={() => void refreshEntries()} />
         ) : null}
 
-        {showFilterCard ? (
-          <View
-            onLayout={(event) => {
-              const { y, height } = event.nativeEvent.layout;
-              filterCardLayoutRef.current = { y, height };
-            }}
-          >
-            <AppCard
-            title={t('history.dateFilter')}
-            right={
-              isFilterActive ? (
-                <Pressable onPress={clearFilter} hitSlop={8}>
+        <AppCard delay={0}>
+          {isFilterCustom || isClearingFilter ? (
+            <View style={{ alignItems: 'flex-end', marginBottom: spacing.sm, minHeight: 20 }}>
+              <Pressable
+                onPress={clearFilter}
+                disabled={isClearingFilter}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityState={{ busy: isClearingFilter }}
+              >
+                {isClearingFilter ? (
+                  <ActivityIndicator size="small" color={colors.accent} />
+                ) : (
                   <Text style={styles.linkText}>{t('history.clearAll')}</Text>
-                </Pressable>
-              ) : undefined
-            }
-          >
+                )}
+              </Pressable>
+            </View>
+          ) : null}
+          <View style={styles.historyDateFilters}>
             <DateField
               label={t('history.from')}
               value={fromDate}
-              onChange={setFromDate}
-              optional
-              maximumDate={today}
+              onChange={handleFromChange}
+              maximumDate={toDate}
             />
             <DateField
               label={t('history.to')}
               value={toDate}
-              onChange={setToDate}
-              optional
+              onChange={handleToChange}
               maximumDate={today}
             />
-            {isInvalid ? (
-              <Text style={styles.warningText}>{t('history.invalidRange')}</Text>
-            ) : null}
-          </AppCard>
           </View>
-        ) : null}
+          {isInvalid ? <Text style={styles.warningText}>{t('history.invalidRange')}</Text> : null}
+        </AppCard>
 
-        <AppCard isBusy={isRefreshing} delay={60}>
-          {isLoading ? (
-            <HistoryListSkeleton rows={6} />
-          ) : (
+        <AppCard isBusy={isRefreshing && showListContent} delay={60}>
+          {showListContent ? (
             <HistoryList
               entries={filteredEntries}
               onEdit={handleEdit}
@@ -216,9 +234,28 @@ export function HistoryScreen() {
               emptyMessage={emptyMessage}
               grouped
             />
+          ) : (
+            <HistoryListSkeleton rows={6} />
           )}
         </AppCard>
       </Animated.ScrollView>
+
+      {showScrollTop ? (
+        <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(120)}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.scrollTopFab,
+              { bottom: scrollTopBottom },
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={scrollToTop}
+            accessibilityRole="button"
+            accessibilityLabel={t('history.scrollToTop')}
+          >
+            <Ionicons name="chevron-up" size={22} color={colors.accent} />
+          </Pressable>
+        </Animated.View>
+      ) : null}
 
       <WeightEntryModal
         visible={editingDate !== null}

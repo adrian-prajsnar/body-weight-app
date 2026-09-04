@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, Modal, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Pressable, Text, View } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { configureCalendarLocale } from '../i18n/calendar-locale';
 import { getDateLocale } from '../i18n/resolve-locale';
 import { useTranslation } from '../i18n/language-context';
 import { toDateKey } from '../format';
+import { waitForPaint } from '../wait-for-paint';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { fontFamily } from '../theme/tokens';
@@ -18,7 +19,7 @@ type DatePickerSheetProps = {
   minimumDate?: Date;
   maximumDate?: Date;
   onClose: () => void;
-  onConfirm: (date: Date) => void;
+  onConfirm: (date: Date) => void | Promise<void>;
 };
 
 type PickerPanel = 'day' | 'month' | 'year';
@@ -103,11 +104,14 @@ export function DatePickerSheet({
   const yearListRef = useRef<FlatList<number>>(null);
   const [selectedKey, setSelectedKey] = useState(toDateKey(value));
   const [panel, setPanel] = useState<PickerPanel>('day');
+  const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setSelectedKey(toDateKey(value));
       setPanel('day');
+    } else {
+      setIsConfirming(false);
     }
   }, [value, visible]);
 
@@ -211,20 +215,40 @@ export function DatePickerSheet({
   };
 
   const handleConfirm = () => {
-    onConfirm(parseDateKey(selectedKey));
-    onClose();
+    if (isConfirming) {
+      return;
+    }
+    setIsConfirming(true);
+    void (async () => {
+      await waitForPaint();
+      try {
+        await onConfirm(parseDateKey(selectedKey));
+        onClose();
+      } finally {
+        setIsConfirming(false);
+      }
+    })();
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={isConfirming ? undefined : onClose}>
       <View style={styles.modalSheetBackdrop}>
-        <Pressable style={styles.modalSheetDismissArea} onPress={onClose} />
+        <Pressable
+          style={styles.modalSheetDismissArea}
+          onPress={isConfirming ? undefined : onClose}
+          disabled={isConfirming}
+        />
         <View style={[styles.datePickerSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={styles.datePickerSheetHeader}>
             <Text style={styles.datePickerSheetTitle}>{title ?? t('dateField.selectDate')}</Text>
             <Pressable
-              style={({ pressed }) => [styles.iconButton, pressed && styles.buttonPressed]}
+              style={({ pressed }) => [
+                styles.iconButton,
+                isConfirming && styles.buttonDisabled,
+                pressed && !isConfirming && styles.buttonPressed,
+              ]}
               onPress={onClose}
+              disabled={isConfirming}
               hitSlop={8}
               accessibilityLabel={t('common.cancel')}
             >
@@ -376,11 +400,20 @@ export function DatePickerSheet({
             style={({ pressed }) => [
               styles.primaryButton,
               styles.datePickerSheetConfirm,
-              pressed && styles.buttonPressed,
+              isConfirming && styles.buttonDisabled,
+              pressed && !isConfirming && styles.buttonPressed,
             ]}
             onPress={handleConfirm}
+            disabled={isConfirming}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.select')}
+            accessibilityState={{ busy: isConfirming }}
           >
-            <Text style={styles.primaryButtonText}>{t('common.done')}</Text>
+            {isConfirming ? (
+              <ActivityIndicator color={colors.onAccent} />
+            ) : (
+              <Text style={styles.primaryButtonText}>{t('common.select')}</Text>
+            )}
           </Pressable>
         </View>
       </View>

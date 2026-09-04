@@ -119,6 +119,48 @@ export function addDays(date: Date, days: number): Date {
   return next;
 }
 
+export const HISTORY_MAX_RANGE_DAYS = 365;
+
+export function getDefaultHistoryDateRange(
+  today: Date = getTodayDate(),
+): { from: Date; to: Date } {
+  return {
+    from: addDays(today, -(HISTORY_MAX_RANGE_DAYS - 1)),
+    to: today,
+  };
+}
+
+export function clampHistoryDateRange(
+  from: Date,
+  to: Date,
+  changed: 'from' | 'to',
+  today: Date = getTodayDate(),
+): { from: Date; to: Date } {
+  let nextFrom = from;
+  let nextTo = to;
+
+  if (toDateKey(nextFrom) > toDateKey(nextTo)) {
+    if (changed === 'from') {
+      nextTo = nextFrom;
+    } else {
+      nextFrom = nextTo;
+    }
+  }
+
+  const earliestFrom = addDays(nextTo, -(HISTORY_MAX_RANGE_DAYS - 1));
+  const latestTo = addDays(nextFrom, HISTORY_MAX_RANGE_DAYS - 1);
+  const cappedLatestTo = toDateKey(latestTo) > toDateKey(today) ? today : latestTo;
+
+  if (toDateKey(nextFrom) < toDateKey(earliestFrom)) {
+    nextFrom = earliestFrom;
+  }
+  if (toDateKey(nextTo) > toDateKey(cappedLatestTo)) {
+    nextTo = cappedLatestTo;
+  }
+
+  return { from: nextFrom, to: nextTo };
+}
+
 function getLocaleTag(): string {
   return getDateLocale(getI18nLocale());
 }

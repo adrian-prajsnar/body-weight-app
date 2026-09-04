@@ -26,7 +26,7 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="History"
         component={HistoryScreen}
-        options={{ title: t('navigation.history') }}
+        options={{ title: t('navigation.history'), lazy: true }}
       />
       <Tab.Screen
         name="Comparison"
