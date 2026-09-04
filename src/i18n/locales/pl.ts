@@ -344,6 +344,9 @@ const pl = {
     },
     yearsMonths: '%{years} lat, %{months} mies.',
   },
+  dev: {
+    modeBanner: 'DEVELOPMENT — wersja deweloperska Expo',
+  },
   validation: {
     weightRangeMetric:
       'Wpisz wagę od %{min} do %{max} kg z maksymalnie 2 miejscami po przecinku.',

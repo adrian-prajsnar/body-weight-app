@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { DevModeBanner } from './src/components/dev-mode-banner';
 import { OfflineScreen } from './src/components/offline-screen';
 import { SupabaseAuthProvider } from './src/context/supabase-auth-context';
 import { useNetworkStatus } from './src/hooks/use-network-status';
@@ -48,24 +49,27 @@ function ThemedApp() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <SupabaseAuthProvider>
-        <ToastProvider>
-          <ConfirmProvider>
-            <UserProfileProvider>
-              <BmiDisplayProvider>
-                <WeightEntriesProvider>
-                  <BmiDetailsProvider>
-                    <NavigationContainer theme={navigationTheme}>
-                      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-                      <RootNavigator />
-                    </NavigationContainer>
-                  </BmiDetailsProvider>
-                </WeightEntriesProvider>
-              </BmiDisplayProvider>
-            </UserProfileProvider>
-          </ConfirmProvider>
-        </ToastProvider>
-      </SupabaseAuthProvider>
+      <DevModeBanner />
+      <View style={{ flex: 1 }}>
+        <SupabaseAuthProvider>
+          <ToastProvider>
+            <ConfirmProvider>
+              <UserProfileProvider>
+                <BmiDisplayProvider>
+                  <WeightEntriesProvider>
+                    <BmiDetailsProvider>
+                      <NavigationContainer theme={navigationTheme}>
+                        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+                        <RootNavigator />
+                      </NavigationContainer>
+                    </BmiDetailsProvider>
+                  </WeightEntriesProvider>
+                </BmiDisplayProvider>
+              </UserProfileProvider>
+            </ConfirmProvider>
+          </ToastProvider>
+        </SupabaseAuthProvider>
+      </View>
     </View>
   );
 }
