@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeOutUp, SlideInUp } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToastTopOffset } from '../dev-layout';
 import { useTranslation } from '../i18n/language-context';
 import { AppStyles, useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -82,7 +82,7 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
   const styles = useAppStyles();
   const colors = useColors();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const toastTop = useToastTopOffset();
   const variant = toastVariant(styles, toast.type);
 
   const toastTitle =
@@ -102,7 +102,7 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
       pointerEvents="box-none"
       entering={SlideInUp.springify().damping(18).mass(0.6)}
       exiting={FadeOutUp.duration(180)}
-      style={[styles.toastContainer, { top: insets.top + 8 }]}
+      style={[styles.toastContainer, { top: toastTop }]}
     >
       <Pressable style={[styles.toastCard, variant.card]} onPress={onDismiss}>
         <Ionicons

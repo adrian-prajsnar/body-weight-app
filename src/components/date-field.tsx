@@ -10,7 +10,7 @@ import { DatePickerSheet } from './date-picker-sheet';
 type DateFieldProps = {
   label: string;
   value: Date | null;
-  onChange: (date: Date | null) => void;
+  onChange: (date: Date | null) => void | Promise<void>;
   optional?: boolean;
   readOnly?: boolean;
   autoOpen?: boolean;

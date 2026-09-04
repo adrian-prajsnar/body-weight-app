@@ -8,6 +8,7 @@ export default {
     edit: 'Edit',
     clear: 'Clear',
     done: 'Done',
+    select: 'Select',
     confirm: 'Confirm',
     back: 'Back',
     any: 'Any date',
@@ -28,6 +29,10 @@ export default {
     setupRequired: 'Configuration required',
     setupSubtitle:
       'This app cannot connect to the server. If you received this build from someone else, ask them for a new APK. When developing locally, add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to .env and restart Expo.',
+    offlineTitle: 'No internet connection',
+    offlineSubtitle:
+      'This app needs an internet connection to sync your weight data. Check your connection and try again.',
+    offlineRefresh: 'Refresh',
   },
   auth: {
     welcomeBack: 'Welcome back',
@@ -150,9 +155,18 @@ export default {
       one: '1 weigh-in',
       other: '%{count} weigh-ins',
     },
+    totalWeighIns: {
+      one: 'Total 1 weigh-in',
+      other: 'Total %{count} weigh-ins',
+    },
+    filteredWeighIns: {
+      one: '1 in range',
+      other: '%{count} in range',
+    },
+    subtitleLoading: 'Loading weigh-ins…',
     toggleFilter: 'Filter by date',
     dateFilter: 'Filter by date',
-    clearAll: 'Clear dates',
+    clearAll: 'Reset to default',
     from: 'From',
     to: 'To',
     invalidRange: 'From must be on or before To.',
@@ -166,6 +180,7 @@ export default {
     deleteFailed: 'Could not delete weigh-in.',
     deleteA11y: 'Delete weigh-in from %{date}',
     editA11y: 'Edit weigh-in from %{date}',
+    scrollToTop: 'Scroll to top',
   },
   comparison: {
     title: 'Compare',
@@ -253,7 +268,8 @@ export default {
     accountDeleted: 'Account deleted.',
     deleteFailed: 'Could not delete account.',
     saveFailed: 'Could not save.',
-    appVersion: 'Version %{version}',
+    appVersion: 'App version %{version}',
+    copyright: '© %{year} Adrian Prajsnar DEV',
   },
   chart: {
     noDataTitle: 'No weigh-ins in this range',
@@ -328,6 +344,9 @@ export default {
       other: '%{count} years',
     },
     yearsMonths: '%{years} years, %{months} months',
+  },
+  dev: {
+    modeBanner: 'DEVELOPMENT — Expo dev build',
   },
   validation: {
     weightRangeMetric:

@@ -8,6 +8,7 @@ const pl = {
     edit: 'Edytuj',
     clear: 'Wyczyść',
     done: 'Gotowe',
+    select: 'Wybierz',
     confirm: 'Potwierdź',
     back: 'Wstecz',
     any: 'Dowolna data',
@@ -28,6 +29,10 @@ const pl = {
     setupRequired: 'Wymagana konfiguracja',
     setupSubtitle:
       'Aplikacja nie może połączyć się z serwerem. Jeśli masz ten plik od kogoś innego, poproś o nowy APK. Przy lokalnym developmencie dodaj EXPO_PUBLIC_SUPABASE_URL i EXPO_PUBLIC_SUPABASE_ANON_KEY do .env i uruchom Expo ponownie.',
+    offlineTitle: 'Brak połączenia z internetem',
+    offlineSubtitle:
+      'Ta aplikacja wymaga połączenia z internetem, aby synchronizować Twoje dane. Sprawdź połączenie i spróbuj ponownie.',
+    offlineRefresh: 'Odśwież',
   },
   auth: {
     welcomeBack: 'Witaj ponownie',
@@ -154,9 +159,22 @@ const pl = {
       many: '%{count} pomiarów',
       other: '%{count} pomiaru',
     },
+    totalWeighIns: {
+      one: 'Łącznie 1 pomiar',
+      few: 'Łącznie %{count} pomiary',
+      many: 'Łącznie %{count} pomiarów',
+      other: 'Łącznie %{count} pomiaru',
+    },
+    filteredWeighIns: {
+      one: '1 w zakresie',
+      few: '%{count} w zakresie',
+      many: '%{count} w zakresie',
+      other: '%{count} w zakresie',
+    },
+    subtitleLoading: 'Ładowanie pomiarów…',
     toggleFilter: 'Filtruj po dacie',
     dateFilter: 'Filtruj po dacie',
-    clearAll: 'Wyczyść daty',
+    clearAll: 'Przywróć domyślne',
     from: 'Od',
     to: 'Do',
     invalidRange: 'Data „Od” musi być wcześniejsza lub równa dacie „Do”.',
@@ -170,6 +188,7 @@ const pl = {
     deleteFailed: 'Nie udało się usunąć pomiaru.',
     deleteA11y: 'Usuń pomiar z %{date}',
     editA11y: 'Edytuj pomiar z %{date}',
+    scrollToTop: 'Przewiń do góry',
   },
   comparison: {
     title: 'Porównaj',
@@ -258,7 +277,8 @@ const pl = {
     accountDeleted: 'Konto usunięte.',
     deleteFailed: 'Nie udało się usunąć konta.',
     saveFailed: 'Nie udało się zapisać.',
-    appVersion: 'Wersja %{version}',
+    appVersion: 'Wersja aplikacji %{version}',
+    copyright: '© %{year} Adrian Prajsnar DEV',
   },
   chart: {
     noDataTitle: 'Brak pomiarów w tym zakresie',
@@ -338,6 +358,9 @@ const pl = {
       other: '%{count} roku',
     },
     yearsMonths: '%{years} lat, %{months} mies.',
+  },
+  dev: {
+    modeBanner: 'DEVELOPMENT — wersja deweloperska Expo',
   },
   validation: {
     weightRangeMetric:

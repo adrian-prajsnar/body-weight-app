@@ -42,6 +42,20 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.border,
     },
+    historyDateFilters: {
+      gap: spacing.sm,
+    },
+    scrollTopFab: {
+      position: 'absolute',
+      right: spacing.xl,
+      width: 48,
+      height: 48,
+      borderRadius: radius.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surface,
+      ...floatingSurface(colors, scheme),
+    },
     scrollView: {
       flex: 1,
     },
@@ -666,13 +680,17 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       flex: 1,
       gap: 2,
     },
+    versionFooterContainer: {
+      alignItems: 'center',
+      gap: 4,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.lg,
+    },
     versionFooter: {
       textAlign: 'center',
       fontSize: 13,
       color: colors.textMuted,
       fontFamily: fontFamily.medium,
-      paddingTop: spacing.sm,
-      paddingBottom: spacing.lg,
     },
     dangerButton: {
       backgroundColor: colors.dangerSoft,

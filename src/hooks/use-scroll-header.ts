@@ -5,12 +5,15 @@ import { runOnJS, useAnimatedScrollHandler, useSharedValue } from 'react-native-
  * Tracks vertical scroll offset so a screen header can reveal its hairline
  * once content slides underneath it.
  */
-export function useScrollHeader() {
+export function useScrollHeader(onOffsetChange?: (offset: number) => void) {
   const scrollY = useSharedValue(0);
   const scrollOffsetRef = useRef(0);
+  const onOffsetChangeRef = useRef(onOffsetChange);
+  onOffsetChangeRef.current = onOffsetChange;
 
   const setScrollOffset = useCallback((offset: number) => {
     scrollOffsetRef.current = offset;
+    onOffsetChangeRef.current?.(offset);
   }, []);
 
   const onScroll = useAnimatedScrollHandler((event) => {
