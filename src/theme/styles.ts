@@ -666,6 +666,14 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       flex: 1,
       gap: 2,
     },
+    versionFooter: {
+      textAlign: 'center',
+      fontSize: 13,
+      color: colors.textMuted,
+      fontFamily: fontFamily.medium,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.lg,
+    },
     dangerButton: {
       backgroundColor: colors.dangerSoft,
       borderRadius: radius.md,

@@ -253,6 +253,7 @@ export default {
     accountDeleted: 'Account deleted.',
     deleteFailed: 'Could not delete account.',
     saveFailed: 'Could not save.',
+    appVersion: 'Version %{version}',
   },
   chart: {
     noDataTitle: 'No weigh-ins in this range',

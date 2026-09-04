@@ -87,6 +87,16 @@ When changing app code that reads/writes Supabase, ensure the migration ships **
 - Login and sign-up are separate screens
 - Sign out on profile screen
 
+## Releases
+
+Versions are managed by [semantic-release](https://github.com/semantic-release/semantic-release) on push to `main`.
+
+- Use [Conventional Commits](https://www.conventionalcommits.org/): `feat:` (minor), `fix:` (patch), `feat!:` or `BREAKING CHANGE:` (major). `chore:`, `ci:`, and `docs:` do not trigger a release.
+- Husky runs commitlint on each local commit.
+- CI bumps `app.json`, `package.json`, Android `versionCode`, and iOS `buildNumber`, then tags the release (e.g. `v1.1.0`).
+- Tag the current `1.0.0` baseline once before the first automated release: `git tag v1.0.0 && git push origin v1.0.0`.
+- After merging releasable commits, build a new APK/IPA so users get the bumped version shown on Profile.
+
 ## Before finishing
 
 ```bash

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -92,6 +93,7 @@ export function ProfileScreen({
   const { scrollY, onScroll } = useScrollHeader();
   const user = session?.user;
   const dateLocale = getDateLocale(locale);
+  const appVersion = Constants.expoConfig?.version ?? '—';
 
   const languageOptions = useMemo<SegmentedOption<LanguagePreference>[]>(
     () => [
@@ -341,6 +343,10 @@ export function ProfileScreen({
             <Text style={styles.dangerButtonText}>{t('profile.deleteAccount')}</Text>
           </Pressable>
         </AppCard>
+
+        <Text style={styles.versionFooter}>
+          {t('profile.appVersion', { version: appVersion })}
+        </Text>
       </Animated.ScrollView>
     </View>
   );
