@@ -14,7 +14,7 @@ function requireSupabasePublicEnv(): void {
 
   if (missing.length > 0) {
     throw new Error(
-      `EAS Build requires: ${missing.join(', ')}. From your project root run: npx eas-cli env:push --environment production`,
+      `EAS Build requires: ${missing.join(', ')}. From your project root run: npx eas-cli env:push --environment production --path .env`,
     );
   }
 }

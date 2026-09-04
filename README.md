@@ -98,7 +98,7 @@ Cloud build (download link on your phone):
 
 ```bash
 npx eas-cli login
-npx eas-cli env:push --environment production
+npx eas-cli env:push --environment production --path .env
 npx eas-cli build -p android --profile production
 ```
 
