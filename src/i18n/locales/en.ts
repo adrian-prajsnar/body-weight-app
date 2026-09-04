@@ -72,6 +72,7 @@ export default {
     confirmEmailFirst: 'Confirm your email first. Check your inbox, then try again.',
     invalidCredentials: 'Invalid email or password.',
     signInFailed: 'Could not sign in.',
+    devEmailRequired: 'Local dev requires a "+dev" email (e.g. you+dev@example.com).',
     email: 'Email',
     emailPlaceholder: 'you@example.com',
     showPassword: 'Show password',

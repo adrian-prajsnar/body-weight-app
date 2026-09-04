@@ -74,6 +74,7 @@ const pl = {
     confirmEmailFirst: 'Najpierw potwierdź e-mail. Sprawdź skrzynkę i spróbuj ponownie.',
     invalidCredentials: 'Nieprawidłowy e-mail lub hasło.',
     signInFailed: 'Nie udało się zalogować.',
+    devEmailRequired: 'Lokalnie wymagany e-mail z „+dev” (np. ty+dev@example.com).',
     email: 'E-mail',
     emailPlaceholder: 'jan@example.com',
     showPassword: 'Pokaż hasło',

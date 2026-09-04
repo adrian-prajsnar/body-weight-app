@@ -20,6 +20,8 @@ cp .env.example .env
 npx expo start -c
 ```
 
+Local development uses the **same** Supabase project as production. Use a [dev test account](#safe-dev-on-production-one-project) so you don’t mix fake entries with real weigh-ins.
+
 ## Supabase setup
 
 ### 1. Create a Supabase project
@@ -92,6 +94,44 @@ Restart Expo: `npx expo start -c`
 
 All weight data is stored in Supabase only.
 
+## Safe dev on production (one project)
+
+On the free tier you typically have **one** live Supabase project shared by local dev and friends’ APKs. You can’t isolate the database without a second project, Pro branching, or local Supabase — but you **can** isolate **your** app usage with a dedicated dev account.
+
+### Setup once
+
+1. In the app (Expo Go or dev build), **Create account** with a clearly dev-only email, e.g. `you+dev@yourmail.com`.
+2. Confirm the email and sign in. Use this account only when developing on your PC.
+3. Keep your **personal / real** account for daily use on the production APK on your phone.
+4. `.env` uses the same `EXPO_PUBLIC_SUPABASE_*` keys as production — that is expected.
+
+### What this protects
+
+- **Dev-only sign-in** — in development (`npx expo start`, Expo Go, web dev), only emails containing `+dev` can sign in or stay signed in (e.g. `you+dev@gmail.com`). Production APKs are not affected.
+- **Row-level security** — each user only sees their own weight, height, and profile. Your dev account cannot read friends’ rows through the app.
+- **Fake data** — log test weights on the dev account; friends’ entries stay untouched.
+
+### What this does *not* protect
+
+- **SQL migrations** — anything you run in Supabase SQL Editor affects the **whole** project (all users). Always use additive migration files; see [Production safety checklist](#production-safety-checklist).
+- **Breaking schema** — a bad migration breaks the app for everyone until you fix it.
+
+### Day-to-day habits
+
+| When | Sign in as |
+|------|------------|
+| `npx expo start` on your PC | Dev test account |
+| Production APK on your phone | Your real account |
+| Testing a migration | Run SQL in dashboard first; verify with `select count(*)` on affected tables |
+
+Before running SQL in the dashboard, pause and confirm you’re on the right project in the browser tab.
+
+### If you outgrow this
+
+- **Second Supabase project** — pause an unused project to free a slot, then point `.env` at dev and keep prod for APKs.
+- **Local Supabase** — Docker + `supabase start` for a fully isolated DB on your PC.
+- **Supabase branches** — requires Pro.
+
 ## Production safety checklist
 
 This app is used on a live Supabase project with real user data. Follow this before and after any database or release change.
@@ -121,6 +161,7 @@ Full migration rules: [`AGENTS.md`](AGENTS.md) → Database migrations.
 ### App release
 
 - [ ] `npx tsc --noEmit` and `npx expo-doctor` pass.
+- [ ] Test app changes signed in as your **dev test account** (see [Safe dev on production](#safe-dev-on-production-one-project)), not friends’ data.
 - [ ] Migration already applied if the build reads new columns or tables.
 - [ ] After `eas env:push`, confirm `EXPO_PUBLIC_SUPABASE_*` still point at the **intended** project (local dev and production APK share the same DB today).
 

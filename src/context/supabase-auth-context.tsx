@@ -2,6 +2,7 @@ import { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createSessionFromUrl, getAuthRedirectUrl, isPasswordRecoveryUrl } from '../auth-redirect';
+import { assertDevAllowedEmail, isDevAllowedSession } from '../dev-auth-guard';
 import { registerSupabaseAppLifecycle, refreshSessionOnForeground } from '../supabase/app-lifecycle';
 import { isSupabaseConfigured, supabase } from '../supabase/client';
 
@@ -46,6 +47,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const acceptSession = useCallback(async (activeSession: Session | null): Promise<Session | null> => {
+    if (activeSession && !isDevAllowedSession(activeSession)) {
+      await supabase.auth.signOut();
+      return null;
+    }
+
+    return activeSession;
+  }, []);
+
   useEffect(() => {
     if (!isSupabaseConfigured()) {
       setIsLoading(false);
@@ -56,7 +66,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
     void refreshSessionOnForeground()
       .then(() => supabase.auth.getSession())
-      .then(({ data: { session: activeSession } }) => {
+      .then(({ data: { session: activeSession } }) => acceptSession(activeSession))
+      .then((activeSession) => {
         setSession(activeSession);
       })
       .finally(() => {
@@ -64,13 +75,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, activeSession) => {
-      setSession(activeSession);
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsPasswordRecovery(true);
-      }
-      if (event === 'SIGNED_OUT') {
-        setIsPasswordRecovery(false);
-      }
+      void acceptSession(activeSession).then((resolvedSession) => {
+        setSession(resolvedSession);
+        if (event === 'PASSWORD_RECOVERY' && resolvedSession) {
+          setIsPasswordRecovery(true);
+        }
+        if (event === 'SIGNED_OUT') {
+          setIsPasswordRecovery(false);
+        }
+      });
     });
 
     void Linking.getInitialURL().then((url) => {
@@ -87,9 +100,10 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       subscription.subscription.unsubscribe();
       linkSubscription.remove();
     };
-  }, [handleAuthUrl]);
+  }, [handleAuthUrl, acceptSession]);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    assertDevAllowedEmail(email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       throw new Error(error.message);
@@ -97,6 +111,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string): Promise<SignUpResult> => {
+    assertDevAllowedEmail(email);
     completingSignUpRef.current = true;
     try {
       const { data, error } = await supabase.auth.signUp({
