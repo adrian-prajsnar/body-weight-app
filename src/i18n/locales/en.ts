@@ -253,7 +253,8 @@ export default {
     accountDeleted: 'Account deleted.',
     deleteFailed: 'Could not delete account.',
     saveFailed: 'Could not save.',
-    appVersion: 'Version %{version}',
+    appVersion: 'App version %{version}',
+    copyright: '© %{year} Adrian Prajsnar DEV',
   },
   chart: {
     noDataTitle: 'No weigh-ins in this range',

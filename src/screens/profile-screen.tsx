@@ -344,9 +344,14 @@ export function ProfileScreen({
           </Pressable>
         </AppCard>
 
-        <Text style={styles.versionFooter}>
-          {t('profile.appVersion', { version: appVersion })}
-        </Text>
+        <View style={styles.versionFooterContainer}>
+          <Text style={styles.versionFooter}>
+            {t('profile.appVersion', { version: appVersion })}
+          </Text>
+          <Text style={styles.versionFooter}>
+            {t('profile.copyright', { year: new Date().getFullYear() })}
+          </Text>
+        </View>
       </Animated.ScrollView>
     </View>
   );

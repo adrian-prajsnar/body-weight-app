@@ -258,7 +258,8 @@ const pl = {
     accountDeleted: 'Konto usunięte.',
     deleteFailed: 'Nie udało się usunąć konta.',
     saveFailed: 'Nie udało się zapisać.',
-    appVersion: 'Wersja %{version}',
+    appVersion: 'Wersja aplikacji %{version}',
+    copyright: '© %{year} Adrian Prajsnar DEV',
   },
   chart: {
     noDataTitle: 'Brak pomiarów w tym zakresie',
