@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/adrian-prajsnar/body-weight-app/compare/v1.1.0...v1.1.1) (2026-09-05)
+
+
+### Bug Fixes
+
+* **entry-form:** keep edit weight modal above keyboard ([d06ddef](https://github.com/adrian-prajsnar/body-weight-app/commit/d06ddef91c841891f348721c6f6064ee7fcd2f97))
+
 # [1.1.0](https://github.com/adrian-prajsnar/body-weight-app/compare/v1.0.0...v1.1.0) (2026-09-04)
 
 
