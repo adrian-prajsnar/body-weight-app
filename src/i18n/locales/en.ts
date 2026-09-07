@@ -345,9 +345,6 @@ export default {
     },
     yearsMonths: '%{years} years, %{months} months',
   },
-  dev: {
-    modeBanner: 'DEVELOPMENT — Expo dev build',
-  },
   validation: {
     weightRangeMetric:
       'Enter a weight between %{min} and %{max} kg with up to 2 decimals.',

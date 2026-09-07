@@ -10,11 +10,11 @@ import {
 } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeOutUp, SlideInUp } from 'react-native-reanimated';
-import { useToastTopOffset } from '../dev-layout';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../i18n/language-context';
 import { AppStyles, useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
-import { Palette } from '../theme/tokens';
+import { Palette, spacing } from '../theme/tokens';
 
 export type ToastType = 'success' | 'error' | 'info';
 
@@ -82,7 +82,8 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
   const styles = useAppStyles();
   const colors = useColors();
   const { t } = useTranslation();
-  const toastTop = useToastTopOffset();
+  const insets = useSafeAreaInsets();
+  const toastTop = insets.top + spacing.sm;
   const variant = toastVariant(styles, toast.type);
 
   const toastTitle =

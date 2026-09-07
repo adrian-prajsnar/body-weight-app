@@ -5,8 +5,9 @@ import Animated, {
   SharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import { useScreenTopPadding } from '../dev-layout';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStyles } from '../theme/styles';
+import { spacing } from '../theme/tokens';
 
 type ScreenHeaderProps = {
   title: string;
@@ -18,7 +19,8 @@ type ScreenHeaderProps = {
 
 export function ScreenHeader({ title, subtitle, scrollY, leading, right }: ScreenHeaderProps) {
   const styles = useAppStyles();
-  const topPadding = useScreenTopPadding();
+  const insets = useSafeAreaInsets();
+  const topPadding = insets.top + spacing.md;
 
   const hairlineStyle = useAnimatedStyle(() => ({
     opacity: scrollY ? interpolate(scrollY.value, [0, 24], [0, 1], 'clamp') : 0,
