@@ -26,7 +26,23 @@ export type DateRange = {
   end: string;
 };
 
-export type ComparisonMode = 'week' | 'month' | 'year' | 'ageYear' | 'custom';
+export type TrendGranularity = 'day' | 'week' | 'month' | 'year' | 'ageYear';
+
+export type ComparisonMode = TrendGranularity | 'custom';
+
+export type CustomCompareKind = 'period' | 'dates';
+
+export type TrendRow = {
+  key: string;
+  title: string;
+  subtitle?: string;
+  range: DateRange;
+  stats: WeightStats;
+  /** Set for day buckets when a weigh-in exists. */
+  entry?: WeightEntry | null;
+  /** Newer minus the nearest older period that has weigh-ins; null otherwise. */
+  deltaToOlder: number | null;
+};
 
 export type ChartRange = '30d' | '90d' | '1y';
 

@@ -16,6 +16,7 @@ type WeightWithBmiProps = {
   weightStyle?: TextStyle;
   compactBmi?: boolean;
   layout?: 'inline' | 'stacked';
+  alwaysShowBmi?: boolean;
 };
 
 export function WeightWithBmi({
@@ -24,10 +25,12 @@ export function WeightWithBmi({
   weightStyle,
   compactBmi = false,
   layout = 'inline',
+  alwaysShowBmi = false,
 }: WeightWithBmiProps) {
   const styles = useAppStyles();
   const { units } = useUnits();
-  const { showBmi } = useSharedBmiDisplay();
+  const { showBmi: showBmiPreference } = useSharedBmiDisplay();
+  const showBmi = alwaysShowBmi || showBmiPreference;
   const { openWeighIn } = useBmiDetails();
   const { birthDate, sex } = useSharedUserProfile();
   const heightCm = getHeightAtDate(heightEntries, entry.date);

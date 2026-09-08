@@ -13,7 +13,7 @@ import {
   MIN_WEIGHT_LB,
   UnitSystem,
 } from './units';
-import { DateRange } from './types';
+import { DateRange, TrendGranularity } from './types';
 
 export function getWeightUnitLabel(units: UnitSystem): string {
   return units === 'imperial' ? t('common.lb') : t('common.kg');
@@ -130,32 +130,225 @@ export function getDefaultHistoryDateRange(
   };
 }
 
+export function addYears(date: Date, years: number): Date {
+  const next = new Date(date);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
+}
+
+export function addMonths(date: Date, months: number): Date {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+export const TREND_DAY_MAX_RANGE_DAYS = 365;
+export const TREND_WEEK_MAX_YEARS = 5;
+export const TREND_MONTH_MAX_YEARS = 25;
+export const TREND_YEAR_MAX_YEARS = 100;
+
+const TREND_WEEK_DEFAULT_YEARS = 1;
+const TREND_MONTH_DEFAULT_YEARS = 5;
+const TREND_YEAR_DEFAULT_YEARS = 15;
+
+function getYearViewDefaultFrom(to: Date): Date {
+  return new Date(to.getFullYear() - TREND_YEAR_DEFAULT_YEARS - 1, 0, 1);
+}
+
 export function clampHistoryDateRange(
   from: Date,
   to: Date,
   changed: 'from' | 'to',
   today: Date = getTodayDate(),
 ): { from: Date; to: Date } {
+  return clampTrendDateRange(from, to, changed, 'day', today);
+}
+
+function withBirthFloor(earliest: Date, birthDate?: string | null): Date {
+  if (!birthDate) {
+    return earliest;
+  }
+  const birth = fromDateKey(birthDate);
+  return earliest < birth ? birth : earliest;
+}
+
+export function getTrendEarliestFrom(
+  to: Date,
+  granularity: TrendGranularity,
+  birthDate?: string | null,
+): Date {
+  switch (granularity) {
+    case 'day':
+      return addDays(to, -(TREND_DAY_MAX_RANGE_DAYS - 1));
+    case 'week':
+      return withBirthFloor(addYears(to, -TREND_WEEK_MAX_YEARS), birthDate);
+    case 'month':
+      return withBirthFloor(addYears(to, -TREND_MONTH_MAX_YEARS), birthDate);
+    case 'year':
+    case 'ageYear':
+      return withBirthFloor(addYears(to, -TREND_YEAR_MAX_YEARS), birthDate);
+  }
+}
+
+function getTrendDefaultFrom(
+  to: Date,
+  granularity: TrendGranularity,
+  birthDate?: string | null,
+): Date {
+  let from: Date;
+  switch (granularity) {
+    case 'day':
+      from = addMonths(to, -1);
+      break;
+    case 'week':
+      from = addYears(to, -TREND_WEEK_DEFAULT_YEARS);
+      break;
+    case 'month':
+      from = addYears(to, -TREND_MONTH_DEFAULT_YEARS);
+      break;
+    case 'year':
+    case 'ageYear':
+      from = getYearViewDefaultFrom(to);
+      break;
+  }
+
+  if (granularity !== 'day') {
+    from = withBirthFloor(from, birthDate);
+  }
+
+  const earliestFrom = getTrendEarliestFrom(to, granularity, birthDate);
+  if (toDateKey(from) < toDateKey(earliestFrom)) {
+    from = earliestFrom;
+  }
+
+  return from;
+}
+
+function getTrendLatestTo(from: Date, granularity: TrendGranularity, today: Date): Date {
+  switch (granularity) {
+    case 'day':
+      return addDays(from, TREND_DAY_MAX_RANGE_DAYS - 1);
+    case 'week':
+      return addYears(from, TREND_WEEK_MAX_YEARS);
+    case 'month':
+      return addYears(from, TREND_MONTH_MAX_YEARS);
+    case 'year':
+    case 'ageYear':
+      return addYears(from, TREND_YEAR_MAX_YEARS);
+  }
+}
+
+export function getDefaultTrendDateRange(
+  granularity: TrendGranularity,
+  today: Date = getTodayDate(),
+  birthDate?: string | null,
+): { from: Date; to: Date } {
+  const to = today;
+  return {
+    from: getTrendDefaultFrom(to, granularity, birthDate),
+    to,
+  };
+}
+
+export type TrendDateRangeValidationError =
+  | 'invalidOrder'
+  | 'maxSpanExceeded'
+  | 'beforeBirthDate'
+  | 'futureDate';
+
+export function validateTrendDateRange(
+  from: Date,
+  to: Date,
+  granularity: TrendGranularity,
+  today: Date = getTodayDate(),
+  birthDate?: string | null,
+): TrendDateRangeValidationError | null {
+  const fromKey = toDateKey(from);
+  const toKey = toDateKey(to);
+  const todayKey = toDateKey(today);
+
+  if (fromKey > toKey) {
+    return 'invalidOrder';
+  }
+
+  if (toKey > todayKey) {
+    return 'futureDate';
+  }
+
+  if (birthDate && granularity !== 'day' && fromKey < birthDate) {
+    return 'beforeBirthDate';
+  }
+
+  const earliestFrom = getTrendEarliestFrom(to, granularity, birthDate);
+  if (fromKey < toDateKey(earliestFrom)) {
+    return 'maxSpanExceeded';
+  }
+
+  let latestTo = getTrendLatestTo(from, granularity, today);
+  if (toDateKey(latestTo) > todayKey) {
+    latestTo = today;
+  }
+  if (toKey > toDateKey(latestTo)) {
+    return 'maxSpanExceeded';
+  }
+
+  return null;
+}
+
+export function getTrendDateRangeValidationMessageKey(
+  error: TrendDateRangeValidationError,
+  granularity: TrendGranularity,
+): string {
+  if (error === 'maxSpanExceeded') {
+    return `comparison.rangeTooLong.${granularity}`;
+  }
+
+  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, string> = {
+    invalidOrder: 'comparison.invalidRange',
+    beforeBirthDate: 'comparison.beforeBirthDate',
+    futureDate: 'comparison.futureDate',
+  };
+
+  return keys[error];
+}
+
+export function clampTrendDateRange(
+  from: Date,
+  to: Date,
+  changed: 'from' | 'to',
+  granularity: TrendGranularity,
+  today: Date = getTodayDate(),
+  birthDate?: string | null,
+): { from: Date; to: Date } {
   let nextFrom = from;
   let nextTo = to;
+
+  if (toDateKey(nextTo) > toDateKey(today)) {
+    nextTo = today;
+  }
 
   if (toDateKey(nextFrom) > toDateKey(nextTo)) {
     if (changed === 'from') {
       nextTo = nextFrom;
+      if (toDateKey(nextTo) > toDateKey(today)) {
+        nextTo = today;
+      }
     } else {
       nextFrom = nextTo;
     }
   }
 
-  const earliestFrom = addDays(nextTo, -(HISTORY_MAX_RANGE_DAYS - 1));
-  const latestTo = addDays(nextFrom, HISTORY_MAX_RANGE_DAYS - 1);
-  const cappedLatestTo = toDateKey(latestTo) > toDateKey(today) ? today : latestTo;
-
+  const earliestFrom = getTrendEarliestFrom(nextTo, granularity, birthDate);
   if (toDateKey(nextFrom) < toDateKey(earliestFrom)) {
     nextFrom = earliestFrom;
   }
-  if (toDateKey(nextTo) > toDateKey(cappedLatestTo)) {
-    nextTo = cappedLatestTo;
+
+  let latestTo = getTrendLatestTo(nextFrom, granularity, today);
+  if (toDateKey(latestTo) > toDateKey(today)) {
+    latestTo = today;
+  }
+  if (toDateKey(nextTo) > toDateKey(latestTo)) {
+    nextTo = latestTo;
   }
 
   return { from: nextFrom, to: nextTo };
@@ -217,6 +410,11 @@ export function formatDateRange(range: DateRange): string {
     year: 'numeric',
   });
   return `${startLabel} – ${endLabel}`;
+}
+
+export function formatYearRowTitle(range: DateRange): { title: string; subtitle?: string } {
+  const year = fromDateKey(range.start).getFullYear();
+  return { title: String(year) };
 }
 
 export function parseDateKey(input: string): string | null {

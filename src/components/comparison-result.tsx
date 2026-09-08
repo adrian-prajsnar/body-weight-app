@@ -1,12 +1,8 @@
-import { Text, View } from 'react-native';
-import { formatDateRange, formatWeightValue, getWeightUnitLabel } from '../format';
-import { useUnits } from '../context/unit-context';
-import { useTranslation } from '../i18n/language-context';
-import { DateRange, WeightEntry, WeightStats } from '../types';
-import { useAppStyles } from '../theme/styles';
-import { useColors } from '../theme/theme-context';
+import { useMemo } from 'react';
+import { formatDateRange } from '../format';
+import { DateRange, TrendRow, WeightEntry, WeightStats } from '../types';
 import { AppCard } from './app-card';
-import { StatsSummary } from './stats-summary';
+import { ComparisonTrendRows } from './comparison-trend-rows';
 
 type ComparisonResultProps = {
   labelA: string;
@@ -18,6 +14,8 @@ type ComparisonResultProps = {
   entries: WeightEntry[];
   difference: number | null;
   isBusy?: boolean;
+  embedded?: boolean;
+  isDayMode?: boolean;
 };
 
 export function ComparisonResult({
@@ -30,41 +28,44 @@ export function ComparisonResult({
   entries,
   difference,
   isBusy = false,
+  embedded = false,
+  isDayMode = false,
 }: ComparisonResultProps) {
-  const styles = useAppStyles();
-  const colors = useColors();
-  const { t } = useTranslation();
-  const { units } = useUnits();
-  const weightUnit = getWeightUnitLabel(units);
+  const entryByDate = useMemo(
+    () => new Map(entries.map((entry) => [entry.date, entry])),
+    [entries],
+  );
 
-  const differenceColor =
-    difference === null || Math.abs(difference) < 0.005
-      ? colors.text
-      : difference < 0
-        ? colors.successText
-        : colors.warningText;
+  const rows: TrendRow[] = [
+    {
+      key: 'range-a',
+      title: labelA,
+      subtitle: isDayMode ? undefined : formatDateRange(rangeA),
+      range: rangeA,
+      stats: statsA,
+      entry: isDayMode ? (entryByDate.get(rangeA.start) ?? null) : undefined,
+      deltaToOlder: difference,
+    },
+    {
+      key: 'range-b',
+      title: labelB,
+      subtitle: isDayMode ? undefined : formatDateRange(rangeB),
+      range: rangeB,
+      stats: statsB,
+      entry: isDayMode ? (entryByDate.get(rangeB.start) ?? null) : undefined,
+      deltaToOlder: null,
+    },
+  ];
+
+  const body = <ComparisonTrendRows rows={rows} entries={entries} isDayMode={isDayMode} />;
+
+  if (embedded) {
+    return body;
+  }
 
   return (
-    <>
-      <AppCard title={labelA} subtitle={formatDateRange(rangeA)} isBusy={isBusy}>
-        <StatsSummary stats={statsA} entries={entries} range={rangeA} />
-      </AppCard>
-
-      <AppCard isBusy={isBusy} delay={60}>
-        <View style={styles.comparisonDeltaBlock}>
-          <Text style={styles.sectionLabel}>{t('comparison.difference')}</Text>
-          <Text style={[styles.differenceValue, { color: differenceColor }]}>
-            {difference === null
-              ? t('common.emDash')
-              : `${difference > 0 ? '+' : ''}${formatWeightValue(difference, units)} ${weightUnit}`}
-          </Text>
-          <Text style={styles.cardSubtitle}>{t('comparison.differenceNote')}</Text>
-        </View>
-      </AppCard>
-
-      <AppCard title={labelB} subtitle={formatDateRange(rangeB)} isBusy={isBusy} delay={120}>
-        <StatsSummary stats={statsB} entries={entries} range={rangeB} />
-      </AppCard>
-    </>
+    <AppCard isBusy={isBusy}>
+      {body}
+    </AppCard>
   );
 }

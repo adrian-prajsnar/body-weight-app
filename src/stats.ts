@@ -1,6 +1,10 @@
-import { getAgeOnDate, getPreviousAgeYearRange, getThisAgeYearRange } from './age';
+import { getAgeOnDate, getLastBirthdayDate, getThisAgeYearRange } from './age';
 import {
   addDays,
+  formatDateLabel,
+  formatDateRange,
+  formatMonthLabel,
+  formatYearRowTitle,
   fromDateKey,
   getMondayWeekStart,
   getTodayDate,
@@ -15,6 +19,8 @@ import {
   EntryGroup,
   LatestChange,
   PeriodComparison,
+  TrendGranularity,
+  TrendRow,
   WeightEntry,
   WeightSeries,
   WeightStats,
@@ -138,18 +144,253 @@ export function getLast7DaysEntries(entries: WeightEntry[]): WeightEntry[] {
   );
 }
 
-function getYearComparisonRanges(todayInput?: Date): {
-  rangeA: DateRange;
-  rangeB: DateRange;
-} {
-  const today = normalizeToday(todayInput);
-  const rangeAStart = new Date(today.getFullYear(), 0, 1);
-  const rangeBStart = new Date(today.getFullYear() - 1, 0, 1);
-  const rangeBEnd = new Date(today.getFullYear(), 0, 0);
+function clipRangeToFilter(bucket: DateRange, filter: DateRange): DateRange {
   return {
-    rangeA: toRange(rangeAStart, today),
-    rangeB: toRange(rangeBStart, rangeBEnd),
+    start: bucket.start < filter.start ? filter.start : bucket.start,
+    end: bucket.end > filter.end ? filter.end : bucket.end,
   };
+}
+
+type TrendBucket = {
+  range: DateRange;
+  labelRange?: DateRange;
+};
+
+function getWeekRangeContaining(date: Date): DateRange {
+  const start = getMondayWeekStart(date);
+  const end = addDays(start, 6);
+  return toRange(start, end);
+}
+
+function generateDayBuckets(filter: DateRange): TrendBucket[] {
+  const buckets: TrendBucket[] = [];
+  let cursor = fromDateKey(filter.end);
+
+  while (toDateKey(cursor) >= filter.start) {
+    const key = toDateKey(cursor);
+    buckets.push({ range: { start: key, end: key } });
+    cursor = addDays(cursor, -1);
+  }
+
+  return buckets;
+}
+
+function generateWeekBuckets(filter: DateRange): TrendBucket[] {
+  const buckets: TrendBucket[] = [];
+  let cursor = fromDateKey(filter.end);
+
+  while (true) {
+    const week = getWeekRangeContaining(cursor);
+    buckets.push({ range: clipRangeToFilter(week, filter) });
+
+    const previousWeekEnd = addDays(fromDateKey(week.start), -1);
+    if (toDateKey(previousWeekEnd) < filter.start) {
+      break;
+    }
+    cursor = previousWeekEnd;
+  }
+
+  return buckets;
+}
+
+function generateMonthBuckets(filter: DateRange): TrendBucket[] {
+  const buckets: TrendBucket[] = [];
+  let year = fromDateKey(filter.end).getFullYear();
+  let month = fromDateKey(filter.end).getMonth();
+
+  while (true) {
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month + 1, 0);
+    const bucket = toRange(monthStart, monthEnd);
+    buckets.push({ range: clipRangeToFilter(bucket, filter) });
+
+    if (toDateKey(monthStart) <= filter.start) {
+      break;
+    }
+
+    month -= 1;
+    if (month < 0) {
+      month = 11;
+      year -= 1;
+    }
+  }
+
+  return buckets;
+}
+
+function generateYearBuckets(filter: DateRange): TrendBucket[] {
+  const buckets: TrendBucket[] = [];
+  let year = fromDateKey(filter.end).getFullYear();
+  const startYear = fromDateKey(filter.start).getFullYear();
+
+  while (year >= startYear) {
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
+    buckets.push({
+      range: clipRangeToFilter({ start: yearStart, end: yearEnd }, filter),
+    });
+    year -= 1;
+  }
+
+  return buckets;
+}
+
+function generateAgeYearBuckets(filter: DateRange, birthDate: string): TrendBucket[] {
+  const buckets: TrendBucket[] = [];
+  let ageYearEnd = fromDateKey(filter.end);
+
+  while (true) {
+    const birthdayStart = getLastBirthdayDate(birthDate, ageYearEnd);
+    const bucket = toRange(birthdayStart, ageYearEnd);
+    const clipped = clipRangeToFilter(bucket, filter);
+
+    if (clipped.end < filter.start) {
+      break;
+    }
+
+    buckets.push({ range: clipped, labelRange: bucket });
+
+    const dayBeforeBirthday = addDays(birthdayStart, -1);
+    if (toDateKey(dayBeforeBirthday) < filter.start) {
+      break;
+    }
+    ageYearEnd = dayBeforeBirthday;
+  }
+
+  return buckets;
+}
+
+function generateTrendBuckets(
+  granularity: TrendGranularity,
+  filter: DateRange,
+  birthDate?: string | null,
+): TrendBucket[] {
+  switch (granularity) {
+    case 'day':
+      return generateDayBuckets(filter);
+    case 'week':
+      return generateWeekBuckets(filter);
+    case 'month':
+      return generateMonthBuckets(filter);
+    case 'year':
+      return generateYearBuckets(filter);
+    case 'ageYear':
+      if (!birthDate) {
+        return [];
+      }
+      return generateAgeYearBuckets(filter, birthDate);
+  }
+}
+
+function clampTrendFilterToBirth(
+  filter: DateRange,
+  granularity: TrendGranularity,
+  birthDate?: string | null,
+): DateRange {
+  if (!birthDate || granularity === 'day') {
+    return filter;
+  }
+
+  if (filter.start < birthDate) {
+    return { ...filter, start: birthDate };
+  }
+
+  return filter;
+}
+
+function getTrendRowTitle(
+  granularity: TrendGranularity,
+  range: DateRange,
+  birthDate?: string | null,
+  labelRange?: DateRange,
+): { title: string; subtitle?: string } {
+  switch (granularity) {
+    case 'day':
+      return { title: formatDateLabel(range.start) };
+    case 'week':
+      return { title: formatDateRange(range) };
+    case 'month':
+      return { title: formatMonthLabel(range.start) };
+    case 'year':
+      return formatYearRowTitle(range);
+    case 'ageYear': {
+      if (!birthDate) {
+        return { title: formatDateRange(labelRange ?? range) };
+      }
+      const age = getAgeOnDate(birthDate, range.end);
+      return {
+        title: age ? t('age.years', { count: age.years }) : t('common.emDash'),
+        subtitle: formatDateRange(labelRange ?? range),
+      };
+    }
+  }
+}
+
+function hasTrendData(stats: WeightStats): boolean {
+  return stats.count > 0 && stats.average !== null;
+}
+
+function computeDeltaToOlder(
+  newer: WeightStats,
+  older: WeightStats,
+): number | null {
+  if (newer.average === null || older.average === null) {
+    return null;
+  }
+  return Math.round((newer.average - older.average) * 100) / 100;
+}
+
+export function getTrendRows(
+  entries: WeightEntry[],
+  granularity: TrendGranularity,
+  filter: DateRange,
+  birthDate?: string | null,
+): TrendRow[] {
+  const effectiveFilter = clampTrendFilterToBirth(filter, granularity, birthDate);
+  const buckets = generateTrendBuckets(granularity, effectiveFilter, birthDate);
+  const entryByDate =
+    granularity === 'day'
+      ? new Map(entries.map((entry) => [entry.date, entry]))
+      : null;
+
+  const rows: TrendRow[] = buckets.map(({ range, labelRange }) => {
+    const stats = getStatsForRange(entries, range);
+    const { title, subtitle } = getTrendRowTitle(
+      granularity,
+      range,
+      birthDate,
+      labelRange,
+    );
+    return {
+      key: `${granularity}-${range.start}-${range.end}`,
+      title,
+      subtitle,
+      range,
+      stats,
+      entry: entryByDate?.get(range.start) ?? null,
+      deltaToOlder: null,
+    };
+  });
+
+  for (let index = 0; index < rows.length; index += 1) {
+    if (!hasTrendData(rows[index].stats)) {
+      continue;
+    }
+
+    let olderIndex = index + 1;
+    while (olderIndex < rows.length && !hasTrendData(rows[olderIndex].stats)) {
+      olderIndex += 1;
+    }
+
+    if (olderIndex < rows.length) {
+      rows[index].deltaToOlder = computeDeltaToOlder(
+        rows[index].stats,
+        rows[olderIndex].stats,
+      );
+    }
+  }
+
+  return rows;
 }
 
 export function getComparison(
@@ -157,65 +398,28 @@ export function getComparison(
   mode: ComparisonMode,
   customRanges?: { rangeA: DateRange; rangeB: DateRange },
   birthDate?: string | null,
+  customKind: 'period' | 'dates' = 'period',
 ): PeriodComparison | null {
-  let rangeA: DateRange;
-  let rangeB: DateRange;
-  let labelA: string;
-  let labelB: string;
-
-  switch (mode) {
-    case 'ageYear': {
-      if (!birthDate) {
-        return null;
-      }
-      rangeA = getThisAgeYearRange(birthDate);
-      rangeB = getPreviousAgeYearRange(birthDate);
-      const ageA = getAgeOnDate(birthDate, rangeA.end);
-      const ageB = getAgeOnDate(birthDate, rangeB.end);
-      labelA = t('periods.thisAgeYearComparison', {
-        age: ageA ? t('age.years', { count: ageA.years }) : t('common.emDash'),
-      });
-      labelB = t('periods.lastAgeYearComparison', {
-        age: ageB ? t('age.years', { count: ageB.years }) : t('common.emDash'),
-      });
-      break;
-    }
-    case 'week':
-      rangeA = getDashboardPeriodRange('thisWeek');
-      rangeB = getDashboardPeriodRange('lastWeek');
-      labelA = t('periods.thisWeek');
-      labelB = t('periods.lastWeek');
-      break;
-    case 'month':
-      rangeA = getDashboardPeriodRange('thisMonth');
-      rangeB = getDashboardPeriodRange('lastMonth');
-      labelA = t('periods.thisMonth');
-      labelB = t('periods.lastMonth');
-      break;
-    case 'year': {
-      const ranges = getYearComparisonRanges();
-      rangeA = ranges.rangeA;
-      rangeB = ranges.rangeB;
-      labelA = t('periods.thisYear');
-      labelB = t('periods.lastYear');
-      break;
-    }
-    case 'custom':
-      if (!customRanges) {
-        return null;
-      }
-      if (customRanges.rangeA.start > customRanges.rangeA.end) {
-        return null;
-      }
-      if (customRanges.rangeB.start > customRanges.rangeB.end) {
-        return null;
-      }
-      rangeA = customRanges.rangeA;
-      rangeB = customRanges.rangeB;
-      labelA = t('periods.rangeA');
-      labelB = t('periods.rangeB');
-      break;
+  if (mode !== 'custom') {
+    return null;
   }
+
+  if (!customRanges) {
+    return null;
+  }
+  if (customRanges.rangeA.start > customRanges.rangeA.end) {
+    return null;
+  }
+  if (customRanges.rangeB.start > customRanges.rangeB.end) {
+    return null;
+  }
+
+  const rangeA = customRanges.rangeA;
+  const rangeB = customRanges.rangeB;
+  const labelA =
+    customKind === 'dates' ? formatDateLabel(rangeA.start) : t('periods.rangeA');
+  const labelB =
+    customKind === 'dates' ? formatDateLabel(rangeB.start) : t('periods.rangeB');
 
   const statsA = getStatsForRange(entries, rangeA);
   const statsB = getStatsForRange(entries, rangeB);

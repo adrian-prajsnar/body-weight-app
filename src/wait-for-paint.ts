@@ -1,4 +1,4 @@
-import { InteractionManager } from 'react-native';
+import { runWhenIdle } from './run-when-idle';
 
 export function waitForPaint(): Promise<void> {
   return new Promise((resolve) => {
@@ -12,8 +12,6 @@ export function waitForPaint(): Promise<void> {
 
 export function waitForInteractions(): Promise<void> {
   return new Promise((resolve) => {
-    InteractionManager.runAfterInteractions(() => {
-      resolve();
-    });
+    runWhenIdle(resolve);
   });
 }

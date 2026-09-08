@@ -20,6 +20,7 @@ import { DismissibleInfoBanner } from '../components/dismissible-info-banner';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useDashboardAlertDismissals } from '../hooks/use-dashboard-alert-dismissals';
+import { useScreenLoading } from '../hooks/use-screen-loading';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import { formatDateLabel } from '../format';
@@ -45,6 +46,7 @@ export function DashboardScreen({ navigation }: Props) {
   const { entries, isLoading, isRefreshing, deletingDate, error, removeEntry, refreshEntries } =
     useSharedWeightEntries();
   const { birthDate, sex, heightEntries, isLoading: isProfileLoading } = useSharedUserProfile();
+  useScreenLoading(isLoading || isProfileLoading);
   const { isReady: areDismissalsReady, isDismissed, dismiss } = useDashboardAlertDismissals();
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();

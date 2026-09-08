@@ -9,6 +9,7 @@ import { ScreenHeader } from '../components/screen-header';
 import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
+import { useScreenLoading } from '../hooks/use-screen-loading';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import { ProfileStackParamList } from '../navigation/types';
@@ -39,6 +40,7 @@ export function HeightHistoryScreen({ navigation }: Props) {
     updateHeightEntry,
     removeHeightEntry,
   } = useSharedUserProfile();
+  useScreenLoading(isLoading);
 
   const handleSave = async (effectiveDate: string, heightCm: number) => {
     try {

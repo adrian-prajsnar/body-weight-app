@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationLoadingProvider } from '../context/navigation-loading-context';
 import { ProfileNavigator } from './profile-navigator';
 import { ComparisonScreen } from '../screens/comparison-screen';
 import { DashboardScreen } from '../screens/dashboard-screen';
@@ -13,11 +14,12 @@ export function MainTabNavigator() {
   const { t } = useTranslation();
 
   return (
-    <Tab.Navigator
-      initialRouteName="Dashboard"
-      tabBar={(props) => <AppTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
+    <NavigationLoadingProvider>
+      <Tab.Navigator
+        initialRouteName="Dashboard"
+        tabBar={(props) => <AppTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
@@ -31,13 +33,14 @@ export function MainTabNavigator() {
       <Tab.Screen
         name="Comparison"
         component={ComparisonScreen}
-        options={{ title: t('navigation.compare') }}
+        options={{ title: t('navigation.compare'), lazy: true }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileNavigator}
         options={{ title: t('navigation.profile') }}
       />
-    </Tab.Navigator>
+      </Tab.Navigator>
+    </NavigationLoadingProvider>
   );
 }

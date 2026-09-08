@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useState } from 'react';
-import { LayoutChangeEvent, Pressable, Text } from 'react-native';
-import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigationLoading } from '../context/navigation-loading-context';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { spacing } from '../theme/tokens';
@@ -21,42 +20,24 @@ const TAB_ICONS: Record<keyof RootTabParamList, { active: TabIconName; inactive:
 export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const styles = useAppStyles();
   const colors = useColors();
+  const { isNavigationBlocked } = useNavigationLoading();
   const insets = useSafeAreaInsets();
-  const [barWidth, setBarWidth] = useState(0);
-
-  const itemWidth =
-    barWidth > 0 ? (barWidth - spacing.sm * 2) / state.routes.length : 0;
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    width: itemWidth,
-    opacity: itemWidth > 0 ? 1 : 0,
-    transform: [
-      {
-        translateX: withSpring(spacing.sm + state.index * itemWidth, {
-          damping: 20,
-          mass: 0.7,
-        }),
-      },
-    ],
-  }));
-
-  const handleLayout = (event: LayoutChangeEvent) => {
-    setBarWidth(event.nativeEvent.layout.width);
-  };
 
   return (
-    <Animated.View
-      style={[styles.tabBar, { bottom: insets.bottom + spacing.sm }]}
-      onLayout={handleLayout}
-    >
-      <Animated.View style={[styles.tabBarIndicator, indicatorStyle]} />
+    <View style={[styles.tabBar, { bottom: insets.bottom + spacing.sm }]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label = options.title ?? route.name;
         const isFocused = state.index === index;
         const icons = TAB_ICONS[route.name as keyof RootTabParamList];
 
+        const isTabSwitchBlocked = isNavigationBlocked && !isFocused;
+
         const onPress = () => {
+          if (isTabSwitchBlocked) {
+            return;
+          }
+
           const event = navigation.emit({
             type: 'tabPress',
             target: route.key,
@@ -71,7 +52,12 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
         return (
           <Pressable
             key={route.key}
-            style={styles.tabBarItem}
+            style={[
+              styles.tabBarItem,
+              isFocused && styles.tabBarItemActive,
+              isTabSwitchBlocked && styles.tabBarItemDisabled,
+            ]}
+            disabled={isTabSwitchBlocked}
             onPress={onPress}
             onLongPress={() =>
               navigation.emit({ type: 'tabLongPress', target: route.key })
@@ -96,6 +82,6 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
           </Pressable>
         );
       })}
-    </Animated.View>
+    </View>
   );
 }

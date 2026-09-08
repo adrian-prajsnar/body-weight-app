@@ -19,7 +19,11 @@ type StatsSummaryProps = {
   range: DateRange;
 };
 
-export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
+export function StatsSummary({
+  stats,
+  entries,
+  range,
+}: StatsSummaryProps) {
   const styles = useAppStyles();
   const { t } = useTranslation();
   const { units } = useUnits();
@@ -37,7 +41,11 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
   const formatValue = (value: number | null): string =>
     value === null ? emDash : formatWeightValue(value, units);
 
-  const bmiBadge = (value: number | null, metric: 'average' | 'min' | 'max') => {
+  const bmiBadge = (
+    value: number | null,
+    metric: 'average' | 'min' | 'max',
+    centered = false,
+  ) => {
     const sourceDate =
       metric === 'min'
         ? bmiStats.minDate
@@ -57,6 +65,7 @@ export function StatsSummary({ stats, entries, range }: StatsSummaryProps) {
       <BmiBadge
         bmi={bmi}
         compact
+        centered={centered}
         onPress={() => openPeriod({ metric, range, entries })}
       />
     ) : null;

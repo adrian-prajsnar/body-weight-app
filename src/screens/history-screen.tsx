@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, InteractionManager, Pressable, RefreshControl, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppCard } from '../components/app-card';
@@ -14,6 +14,7 @@ import { WeightEntryModal } from '../components/weight-entry-modal';
 import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
+import { useScreenLoading } from '../hooks/use-screen-loading';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import {
@@ -24,6 +25,7 @@ import {
   toDateKey,
 } from '../format';
 import { filterEntriesByBounds } from '../stats';
+import { runWhenIdle } from '../run-when-idle';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { spacing } from '../theme/tokens';
@@ -60,7 +62,7 @@ export function HistoryScreen() {
   useFocusEffect(
     useCallback(() => {
       setIsListReady(false);
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = runWhenIdle(() => {
         setIsListReady(true);
       });
       return () => task.cancel();
@@ -74,6 +76,7 @@ export function HistoryScreen() {
   const isFilterCustom = fromKey !== defaultFromKey || toKey !== defaultToKey;
   const isInvalid = fromKey > toKey;
   const showListContent = !isLoading && isListReady;
+  useScreenLoading(isLoading || !isListReady);
 
   const filteredEntries = useMemo(() => {
     if (isInvalid) {

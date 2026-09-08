@@ -7,10 +7,11 @@ import { useTheme } from '../theme/theme-context';
 type BmiBadgeProps = {
   bmi: BmiInfo | null;
   compact?: boolean;
+  centered?: boolean;
   onPress?: () => void;
 };
 
-export function BmiBadge({ bmi, compact = false, onPress }: BmiBadgeProps) {
+export function BmiBadge({ bmi, compact = false, centered = false, onPress }: BmiBadgeProps) {
   const styles = useAppStyles();
   const { scheme } = useTheme();
   const { t } = useTranslation();
@@ -29,6 +30,7 @@ export function BmiBadge({ bmi, compact = false, onPress }: BmiBadgeProps) {
       style={({ pressed }) => [
         styles.bmiBadge,
         compact && styles.bmiBadgeCompact,
+        centered ? styles.bmiBadgeCentered : null,
         { backgroundColor: badgeTheme.backgroundColor },
         pressed && onPress ? styles.buttonPressed : null,
       ]}

@@ -12,6 +12,7 @@ type AppCardProps = {
   isBusy?: boolean;
   elevated?: boolean;
   delay?: number;
+  animateEntry?: boolean;
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
 };
@@ -23,15 +24,17 @@ export function AppCard({
   isBusy = false,
   elevated = false,
   delay = 0,
+  animateEntry = true,
   style,
   children,
 }: AppCardProps) {
   const styles = useAppStyles();
   const hasHeader = Boolean(title || subtitle || right);
+  const entering = animateEntry ? FadeInDown.duration(320).delay(delay) : undefined;
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(320).delay(delay)}
+      entering={entering}
       style={styles.loadingCard}
     >
       {isBusy ? (
