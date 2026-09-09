@@ -1218,15 +1218,16 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       paddingVertical: spacing.sm,
       borderRadius: radius.md,
     },
-    tabBarItemActive: {
-      backgroundColor: colors.accentSoft,
-    },
-    tabBarItemDisabled: {
-      opacity: 0.45,
-    },
     tabBarLabel: {
       fontSize: 11,
       fontFamily: fontFamily.medium,
+    },
+    tabBarIndicator: {
+      position: 'absolute',
+      top: spacing.sm,
+      bottom: spacing.sm,
+      backgroundColor: colors.accentSoft,
+      borderRadius: radius.md,
     },
 
     weightEntryRow: {

@@ -8,7 +8,7 @@ import { getHeightEntries, saveHeight, deleteHeight } from '../supabase/height-s
 import { BiologicalSex, HeightEntry } from '../types';
 
 export function useUserProfile() {
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useSupabaseAuth();
   const [heightEntries, setHeightEntries] = useState<HeightEntry[]>([]);
   const [birthDate, setBirthDate] = useState<string | null>(null);
   const [sex, setSex] = useState<BiologicalSex | null>(null);
@@ -20,6 +20,10 @@ export function useUserProfile() {
   const hasLoadedRef = useRef(false);
 
   const refreshProfile = useCallback(async () => {
+    if (isAuthLoading) {
+      return;
+    }
+
     if (!isAuthenticated) {
       setHeightEntries([]);
       setBirthDate(null);
@@ -51,7 +55,7 @@ export function useUserProfile() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAuthLoading]);
 
   useEffect(() => {
     void refreshProfile();

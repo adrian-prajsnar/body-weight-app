@@ -115,11 +115,7 @@ export function filterEntriesByBounds(
   });
 }
 
-export function getStatsForRange(
-  entries: WeightEntry[],
-  range: DateRange,
-): WeightStats {
-  const filtered = filterEntriesByRange(entries, range);
+function buildStatsFromEntries(filtered: WeightEntry[]): WeightStats {
   if (filtered.length === 0) {
     return { average: null, min: null, max: null, count: 0 };
   }
@@ -133,6 +129,32 @@ export function getStatsForRange(
     max: Math.max(...weights),
     count: weights.length,
   };
+}
+
+export function getStatsForRange(
+  entries: WeightEntry[],
+  range: DateRange,
+): WeightStats {
+  return buildStatsFromEntries(filterEntriesByRange(entries, range));
+}
+
+function assignEntriesToBuckets(
+  entries: WeightEntry[],
+  buckets: { range: DateRange }[],
+): WeightEntry[][] {
+  const bucketEntries = buckets.map(() => [] as WeightEntry[]);
+
+  for (const entry of entries) {
+    for (let index = 0; index < buckets.length; index += 1) {
+      const { range } = buckets[index];
+      if (entry.date >= range.start && entry.date <= range.end) {
+        bucketEntries[index].push(entry);
+        break;
+      }
+    }
+  }
+
+  return bucketEntries;
 }
 
 export function getLast7DaysEntries(entries: WeightEntry[]): WeightEntry[] {
@@ -348,29 +370,58 @@ export function getTrendRows(
 ): TrendRow[] {
   const effectiveFilter = clampTrendFilterToBirth(filter, granularity, birthDate);
   const buckets = generateTrendBuckets(granularity, effectiveFilter, birthDate);
-  const entryByDate =
-    granularity === 'day'
-      ? new Map(entries.map((entry) => [entry.date, entry]))
-      : null;
 
-  const rows: TrendRow[] = buckets.map(({ range, labelRange }) => {
-    const stats = getStatsForRange(entries, range);
-    const { title, subtitle } = getTrendRowTitle(
-      granularity,
-      range,
-      birthDate,
-      labelRange,
-    );
-    return {
-      key: `${granularity}-${range.start}-${range.end}`,
-      title,
-      subtitle,
-      range,
-      stats,
-      entry: entryByDate?.get(range.start) ?? null,
-      deltaToOlder: null,
-    };
-  });
+  let rows: TrendRow[];
+
+  if (granularity === 'day') {
+    const entryByDate = new Map(entries.map((entry) => [entry.date, entry]));
+    rows = buckets.map(({ range, labelRange }) => {
+      const entry = entryByDate.get(range.start) ?? null;
+      const stats = entry
+        ? {
+            average: entry.weightKg,
+            min: entry.weightKg,
+            max: entry.weightKg,
+            count: 1,
+          }
+        : { average: null, min: null, max: null, count: 0 };
+      const { title, subtitle } = getTrendRowTitle(
+        granularity,
+        range,
+        birthDate,
+        labelRange,
+      );
+      return {
+        key: `${granularity}-${range.start}-${range.end}`,
+        title,
+        subtitle,
+        range,
+        stats,
+        entry,
+        deltaToOlder: null,
+      };
+    });
+  } else {
+    const bucketEntries = assignEntriesToBuckets(entries, buckets);
+    rows = buckets.map(({ range, labelRange }, index) => {
+      const stats = buildStatsFromEntries(bucketEntries[index]);
+      const { title, subtitle } = getTrendRowTitle(
+        granularity,
+        range,
+        birthDate,
+        labelRange,
+      );
+      return {
+        key: `${granularity}-${range.start}-${range.end}`,
+        title,
+        subtitle,
+        range,
+        stats,
+        entry: null,
+        deltaToOlder: null,
+      };
+    });
+  }
 
   for (let index = 0; index < rows.length; index += 1) {
     if (!hasTrendData(rows[index].stats)) {

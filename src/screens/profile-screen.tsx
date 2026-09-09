@@ -20,7 +20,6 @@ import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
-import { useScreenLoading } from '../hooks/use-screen-loading';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -88,7 +87,6 @@ export function ProfileScreen({
   const { entries } = useSharedWeightEntries();
   const { heightEntries, birthDate, sex, isLoading, isRefreshing, isSaving, error, refreshProfile, saveBirthDateEntry, saveSexEntry } =
     useSharedUserProfile();
-  useScreenLoading(isLoading);
   const { showBmi, setShowBmi } = useSharedBmiDisplay();
   const { showError, showInfo, showSuccess } = useToast();
   const { confirm } = useConfirm();

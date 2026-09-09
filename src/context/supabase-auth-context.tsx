@@ -64,14 +64,15 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
 
     registerSupabaseAppLifecycle();
 
-    void refreshSessionOnForeground()
-      .then(() => supabase.auth.getSession())
+    void supabase.auth
+      .getSession()
       .then(({ data: { session: activeSession } }) => acceptSession(activeSession))
       .then((activeSession) => {
         setSession(activeSession);
       })
       .finally(() => {
         setIsLoading(false);
+        void refreshSessionOnForeground();
       });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((event, activeSession) => {

@@ -11,11 +11,12 @@ import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { OfflineScreen } from './src/components/offline-screen';
 import { SupabaseAuthProvider } from './src/context/supabase-auth-context';
 import { useNetworkStatus } from './src/hooks/use-network-status';
+import { useHideSplashWhenReady } from './src/hooks/use-hide-splash';
 import { BmiDetailsProvider } from './src/context/bmi-details-context';
 import { BmiDisplayProvider } from './src/context/bmi-display-context';
 import { ConfirmProvider } from './src/context/confirm-context';
@@ -28,8 +29,9 @@ import { UnitProvider } from './src/context/unit-context';
 import { ThemeProvider, useTheme } from './src/theme/theme-context';
 import { fontFamily } from './src/theme/tokens';
 
-function ThemedApp() {
+function AppNavigation({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { colors, scheme } = useTheme();
+  useHideSplashWhenReady(fontsLoaded);
 
   const navigationTheme = useMemo<Theme>(() => {
     const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
@@ -47,6 +49,17 @@ function ThemedApp() {
   }, [colors, scheme]);
 
   return (
+    <NavigationContainer theme={navigationTheme}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <RootNavigator />
+    </NavigationContainer>
+  );
+}
+
+function ThemedApp({ fontsLoaded }: { fontsLoaded: boolean }) {
+  const { colors } = useTheme();
+
+  return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <SupabaseAuthProvider>
         <ToastProvider>
@@ -55,10 +68,7 @@ function ThemedApp() {
               <BmiDisplayProvider>
                 <WeightEntriesProvider>
                   <BmiDetailsProvider>
-                    <NavigationContainer theme={navigationTheme}>
-                      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-                      <RootNavigator />
-                    </NavigationContainer>
+                    <AppNavigation fontsLoaded={fontsLoaded} />
                   </BmiDetailsProvider>
                 </WeightEntriesProvider>
               </BmiDisplayProvider>
@@ -70,51 +80,8 @@ function ThemedApp() {
   );
 }
 
-function FontGate({ children }: { children: React.ReactNode }) {
-  const { colors } = useTheme();
-  const [fontsLoaded] = useFonts({
-    [fontFamily.regular]: Inter_400Regular,
-    [fontFamily.medium]: Inter_500Medium,
-    [fontFamily.semibold]: Inter_600SemiBold,
-    [fontFamily.bold]: Inter_700Bold,
-  });
-
-  if (!fontsLoaded) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
-
-  return <>{children}</>;
-}
-
 function NetworkGate({ children }: { children: React.ReactNode }) {
-  const { colors } = useTheme();
-  const { isChecking, isOffline, isRefreshing, refresh } = useNetworkStatus();
-
-  if (isChecking) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
+  const { isOffline, isRefreshing, refresh } = useNetworkStatus();
 
   if (isOffline) {
     return <OfflineScreen isRefreshing={isRefreshing} onRefresh={() => void refresh()} />;
@@ -123,17 +90,28 @@ function NetworkGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AppShell() {
+  const [fontsLoaded] = useFonts({
+    [fontFamily.regular]: Inter_400Regular,
+    [fontFamily.medium]: Inter_500Medium,
+    [fontFamily.semibold]: Inter_600SemiBold,
+    [fontFamily.bold]: Inter_700Bold,
+  });
+
+  return (
+    <NetworkGate>
+      <ThemedApp fontsLoaded={fontsLoaded} />
+    </NetworkGate>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <LanguageProvider>
           <UnitProvider>
-            <FontGate>
-              <NetworkGate>
-                <ThemedApp />
-              </NetworkGate>
-            </FontGate>
+            <AppShell />
           </UnitProvider>
         </LanguageProvider>
       </ThemeProvider>

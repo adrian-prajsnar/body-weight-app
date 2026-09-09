@@ -1,5 +1,4 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationLoadingProvider } from '../context/navigation-loading-context';
 import { ProfileNavigator } from './profile-navigator';
 import { ComparisonScreen } from '../screens/comparison-screen';
 import { DashboardScreen } from '../screens/dashboard-screen';
@@ -14,33 +13,31 @@ export function MainTabNavigator() {
   const { t } = useTranslation();
 
   return (
-    <NavigationLoadingProvider>
-      <Tab.Navigator
-        initialRouteName="Dashboard"
-        tabBar={(props) => <AppTabBar {...props} />}
-        screenOptions={{ headerShown: false }}
-      >
+    <Tab.Navigator
+      initialRouteName="Dashboard"
+      tabBar={(props) => <AppTabBar {...props} />}
+      screenOptions={{ headerShown: false, lazy: true }}
+    >
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ title: t('navigation.dashboard') }}
+        options={{ title: t('navigation.dashboard'), lazy: false }}
       />
       <Tab.Screen
         name="History"
         component={HistoryScreen}
-        options={{ title: t('navigation.history'), lazy: true }}
+        options={{ title: t('navigation.history') }}
       />
       <Tab.Screen
         name="Comparison"
         component={ComparisonScreen}
-        options={{ title: t('navigation.compare'), lazy: true }}
+        options={{ title: t('navigation.compare') }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileNavigator}
         options={{ title: t('navigation.profile') }}
       />
-      </Tab.Navigator>
-    </NavigationLoadingProvider>
+    </Tab.Navigator>
   );
 }

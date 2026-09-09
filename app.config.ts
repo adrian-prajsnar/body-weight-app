@@ -24,6 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
+    plugins: [...(config.plugins ?? []), 'expo-splash-screen'],
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',

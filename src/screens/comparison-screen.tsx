@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
@@ -17,7 +16,6 @@ import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
-import { useScreenLoading } from '../hooks/use-screen-loading';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
 import {
@@ -133,12 +131,12 @@ export function ComparisonScreen() {
     });
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      beginListLoading();
-      return () => listReadyTaskRef.current?.cancel();
-    }, [beginListLoading]),
-  );
+  useEffect(() => {
+    const task = runWhenIdle(() => {
+      setIsListReady(true);
+    });
+    return () => task.cancel();
+  }, []);
 
   const resetCustomRanges = () => {
     setRangeAStart(null);
@@ -217,9 +215,6 @@ export function ComparisonScreen() {
   }, [birthDate, entries, filterRange, isInvalidRange, isListReady, mode]);
 
   const showTrendContent = !isLoading && isListReady && !isInvalidRange;
-  const isScreenLoading =
-    isLoading || (isTrendMode(mode) && !isListReady);
-  useScreenLoading(isScreenLoading);
 
   const filterMinimumFrom = useMemo(() => {
     if (!birthDate || !isTrendMode(mode) || mode === 'day') {
@@ -446,7 +441,7 @@ export function ComparisonScreen() {
         ) : null}
 
         {isTrendMode(mode) ? (
-            <AppCard
+          <AppCard
             isBusy={isRefreshing && showTrendContent}
             delay={60}
             animateEntry={false}
