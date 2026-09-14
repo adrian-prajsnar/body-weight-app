@@ -341,6 +341,7 @@ const pl = {
   },
   bmi: {
     label: 'BMI %{value}',
+    badgeInteractive: '%{category} · BMI %{value}',
     unavailableLabel: 'BMI ND',
     category: 'Kategoria',
     underweight: 'Niedowaga',
@@ -389,6 +390,7 @@ const pl = {
       other: '%{count} roku',
     },
     yearsMonths: '%{years} lat, %{months} mies.',
+    yearsMonthsDays: '%{years} lat, %{months} mies., %{days} dni',
   },
   validation: {
     weightRangeMetric:

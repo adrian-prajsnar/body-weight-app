@@ -1,17 +1,18 @@
-import { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Text, View } from 'react-native';
+import { calculateBmi } from '../bmi';
+import { useBmiDetails } from '../context/bmi-details-context';
+import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
+import { useSharedUserProfile } from '../context/user-profile-context';
 import { formatDateLabel, formatWeightDifference, formatWeightValue, getWeightUnitLabel } from '../format';
+import { getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
 import { WeightEntry } from '../types';
-import {
-  getBirthdayRecap,
-  getBirthdayWeighIns,
-  getChangeSinceLastBirthday,
-  getWeightExtremes,
-} from '../weight-insights';
+import { getChangeSinceLastBirthday, getWeightExtremes } from '../weight-insights';
 import { AppCard } from './app-card';
+import { BmiBadge } from './bmi-badge';
 
 type WeightHighlightsCardProps = {
   entries: WeightEntry[];
@@ -23,18 +24,21 @@ function InsightRow({
   label,
   value,
   meta,
+  badge,
 }: {
   label: string;
   value: string;
   meta: string;
+  badge?: ReactNode;
 }) {
   const styles = useAppStyles();
 
   return (
     <View style={styles.insightRow}>
       <Text style={styles.statTileLabel}>{label}</Text>
-      <View style={styles.insightRowHeader}>
+      <View style={styles.insightValueRow}>
         <Text style={styles.insightValue}>{value}</Text>
+        {badge}
       </View>
       <Text style={styles.insightMeta}>{meta}</Text>
     </View>
@@ -49,6 +53,9 @@ export function WeightHighlightsCard({
   const styles = useAppStyles();
   const { t } = useTranslation();
   const { units } = useUnits();
+  const { heightEntries, sex } = useSharedUserProfile();
+  const { showBmi } = useSharedBmiDisplay();
+  const { openWeighIn } = useBmiDetails();
   const weightUnit = getWeightUnitLabel(units);
 
   const extremes = useMemo(() => getWeightExtremes(entries, birthDate), [entries, birthDate]);
@@ -56,11 +63,6 @@ export function WeightHighlightsCard({
     () => getChangeSinceLastBirthday(entries, birthDate),
     [entries, birthDate],
   );
-  const birthdayWeighIns = useMemo(
-    () => getBirthdayWeighIns(entries, birthDate),
-    [entries, birthDate],
-  );
-  const recap = useMemo(() => getBirthdayRecap(entries, birthDate), [entries, birthDate]);
 
   if (!extremes) {
     return null;
@@ -70,6 +72,37 @@ export function WeightHighlightsCard({
     `${formatWeightValue(weightKg, units)} ${weightUnit}`;
   const formatMeta = (date: string, ageLabel: string) =>
     t('dashboard.onDateAtAge', { date: formatDateLabel(date), age: ageLabel });
+  const bmiBadgeForEntry = (entry: WeightEntry) => {
+    if (!showBmi) {
+      return null;
+    }
+
+    const heightCm = getHeightAtDate(heightEntries, entry.date);
+    const bmi =
+      heightCm === null
+        ? null
+        : calculateBmi(entry.weightKg, heightCm, {
+            date: entry.date,
+            birthDate,
+            sex,
+          });
+
+    return (
+      <BmiBadge
+        bmi={bmi}
+        compact
+        centered
+        onPress={() =>
+          openWeighIn({
+            date: entry.date,
+            weightKg: entry.weightKg,
+            createdAt: entry.createdAt,
+            updatedAt: entry.updatedAt,
+          })
+        }
+      />
+    );
+  };
 
   return (
     <AppCard title={t('dashboard.highlights')} isBusy={isBusy} delay={40}>
@@ -79,6 +112,7 @@ export function WeightHighlightsCard({
             label={t('dashboard.heaviestAtAge')}
             value={formatWeighIn(extremes.heaviest.entry.weightKg)}
             meta={formatMeta(extremes.heaviest.entry.date, extremes.heaviest.ageLabel)}
+            badge={bmiBadgeForEntry(extremes.heaviest.entry)}
           />
         ) : null}
         {extremes.lightest ? (
@@ -86,6 +120,7 @@ export function WeightHighlightsCard({
             label={t('dashboard.lightestAtAge')}
             value={formatWeighIn(extremes.lightest.entry.weightKg)}
             meta={formatMeta(extremes.lightest.entry.date, extremes.lightest.ageLabel)}
+            badge={bmiBadgeForEntry(extremes.lightest.entry)}
           />
         ) : null}
         {sinceBirthday ? (
@@ -95,21 +130,6 @@ export function WeightHighlightsCard({
             meta={formatMeta(sinceBirthday.birthday.entry.date, sinceBirthday.birthday.ageLabel)}
           />
         ) : null}
-        {recap ? (
-          <InsightRow
-            label={t('dashboard.birthdayRecap')}
-            value={formatWeightDifference(recap.difference, units)}
-            meta={t('dashboard.recapDifference')}
-          />
-        ) : null}
-        {birthdayWeighIns.map((item) => (
-          <InsightRow
-            key={item.birthdayKey}
-            label={t('dashboard.birthdayWeight', { age: item.ageLabel })}
-            value={formatWeighIn(item.entry.weightKg)}
-            meta={formatDateLabel(item.entry.date)}
-          />
-        ))}
       </View>
     </AppCard>
   );

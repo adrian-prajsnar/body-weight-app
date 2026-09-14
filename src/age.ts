@@ -5,6 +5,7 @@ import { DateRange } from './types';
 export type AgeParts = {
   years: number;
   months: number;
+  days: number;
   /** Age in months, including a day fraction, for CDC LMS lookup. */
   ageMonths: number;
 };
@@ -51,6 +52,7 @@ export function getAgeOnDate(birthDateKey: string, onDateKey: string): AgeParts 
   return {
     years,
     months: monthDiff,
+    days: dayDiff,
     ageMonths,
   };
 }
@@ -125,6 +127,18 @@ export function formatAge(age: AgeParts | null): string {
   }
 
   return t('age.years', { count: age.years });
+}
+
+export function formatAgeDetailed(age: AgeParts | null): string {
+  if (!age) {
+    return t('common.emDash');
+  }
+
+  return t('age.yearsMonthsDays', {
+    years: age.years,
+    months: age.months,
+    days: age.days,
+  });
 }
 
 export function birthdayKeysDescending(

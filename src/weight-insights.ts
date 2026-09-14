@@ -1,6 +1,7 @@
 import {
   birthdayKeysDescending,
   formatAge,
+  formatAgeDetailed,
   getAgeOnDate,
   getLastBirthdayKey,
   getPreviousAgeYearRange,
@@ -64,6 +65,10 @@ export function getWeightExtremes(
     entry,
     ageLabel: formatAge(getAgeOnDate(birthDate, entry.date)),
   });
+  const withDetailedAge = (entry: WeightEntry): InsightWeighIn => ({
+    entry,
+    ageLabel: formatAgeDetailed(getAgeOnDate(birthDate, entry.date)),
+  });
 
   if (sorted.length === 1) {
     return { latest: withAge(latest), heaviest: null, lightest: null };
@@ -86,8 +91,8 @@ export function getWeightExtremes(
 
   return {
     latest: withAge(latest),
-    heaviest: withAge(heaviest),
-    lightest: withAge(lightest),
+    heaviest: withDetailedAge(heaviest),
+    lightest: withDetailedAge(lightest),
   };
 }
 

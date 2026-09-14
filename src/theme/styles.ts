@@ -774,9 +774,17 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
     },
     insightValue: {
       fontSize: 18,
+      lineHeight: 22,
       color: colors.text,
       fontFamily: fontFamily.bold,
       ...tabularNums,
+      ...(Platform.OS === 'android' ? { includeFontPadding: false } : null),
+    },
+    insightValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: spacing.sm,
     },
     insightMeta: {
       fontSize: 13,
@@ -852,6 +860,11 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       paddingHorizontal: spacing.md,
       paddingVertical: 5,
     },
+    bmiBadgeInteractive: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
     bmiBadgeCompact: {
       paddingHorizontal: spacing.sm + 2,
       paddingVertical: 3,
@@ -861,11 +874,23 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
     },
     bmiBadgeText: {
       fontSize: 13,
+      lineHeight: 16,
       fontFamily: fontFamily.semibold,
       ...tabularNums,
+      ...(Platform.OS === 'android' ? { includeFontPadding: false } : null),
     },
     bmiBadgeTextCompact: {
       fontSize: 12,
+      lineHeight: 14,
+    },
+    bmiBadgeChevron: {
+      height: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 1,
+    },
+    bmiBadgeChevronCompact: {
+      height: 14,
     },
     weightWithBmiInline: {
       flexDirection: 'row',

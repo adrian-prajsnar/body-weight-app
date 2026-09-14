@@ -332,6 +332,7 @@ export default {
   },
   bmi: {
     label: 'BMI %{value}',
+    badgeInteractive: '%{category} · BMI %{value}',
     unavailableLabel: 'BMI N/A',
     category: 'Category',
     underweight: 'Underweight',
@@ -375,6 +376,7 @@ export default {
       other: '%{count} years',
     },
     yearsMonths: '%{years} years, %{months} months',
+    yearsMonthsDays: '%{years} years, %{months} months, %{days} days',
   },
   validation: {
     weightRangeMetric:

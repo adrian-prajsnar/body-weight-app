@@ -1,4 +1,5 @@
-import { Pressable, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, Text, View } from 'react-native';
 import { BmiInfo, formatBmiValue, getBmiTheme } from '../bmi';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
@@ -21,7 +22,12 @@ export function BmiBadge({ bmi, compact = false, centered = false, onPress }: Bm
   }
 
   const badgeTheme = getBmiTheme(bmi.category, scheme);
-  const label = t('bmi.label', { value: formatBmiValue(bmi.value) });
+  const formattedValue = formatBmiValue(bmi.value);
+  const label =
+    onPress && !compact
+      ? t('bmi.badgeInteractive', { category: bmi.label, value: formattedValue })
+      : t('bmi.label', { value: formattedValue });
+  const iconSize = compact ? 12 : 13;
 
   return (
     <Pressable
@@ -29,6 +35,7 @@ export function BmiBadge({ bmi, compact = false, centered = false, onPress }: Bm
       disabled={!onPress}
       style={({ pressed }) => [
         styles.bmiBadge,
+        onPress ? styles.bmiBadgeInteractive : null,
         compact && styles.bmiBadgeCompact,
         centered ? styles.bmiBadgeCentered : null,
         { backgroundColor: badgeTheme.backgroundColor },
@@ -46,6 +53,11 @@ export function BmiBadge({ bmi, compact = false, centered = false, onPress }: Bm
       >
         {label}
       </Text>
+      {onPress ? (
+        <View style={[styles.bmiBadgeChevron, compact && styles.bmiBadgeChevronCompact]}>
+          <Ionicons name="chevron-forward" size={iconSize} color={badgeTheme.textColor} />
+        </View>
+      ) : null}
     </Pressable>
   );
 }
