@@ -12,6 +12,7 @@ import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
 import { ErrorCard } from '../components/error-card';
 import { AboutYouSection, AboutYouSkeleton } from '../components/about-you-section';
+import { PreferenceTransition } from '../components/preference-transition';
 import { ProfileAccountSkeleton } from '../components/profile-details-skeleton';
 import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
@@ -226,20 +227,21 @@ export function ProfileScreen({
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('profile.title')}
-        subtitle={user?.email ?? t('profile.subtitleFallback')}
-        scrollY={scrollY}
-      />
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
-        }
-      >
+      <PreferenceTransition style={{ flex: 1 }}>
+        <ScreenHeader
+          title={t('profile.title')}
+          subtitle={user?.email ?? t('profile.subtitleFallback')}
+          scrollY={scrollY}
+        />
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
+          }
+        >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshProfile()} />
         ) : null}
@@ -352,7 +354,8 @@ export function ProfileScreen({
             {t('profile.copyright', { year: new Date().getFullYear() })}
           </Text>
         </View>
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      </PreferenceTransition>
     </View>
   );
 }

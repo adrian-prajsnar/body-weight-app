@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useAppStyles } from '../theme/styles';
@@ -23,11 +23,16 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const styles = useAppStyles();
   const [trackWidth, setTrackWidth] = useState(0);
+  const [selected, setSelected] = useState(value);
+
+  useEffect(() => {
+    setSelected(value);
+  }, [value]);
 
   const itemWidth = trackWidth > 0 ? (trackWidth - TRACK_PADDING * 2) / options.length : 0;
   const activeIndex = Math.max(
     0,
-    options.findIndex((option) => option.value === value),
+    options.findIndex((option) => option.value === selected),
   );
 
   const indicatorStyle = useAnimatedStyle(() => ({
@@ -44,12 +49,15 @@ export function SegmentedControl<T extends string>({
     <View style={styles.segmentedTrack} onLayout={handleLayout}>
       <Animated.View style={[styles.segmentedIndicator, indicatorStyle]} />
       {options.map((option) => {
-        const isActive = option.value === value;
+        const isActive = option.value === selected;
         return (
           <Pressable
             key={option.value}
             style={styles.segmentedItem}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              setSelected(option.value);
+              onChange(option.value);
+            }}
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
           >
