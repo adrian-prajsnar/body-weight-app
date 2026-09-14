@@ -119,15 +119,22 @@ export function addDays(date: Date, days: number): Date {
   return next;
 }
 
-export const HISTORY_MAX_RANGE_DAYS = 365;
-
 export function getDefaultHistoryDateRange(
   today: Date = getTodayDate(),
 ): { from: Date; to: Date } {
   return {
-    from: addDays(today, -(HISTORY_MAX_RANGE_DAYS - 1)),
+    from: addMonths(today, -1),
     to: today,
   };
+}
+
+function getHistoryEarliestFrom(to: Date): Date {
+  return addYears(to, -1);
+}
+
+function getHistoryLatestTo(from: Date, today: Date): Date {
+  const latest = addYears(from, 1);
+  return toDateKey(latest) > toDateKey(today) ? today : latest;
 }
 
 export function addYears(date: Date, years: number): Date {
@@ -155,13 +162,49 @@ function getYearViewDefaultFrom(to: Date): Date {
   return new Date(to.getFullYear() - TREND_YEAR_DEFAULT_YEARS - 1, 0, 1);
 }
 
-export function clampHistoryDateRange(
+export function validateHistoryDateRange(
   from: Date,
   to: Date,
-  changed: 'from' | 'to',
   today: Date = getTodayDate(),
-): { from: Date; to: Date } {
-  return clampTrendDateRange(from, to, changed, 'day', today);
+): TrendDateRangeValidationError | null {
+  const fromKey = toDateKey(from);
+  const toKey = toDateKey(to);
+  const todayKey = toDateKey(today);
+
+  if (fromKey > toKey) {
+    return 'invalidOrder';
+  }
+
+  if (toKey > todayKey) {
+    return 'futureDate';
+  }
+
+  if (fromKey < toDateKey(getHistoryEarliestFrom(to))) {
+    return 'maxSpanExceeded';
+  }
+
+  const latestTo = getHistoryLatestTo(from, today);
+  if (toKey > toDateKey(latestTo)) {
+    return 'maxSpanExceeded';
+  }
+
+  return null;
+}
+
+export function getHistoryDateRangeValidationMessageKey(
+  error: TrendDateRangeValidationError,
+): string {
+  if (error === 'maxSpanExceeded') {
+    return 'history.rangeTooLong';
+  }
+
+  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, string> = {
+    invalidOrder: 'history.invalidRange',
+    beforeBirthDate: 'history.invalidRange',
+    futureDate: 'history.futureDate',
+  };
+
+  return keys[error];
 }
 
 function withBirthFloor(earliest: Date, birthDate?: string | null): Date {
@@ -190,10 +233,19 @@ export function getTrendEarliestFrom(
   }
 }
 
+function withEarliestWeighInFloor(from: Date, earliestWeighInDate?: string | null): Date {
+  if (!earliestWeighInDate || toDateKey(from) >= earliestWeighInDate) {
+    return from;
+  }
+
+  return fromDateKey(earliestWeighInDate);
+}
+
 function getTrendDefaultFrom(
   to: Date,
   granularity: TrendGranularity,
   birthDate?: string | null,
+  earliestWeighInDate?: string | null,
 ): Date {
   let from: Date;
   switch (granularity) {
@@ -221,7 +273,7 @@ function getTrendDefaultFrom(
     from = earliestFrom;
   }
 
-  return from;
+  return withEarliestWeighInFloor(from, earliestWeighInDate);
 }
 
 function getTrendLatestTo(from: Date, granularity: TrendGranularity, today: Date): Date {
@@ -242,10 +294,11 @@ export function getDefaultTrendDateRange(
   granularity: TrendGranularity,
   today: Date = getTodayDate(),
   birthDate?: string | null,
+  earliestWeighInDate?: string | null,
 ): { from: Date; to: Date } {
   const to = today;
   return {
-    from: getTrendDefaultFrom(to, granularity, birthDate),
+    from: getTrendDefaultFrom(to, granularity, birthDate, earliestWeighInDate),
     to,
   };
 }
@@ -358,13 +411,30 @@ function getLocaleTag(): string {
   return getDateLocale(getI18nLocale());
 }
 
-export function formatDateTime(isoDate: string | null | undefined): string {
+export function wasWeightEntryUpdated(entry: {
+  createdAt: string;
+  updatedAt: string;
+}): boolean {
+  const created = Date.parse(entry.createdAt);
+  const updated = Date.parse(entry.updatedAt);
+  if (Number.isNaN(created) || Number.isNaN(updated)) {
+    return false;
+  }
+  return updated - created > 2000;
+}
+
+function parseIsoDate(isoDate: string | null | undefined): Date | null {
   if (!isoDate) {
-    return t('common.emDash');
+    return null;
   }
 
   const parsed = new Date(isoDate);
-  if (Number.isNaN(parsed.getTime())) {
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function formatDateTime(isoDate: string | null | undefined): string {
+  const parsed = parseIsoDate(isoDate);
+  if (!parsed) {
     return t('common.emDash');
   }
 
@@ -375,6 +445,25 @@ export function formatDateTime(isoDate: string | null | undefined): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+export function formatHistoryTimestamp(
+  isoDate: string | null | undefined,
+  relativeDateKey?: string,
+): string {
+  const parsed = parseIsoDate(isoDate);
+  if (!parsed) {
+    return t('common.emDash');
+  }
+
+  if (relativeDateKey && toDateKey(parsed) === relativeDateKey) {
+    return parsed.toLocaleTimeString(getLocaleTag(), {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  return formatDateTime(isoDate);
 }
 
 export function formatDateLabel(dateKey: string): string {

@@ -1,8 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
 import { ComparisonModeSelector } from '../components/comparison-mode-selector';
 import { ComparisonResult } from '../components/comparison-result';
@@ -26,14 +24,10 @@ import {
   toDateKey,
   validateTrendDateRange,
 } from '../format';
-import { getComparison, getTrendRows } from '../stats';
+import { getComparison, getEarliestEntryDate, getTrendRows } from '../stats';
 import { ComparisonMode, CustomCompareKind, TrendGranularity } from '../types';
 import { runWhenIdle } from '../run-when-idle';
 import { useAppStyles } from '../theme/styles';
-import { useColors } from '../theme/theme-context';
-import { spacing } from '../theme/tokens';
-
-const SCROLL_TOP_THRESHOLD = 160;
 
 type RangePickerProps = {
   title: string;
@@ -85,21 +79,18 @@ function isTrendMode(mode: ComparisonMode): mode is TrendGranularity {
 
 export function ComparisonScreen() {
   const styles = useAppStyles();
-  const colors = useColors();
-  const insets = useSafeAreaInsets();
   const { t, locale } = useTranslation();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const { birthDate } = useSharedUserProfile();
-  const scrollRef = useRef<Animated.ScrollView>(null);
   const listReadyTaskRef = useRef<ReturnType<typeof runWhenIdle> | null>(null);
   const today = getTodayDate();
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const [isListReady, setIsListReady] = useState(false);
   const [mode, setMode] = useState<ComparisonMode>('day');
 
+  const earliestWeighInDate = useMemo(() => getEarliestEntryDate(entries), [entries]);
   const defaultTrendRange = useMemo(
-    () => getDefaultTrendDateRange('day', today, birthDate),
-    [birthDate, today],
+    () => getDefaultTrendDateRange('day', today, birthDate, earliestWeighInDate),
+    [birthDate, earliestWeighInDate, today],
   );
   const [fromDate, setFromDate] = useState(defaultTrendRange.from);
   const [toDate, setToDate] = useState(defaultTrendRange.to);
@@ -113,14 +104,7 @@ export function ComparisonScreen() {
   const [dateA, setDateA] = useState<Date | null>(null);
   const [dateB, setDateB] = useState<Date | null>(null);
 
-  const handleScrollOffset = useCallback((offset: number) => {
-    setShowScrollTop((current) => {
-      const next = offset > SCROLL_TOP_THRESHOLD;
-      return current === next ? current : next;
-    });
-  }, []);
-
-  const { scrollY, onScroll } = useScrollHeader(handleScrollOffset);
+  const { scrollY, onScroll } = useScrollHeader();
 
   const beginListLoading = useCallback(() => {
     listReadyTaskRef.current?.cancel();
@@ -166,11 +150,11 @@ export function ComparisonScreen() {
 
   const applyDefaultRange = useCallback(
     (granularity: TrendGranularity) => {
-      const next = getDefaultTrendDateRange(granularity, today, birthDate);
+      const next = getDefaultTrendDateRange(granularity, today, birthDate, earliestWeighInDate);
       setFromDate(next.from);
       setToDate(next.to);
     },
-    [birthDate, today],
+    [birthDate, earliestWeighInDate, today],
   );
 
   const fromKey = toDateKey(fromDate);
@@ -196,11 +180,57 @@ export function ComparisonScreen() {
     if (!isTrendMode(mode)) {
       return true;
     }
-    const defaultRange = getDefaultTrendDateRange(mode, today, birthDate);
+    const defaultRange = getDefaultTrendDateRange(mode, today, birthDate, earliestWeighInDate);
     return (
       fromKey === toDateKey(defaultRange.from) && toKey === toDateKey(defaultRange.to)
     );
-  }, [birthDate, fromKey, mode, today, toKey]);
+  }, [birthDate, earliestWeighInDate, fromKey, mode, today, toKey]);
+
+  const appliedEarliestWeighInRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (isLoading || !isTrendMode(mode)) {
+      return;
+    }
+    if (appliedEarliestWeighInRef.current === earliestWeighInDate) {
+      return;
+    }
+
+    const entryAwareDefault = getDefaultTrendDateRange(
+      mode,
+      today,
+      birthDate,
+      earliestWeighInDate,
+    );
+    if (
+      fromKey === toDateKey(entryAwareDefault.from) &&
+      toKey === toDateKey(entryAwareDefault.to)
+    ) {
+      appliedEarliestWeighInRef.current = earliestWeighInDate;
+      return;
+    }
+
+    const preDataDefault = getDefaultTrendDateRange(mode, today, birthDate);
+    if (
+      fromKey !== toDateKey(preDataDefault.from) ||
+      toKey !== toDateKey(preDataDefault.to)
+    ) {
+      appliedEarliestWeighInRef.current = earliestWeighInDate;
+      return;
+    }
+
+    appliedEarliestWeighInRef.current = earliestWeighInDate;
+    applyDefaultRange(mode);
+  }, [
+    applyDefaultRange,
+    birthDate,
+    earliestWeighInDate,
+    fromKey,
+    isLoading,
+    mode,
+    today,
+    toKey,
+  ]);
 
   const filterRange = useMemo(
     () => ({ start: fromKey, end: toKey }),
@@ -320,15 +350,9 @@ export function ComparisonScreen() {
     }
   };
 
-  const scrollToTop = useCallback(() => {
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-  }, []);
-
   const trendEmptyMessage = isInvalidRange
     ? (rangeValidationMessage ?? t('comparison.invalidRange'))
     : t('comparison.nothingMessage');
-
-  const scrollTopBottom = insets.bottom + spacing.sm + 64 + spacing.xl + spacing.sm;
 
   return (
     <View style={styles.screen}>
@@ -338,7 +362,6 @@ export function ComparisonScreen() {
         scrollY={scrollY}
       />
       <Animated.ScrollView
-        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         onScroll={onScroll}
@@ -509,23 +532,6 @@ export function ComparisonScreen() {
           </AppCard>
         )}
       </Animated.ScrollView>
-
-      {isTrendMode(mode) && showScrollTop ? (
-        <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(120)}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.scrollTopFab,
-              { bottom: scrollTopBottom },
-              pressed && styles.buttonPressed,
-            ]}
-            onPress={scrollToTop}
-            accessibilityRole="button"
-            accessibilityLabel={t('history.scrollToTop')}
-          >
-            <Ionicons name="chevron-up" size={22} color={colors.accent} />
-          </Pressable>
-        </Animated.View>
-      ) : null}
     </View>
   );
 }

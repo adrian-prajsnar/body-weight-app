@@ -14,7 +14,10 @@ export function HistoryListSkeleton({ rows = 5 }: HistoryListSkeletonProps) {
       {Array.from({ length: rows }, (_, index) => (
         <View key={index} style={styles.historyRow}>
           <View style={[styles.historyRowContent, { gap: 8 }]}>
-            <SkeletonBlock height={14} width="45%" />
+            <View style={{ gap: 2 }}>
+              <SkeletonBlock height={14} width="45%" />
+              <SkeletonBlock height={11} width="38%" />
+            </View>
             <SkeletonBlock height={18} width="35%" />
           </View>
           <SkeletonBlock height={14} width={48} />

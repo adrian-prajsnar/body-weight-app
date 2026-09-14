@@ -53,17 +53,6 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
     comparisonFilterSection: {
       gap: spacing.md,
     },
-    scrollTopFab: {
-      position: 'absolute',
-      right: spacing.xl,
-      width: 48,
-      height: 48,
-      borderRadius: radius.pill,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.surface,
-      ...floatingSurface(colors, scheme),
-    },
     scrollView: {
       flex: 1,
     },
@@ -577,6 +566,26 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       color: colors.textMuted,
       fontFamily: fontFamily.medium,
     },
+    historyRowWhen: {
+      gap: 2,
+    },
+    historyEntryMeta: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      columnGap: spacing.sm,
+      rowGap: 2,
+    },
+    historyEntryMetaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    historyEntryMetaText: {
+      fontSize: 11,
+      color: colors.textSubtle,
+      fontFamily: fontFamily.regular,
+    },
     comparisonDayNoData: {
       fontSize: 13,
       color: colors.textSubtle,
@@ -681,7 +690,9 @@ export function createStyles(colors: Palette, scheme: ColorScheme) {
       alignItems: 'flex-end',
     },
     comparisonTrendPeriodStatLabel: {
-      fontSize: 11,
+      fontSize: 10,
+      letterSpacing: 0.35,
+      textTransform: 'uppercase',
       color: colors.textSubtle,
       fontFamily: fontFamily.medium,
     },

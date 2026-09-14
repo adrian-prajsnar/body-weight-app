@@ -179,6 +179,8 @@ const pl = {
     to: 'Do',
     invalidRange: 'Data „Od” musi być wcześniejsza lub równa dacie „Do”.',
     invalidRangeEmpty: 'Data „Od” musi być wcześniejsza lub równa dacie „Do”.',
+    rangeTooLong: 'Wybrany zakres może obejmować maksymalnie jeden rok.',
+    futureDate: 'Data „Do” nie może być w przyszłości.',
     emptyFiltered: 'Brak pomiarów w tym zakresie dat.',
     emptyDefault: 'Pomiary zapisane na ekranie startowym pojawią się w tym miejscu.',
     noEntries: 'Brak pomiarów',
@@ -188,6 +190,8 @@ const pl = {
     deleteFailed: 'Nie udało się usunąć pomiaru.',
     deleteA11y: 'Usuń pomiar z %{date}',
     editA11y: 'Edytuj pomiar z %{date}',
+    createdA11y: 'Zapisano %{date}',
+    updatedA11y: 'Zaktualizowano %{date}',
     scrollToTop: 'Przewiń do góry',
   },
   comparison: {

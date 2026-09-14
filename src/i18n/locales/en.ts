@@ -171,6 +171,8 @@ export default {
     to: 'To',
     invalidRange: 'From must be on or before To.',
     invalidRangeEmpty: 'From must be on or before To.',
+    rangeTooLong: 'The selected range can be at most one year.',
+    futureDate: 'The end date cannot be in the future.',
     emptyFiltered: 'No weigh-ins in this date range.',
     emptyDefault: 'Weigh-ins you log on Home will show up here.',
     noEntries: 'No weigh-ins',
@@ -180,6 +182,8 @@ export default {
     deleteFailed: 'Could not delete weigh-in.',
     deleteA11y: 'Delete weigh-in from %{date}',
     editA11y: 'Edit weigh-in from %{date}',
+    createdA11y: 'Logged at %{date}',
+    updatedA11y: 'Updated at %{date}',
     scrollToTop: 'Scroll to top',
   },
   comparison: {

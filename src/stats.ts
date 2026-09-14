@@ -529,6 +529,17 @@ export function getChartSeries(entries: WeightEntry[], range: ChartRange): Weigh
   };
 }
 
+export function getEarliestEntryDate(entries: WeightEntry[]): string | null {
+  if (entries.length === 0) {
+    return null;
+  }
+
+  return entries.reduce(
+    (earliest, entry) => (entry.date < earliest ? entry.date : earliest),
+    entries[0].date,
+  );
+}
+
 export function getLatestChange(entries: WeightEntry[]): LatestChange {
   const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
   const latest = sorted[0] ?? null;

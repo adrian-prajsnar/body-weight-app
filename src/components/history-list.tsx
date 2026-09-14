@@ -9,6 +9,7 @@ import { WeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { EmptyState } from './empty-state';
+import { HistoryEntryMeta } from './history-entry-meta';
 import { WeightWithBmi } from './weight-with-bmi';
 
 type HistoryListProps = {
@@ -53,7 +54,10 @@ export const HistoryList = memo(function HistoryList({
   const renderRow = (item: WeightEntry) => (
     <View key={item.date} style={styles.historyRow}>
       <View style={styles.historyRowContent}>
-        <Text style={styles.historyDate}>{formatDateLabel(item.date)}</Text>
+        <View style={styles.historyRowWhen}>
+          <Text style={styles.historyDate}>{formatDateLabel(item.date)}</Text>
+          <HistoryEntryMeta entry={item} />
+        </View>
         <WeightWithBmi
           entry={item}
           heightEntries={heightEntries}
