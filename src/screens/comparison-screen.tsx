@@ -367,11 +367,14 @@ export function ComparisonScreen() {
         onScroll={onScroll}
         scrollEventThrottle={16}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshEntries()} />
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => void refreshEntries().catch(() => undefined)}
+          />
         }
       >
         {error && !isLoading ? (
-          <ErrorCard message={error} onRetry={() => void refreshEntries()} />
+          <ErrorCard message={error} onRetry={() => void refreshEntries().catch(() => undefined)} />
         ) : null}
 
         <AppCard delay={0}>

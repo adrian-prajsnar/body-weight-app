@@ -42,6 +42,7 @@ export function useWeightEntries() {
     } catch (loadError) {
       const message = loadError instanceof Error ? loadError.message : t('errors.couldNotLoadEntries');
       setError(message);
+      throw loadError instanceof Error ? loadError : new Error(message);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

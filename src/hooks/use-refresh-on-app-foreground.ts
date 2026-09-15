@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
-import { refreshSessionOnForeground } from '../supabase/app-lifecycle';
 
 export function useRefreshOnAppForeground(
   refresh: () => Promise<void>,
@@ -16,7 +15,7 @@ export function useRefreshOnAppForeground(
         return;
       }
 
-      void refreshSessionOnForeground().then(refresh);
+      void refresh().catch(() => undefined);
     });
 
     return () => {

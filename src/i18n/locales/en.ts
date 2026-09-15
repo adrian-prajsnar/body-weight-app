@@ -25,7 +25,6 @@ export default {
     history: 'History',
     compare: 'Compare',
     profile: 'Profile',
-    loadingAccount: 'Loading your account...',
     setupRequired: 'Configuration required',
     setupSubtitle:
       'This app cannot connect to the server. If you received this build from someone else, ask them for a new APK. When developing locally, add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to .env and restart Expo.',
@@ -82,13 +81,15 @@ export default {
     emailPlaceholder: 'you@example.com',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    resetLinkInvalid: 'This reset link is invalid or has expired. Request a new one.',
+    emailAlreadyRegistered: 'An account with this email already exists.',
+    rateLimited: 'Too many attempts. Please wait a moment and try again.',
   },
   dashboard: {
     title: 'Home',
     subtitle: 'Log a weigh-in and see your trend',
     averages: 'Stats',
     recentHistory: 'Last 7 days',
-    last7Days: 'Last 7 days',
     viewAll: 'View all',
     emptyRecent: 'No weigh-ins in the last 7 days.',
     profileBannerMessage:
@@ -99,9 +100,6 @@ export default {
     heaviestAtAge: 'Heaviest',
     lightestAtAge: 'Lightest',
     sinceBirthday: 'Since last birthday',
-    birthdayWeight: 'Around %{age}',
-    birthdayRecap: 'Birthday recap',
-    recapDifference: 'This year of life vs the last one (average)',
     onDateAtAge: '%{date} · %{age}',
   },
   entryForm: {
@@ -114,6 +112,7 @@ export default {
     decreaseWeight: 'Decrease weight',
     increaseWeight: 'Increase weight',
     saved: 'Weight saved.',
+    savedRefreshFailed: 'Weight saved, but the list could not be refreshed.',
     saveFailed: 'Could not save weight.',
   },
   hero: {
@@ -135,11 +134,6 @@ export default {
     last6Months: 'Last 6 months',
     lastYear: 'Last year',
     thisAgeYear: 'This year of life',
-    lastAgeYear: 'Last year of life',
-    thisAgeYearComparison: 'This year — %{age}',
-    lastAgeYearComparison: 'Last year — %{age}',
-    last365Days: 'Last 365 days',
-    previous365Days: 'Previous 365 days',
     rangeA: 'First period',
     rangeB: 'Second period',
   },
@@ -164,8 +158,6 @@ export default {
       other: '%{count} in range',
     },
     subtitleLoading: 'Loading weigh-ins…',
-    toggleFilter: 'Filter by date',
-    dateFilter: 'Filter by date',
     clearAll: 'Reset to default',
     from: 'From',
     to: 'To',
@@ -184,7 +176,6 @@ export default {
     editA11y: 'Edit weigh-in from %{date}',
     createdA11y: 'Logged at %{date}',
     updatedA11y: 'Updated at %{date}',
-    scrollToTop: 'Scroll to top',
   },
   comparison: {
     title: 'Compare',
@@ -259,10 +250,7 @@ export default {
     heightUpdated: 'Height updated.',
     heightHistoryTitle: 'Height history',
     heightHistorySubtitle: 'Add height and the date it applies from. Each weigh-in uses the height from that day.',
-    showMoreHeightRecords: 'Show more',
     manageHeightRecords: 'Manage height records',
-    heightHint:
-      'Add your height and when it applies. One record is enough (e.g. since birth), or add more when your height changes.',
     heightTimelineEmptyHint:
       'No height yet. Add your height and the date it started — for example, your birth date if it has not changed.',
     deleteHeight: 'Delete height record',
@@ -295,6 +283,7 @@ export default {
     deleteAccount: 'Delete account',
     deleteAccountConfirm:
       'This permanently deletes your account and all weigh-ins. This cannot be undone.',
+    deleteAccountConfirmPhrase: 'DELETE',
     deleteAccountTypeToConfirm: 'Type %{phrase} to confirm:',
     accountDeleted: 'Account deleted.',
     deleteFailed: 'Could not delete account.',
@@ -320,7 +309,10 @@ export default {
     couldNotLoadEntries: 'Could not load weigh-ins.',
     couldNotLoadProfile: 'Could not load profile.',
     mustBeSignedIn: 'You must be signed in.',
-    databasePermission:
+    noConnection: 'No internet connection. Check your network and try again.',
+    sessionExpired: 'Your session expired. Sign in again.',
+    databasePermission: 'Could not load data. Please try again later.',
+    databasePermissionDev:
       'Database permission error. In Supabase SQL Editor, run supabase/grants.sql from this project.',
     jwtClockSkew:
       'Your device clock may be out of sync. Turn on automatic date and time, then try again.',

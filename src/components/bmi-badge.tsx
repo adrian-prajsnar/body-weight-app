@@ -9,22 +9,59 @@ type BmiBadgeProps = {
   bmi: BmiInfo | null;
   compact?: boolean;
   centered?: boolean;
+  labelOnly?: boolean;
+  showUnavailable?: boolean;
   onPress?: () => void;
 };
 
-export function BmiBadge({ bmi, compact = false, centered = false, onPress }: BmiBadgeProps) {
+export function BmiBadge({
+  bmi,
+  compact = false,
+  centered = false,
+  labelOnly = false,
+  showUnavailable = false,
+  onPress,
+}: BmiBadgeProps) {
   const styles = useAppStyles();
   const { scheme } = useTheme();
   const { t } = useTranslation();
 
   if (bmi === null) {
-    return null;
+    if (!showUnavailable) {
+      return null;
+    }
+
+    const unavailableTheme = getBmiTheme('unclassified', scheme);
+
+    return (
+      <View
+        style={[
+          styles.bmiBadge,
+          compact && styles.bmiBadgeCompact,
+          centered ? styles.bmiBadgeCentered : null,
+          { backgroundColor: unavailableTheme.backgroundColor },
+        ]}
+        accessibilityRole="text"
+        accessibilityLabel={t('bmi.unavailableLabel')}
+      >
+        <Text
+          style={[
+            styles.bmiBadgeText,
+            compact && styles.bmiBadgeTextCompact,
+            { color: unavailableTheme.textColor },
+          ]}
+        >
+          {t('bmi.unavailableLabel')}
+        </Text>
+      </View>
+    );
   }
 
   const badgeTheme = getBmiTheme(bmi.category, scheme);
   const formattedValue = formatBmiValue(bmi.value);
-  const label =
-    onPress && !compact
+  const label = labelOnly
+    ? bmi.label
+    : onPress && !compact
       ? t('bmi.badgeInteractive', { category: bmi.label, value: formattedValue })
       : t('bmi.label', { value: formattedValue });
   const iconSize = compact ? 12 : 13;

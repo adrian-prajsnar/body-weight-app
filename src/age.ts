@@ -1,4 +1,4 @@
-import { addDays, fromDateKey, getTodayDate, toDateKey } from './format';
+import { fromDateKey, getTodayDate, toDateKey } from './format';
 import { t } from './i18n';
 import { DateRange } from './types';
 
@@ -70,11 +70,6 @@ export function getLastBirthdayDate(birthDateKey: string, todayInput?: Date): Da
   return birthdayOnYear(birth, today.getFullYear() - 1);
 }
 
-export function getPreviousBirthdayDate(birthDateKey: string, todayInput?: Date): Date {
-  const last = getLastBirthdayDate(birthDateKey, todayInput);
-  return birthdayOnYear(fromDateKey(birthDateKey), last.getFullYear() - 1);
-}
-
 export function getLastBirthdayKey(birthDateKey: string, todayInput?: Date): string {
   return toDateKey(getLastBirthdayDate(birthDateKey, todayInput));
 }
@@ -86,35 +81,6 @@ export function getThisAgeYearRange(birthDateKey: string, todayInput?: Date): Da
     start: toDateKey(getLastBirthdayDate(birthDateKey, today)),
     end: toDateKey(today),
   };
-}
-
-export function getPreviousAgeYearRange(birthDateKey: string, todayInput?: Date): DateRange {
-  const last = getLastBirthdayDate(birthDateKey, todayInput);
-  const previous = getPreviousBirthdayDate(birthDateKey, todayInput);
-  return {
-    start: toDateKey(previous),
-    end: toDateKey(addDays(last, -1)),
-  };
-}
-
-export function daysUntilNextBirthday(birthDateKey: string, todayInput?: Date): number {
-  const today = todayInput ? new Date(todayInput) : getTodayDate();
-  today.setHours(0, 0, 0, 0);
-  const birth = fromDateKey(birthDateKey);
-  let next = birthdayOnYear(birth, today.getFullYear());
-  if (next.getTime() < today.getTime()) {
-    next = birthdayOnYear(birth, today.getFullYear() + 1);
-  }
-  return Math.round((next.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-}
-
-export function isNearBirthday(birthDateKey: string, windowDays: number, todayInput?: Date): boolean {
-  const until = daysUntilNextBirthday(birthDateKey, todayInput);
-  const last = getLastBirthdayDate(birthDateKey, todayInput);
-  const today = todayInput ? new Date(todayInput) : getTodayDate();
-  today.setHours(0, 0, 0, 0);
-  const sinceLast = Math.round((today.getTime() - last.getTime()) / (24 * 60 * 60 * 1000));
-  return until <= windowDays || sinceLast <= windowDays;
 }
 
 export function formatAge(age: AgeParts | null): string {
@@ -139,25 +105,4 @@ export function formatAgeDetailed(age: AgeParts | null): string {
     months: age.months,
     days: age.days,
   });
-}
-
-export function birthdayKeysDescending(
-  birthDateKey: string,
-  todayInput?: Date,
-  limit = 6,
-): string[] {
-  const last = getLastBirthdayDate(birthDateKey, todayInput);
-  const birth = fromDateKey(birthDateKey);
-  const keys: string[] = [];
-
-  for (let offset = 0; offset < limit; offset += 1) {
-    const year = last.getFullYear() - offset;
-    const birthYear = birth.getFullYear();
-    if (year < birthYear) {
-      break;
-    }
-    keys.push(toDateKey(birthdayOnYear(birth, year)));
-  }
-
-  return keys;
 }

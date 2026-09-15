@@ -1,3 +1,4 @@
+import { isNetworkError } from '../auth-errors';
 import { t } from '../i18n';
 
 type SupabaseRequestError = {
@@ -19,21 +20,41 @@ export function isJwtClockSkewError(error: unknown): boolean {
   return candidate.message?.toLowerCase().includes('jwt issued at future') ?? false;
 }
 
+function isSessionExpiredError(error: SupabaseRequestError): boolean {
+  return error.code === 'PGRST301' || error.message.toLowerCase().includes('jwt expired');
+}
+
 export function toSupabaseError(error: SupabaseRequestError): Error {
+  if (isNetworkError(error)) {
+    return new Error(t('errors.noConnection'));
+  }
+
   if (error.message.toLowerCase().includes('permission denied')) {
-    return new Error(t('errors.databasePermission'));
+    return new Error(
+      __DEV__ ? t('errors.databasePermissionDev') : t('errors.databasePermission'),
+    );
   }
 
   if (isJwtClockSkewError(error)) {
     return new Error(t('errors.jwtClockSkew'));
   }
 
+  if (isSessionExpiredError(error)) {
+    return new Error(t('errors.sessionExpired'));
+  }
+
   return new Error(error.message);
 }
 
 export function toSupabaseErrorFromUnknown(error: unknown): Error {
-  if (error instanceof Error && !isJwtClockSkewError(error)) {
-    return error;
+  if (error instanceof Error) {
+    if (isNetworkError(error)) {
+      return new Error(t('errors.noConnection'));
+    }
+
+    if (!isJwtClockSkewError(error)) {
+      return error;
+    }
   }
 
   if (error && typeof error === 'object' && 'message' in error) {
@@ -42,3 +63,4 @@ export function toSupabaseErrorFromUnknown(error: unknown): Error {
 
   return new Error(t('errors.couldNotLoadData'));
 }
+

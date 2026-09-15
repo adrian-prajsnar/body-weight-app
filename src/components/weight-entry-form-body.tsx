@@ -125,7 +125,12 @@ export function WeightEntryFormBody({
 
     try {
       await saveEntry(selectedDateKey, weightKg);
-      await onSaved();
+      try {
+        await onSaved();
+      } catch {
+        showError(t('entryForm.savedRefreshFailed'));
+        return;
+      }
       if (resetDateAfterSave) {
         setSelectedDate(getTodayDate());
       }
@@ -196,11 +201,12 @@ export function WeightEntryFormBody({
           </View>
         </View>
 
-        {previewBmi !== null && parsedWeightKg !== null ? (
+        {showBmi && parsedWeightKg !== null ? (
           <View style={styles.bmiPreviewRow}>
             <Text style={styles.fieldLabel}>{t('entryForm.estimatedBmi')}</Text>
             <BmiBadge
               bmi={previewBmi}
+              showUnavailable={heightAtDate === null}
               onPress={() => {
                 const existing = entries.find((entry) => entry.date === selectedDateKey);
                 openWeighIn({

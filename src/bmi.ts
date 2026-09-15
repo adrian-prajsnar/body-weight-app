@@ -196,9 +196,13 @@ function makeInfo(
 }
 
 export function classifyBmiValue(value: number, context?: BmiContext | null): BmiInfo {
-  const age =
-    context?.birthDate != null ? getAgeOnDate(context.birthDate, context.date) : null;
+  const hasBirthDate = context?.birthDate != null;
+  const age = hasBirthDate ? getAgeOnDate(context!.birthDate!, context!.date) : null;
   const ageYears = age?.years ?? null;
+
+  if (hasBirthDate && age === null) {
+    return makeInfo(value, 'unclassified', 'unclassified', null, null);
+  }
 
   if (!age) {
     const category = adultCategory(value);

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatAge, getAgeOnDate } from '../age';
-import { calculateBmi, BmiInfo, classifyBmiValue, formatBmiValue, getBmiTheme } from '../bmi';
+import { calculateBmi, BmiInfo, classifyBmiValue, formatBmiValue } from '../bmi';
 import { useUnits } from '../context/unit-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import {
@@ -17,7 +17,8 @@ import { getBmiStatsForRange, getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
-import { useColors, useTheme } from '../theme/theme-context';
+import { useColors } from '../theme/theme-context';
+import { BmiBadge } from './bmi-badge';
 
 export type WeighInBmiDetails = {
   type: 'weighIn';
@@ -56,35 +57,16 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 
 function CategoryRow({ bmi }: { bmi: BmiInfo | null }) {
   const styles = useAppStyles();
-  const { scheme } = useTheme();
   const { t } = useTranslation();
 
   if (!bmi) {
     return <DetailRow label={t('bmi.category')} value={t('common.emDash')} />;
   }
 
-  const theme = getBmiTheme(bmi.category, scheme);
-
   return (
     <View style={styles.bmiDetailsRow}>
       <Text style={styles.bmiDetailsLabel}>{t('bmi.category')}</Text>
-      <View
-        style={[
-          styles.bmiBadge,
-          styles.bmiBadgeCompact,
-          { backgroundColor: theme.backgroundColor },
-        ]}
-      >
-        <Text
-          style={[
-            styles.bmiBadgeText,
-            styles.bmiBadgeTextCompact,
-            { color: theme.textColor },
-          ]}
-        >
-          {bmi.label}
-        </Text>
-      </View>
+      <BmiBadge bmi={bmi} compact labelOnly />
     </View>
   );
 }

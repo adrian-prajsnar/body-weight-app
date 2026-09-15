@@ -37,9 +37,9 @@ import { ThemePreference } from '../storage/theme-preference';
 import { useAppStyles } from '../theme/styles';
 import { useColors, useTheme } from '../theme/theme-context';
 
-function formatMemberSince(isoDate: string | undefined, localeTag: string): string {
+function formatMemberSince(isoDate: string | undefined, localeTag: string, emDash: string): string {
   if (!isoDate) {
-    return '—';
+    return emDash;
   }
 
   return new Date(isoDate).toLocaleDateString(localeTag, {
@@ -94,7 +94,8 @@ export function ProfileScreen({
   const { scrollY, onScroll } = useScrollHeader();
   const user = session?.user;
   const dateLocale = getDateLocale(locale);
-  const appVersion = Constants.expoConfig?.version ?? '—';
+  const emDash = t('common.emDash');
+  const appVersion = Constants.expoConfig?.version ?? emDash;
 
   const languageOptions = useMemo<SegmentedOption<LanguagePreference>[]>(
     () => [
@@ -147,7 +148,7 @@ export function ProfileScreen({
   };
 
   const handleDeleteAccount = () => {
-    const confirmationPhrase = 'DELETE';
+    const confirmationPhrase = t('profile.deleteAccountConfirmPhrase');
     void confirm({
       title: t('profile.deleteAccount'),
       message: t('profile.deleteAccountConfirm'),
@@ -251,11 +252,11 @@ export function ProfileScreen({
             <ProfileAccountSkeleton />
           ) : (
             <>
-              <ProfileRow icon="mail-outline" label={t('auth.email')} value={user?.email ?? '—'} />
+              <ProfileRow icon="mail-outline" label={t('auth.email')} value={user?.email ?? emDash} />
               <ProfileRow
                 icon="calendar-outline"
                 label={t('profile.memberSince')}
-                value={formatMemberSince(user?.created_at, dateLocale)}
+                value={formatMemberSince(user?.created_at, dateLocale, emDash)}
               />
               <ProfileRow
                 icon="list-outline"

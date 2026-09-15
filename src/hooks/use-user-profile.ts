@@ -94,10 +94,10 @@ export function useUserProfile() {
     async (previousEffectiveDate: string, effectiveDate: string, heightCm: number) => {
       setIsSaving(true);
       try {
+        await saveHeight(effectiveDate, heightCm);
         if (previousEffectiveDate !== effectiveDate) {
           await deleteHeight(previousEffectiveDate);
         }
-        await saveHeight(effectiveDate, heightCm);
         await refreshProfile();
       } finally {
         setIsSaving(false);

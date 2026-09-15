@@ -89,6 +89,7 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
                 <BmiBadge
                   bmi={bmi}
                   compact
+                  showUnavailable={getHeightAtDate(heightEntries, latest.date) === null}
                   onPress={() =>
                     openWeighIn({
                       date: latest.date,

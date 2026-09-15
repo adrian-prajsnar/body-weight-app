@@ -1,15 +1,10 @@
 import {
-  birthdayKeysDescending,
   formatAge,
   formatAgeDetailed,
   getAgeOnDate,
   getLastBirthdayKey,
-  getPreviousAgeYearRange,
-  getThisAgeYearRange,
-  isNearBirthday,
 } from './age';
 import { fromDateKey } from './format';
-import { getStatsForRange } from './stats';
 import { WeightEntry } from './types';
 
 export const BIRTHDAY_WINDOW_DAYS = 14;
@@ -133,66 +128,5 @@ export function getChangeSinceLastBirthday(
       ageLabel: formatAge(getAgeOnDate(birthDate, latest.date)),
     },
     changeKg: Math.round((latest.weightKg - birthdayEntry.weightKg) * 100) / 100,
-  };
-}
-
-export type BirthdayWeighIn = {
-  birthdayKey: string;
-  entry: WeightEntry;
-  ageLabel: string;
-};
-
-export function getBirthdayWeighIns(
-  entries: WeightEntry[],
-  birthDate: string,
-  todayInput?: Date,
-  limit = 6,
-): BirthdayWeighIn[] {
-  const keys = birthdayKeysDescending(birthDate, todayInput, limit);
-  const results: BirthdayWeighIn[] = [];
-
-  for (const birthdayKey of keys) {
-    const entry = nearestEntryWithinDays(entries, birthdayKey, BIRTHDAY_WINDOW_DAYS);
-    if (!entry) {
-      continue;
-    }
-    results.push({
-      birthdayKey,
-      entry,
-      ageLabel: formatAge(getAgeOnDate(birthDate, birthdayKey)),
-    });
-  }
-
-  return results;
-}
-
-export type BirthdayRecap = {
-  thisAverage: number;
-  previousAverage: number;
-  difference: number;
-};
-
-export function getBirthdayRecap(
-  entries: WeightEntry[],
-  birthDate: string,
-  todayInput?: Date,
-): BirthdayRecap | null {
-  if (!isNearBirthday(birthDate, BIRTHDAY_WINDOW_DAYS, todayInput)) {
-    return null;
-  }
-
-  const thisRange = getThisAgeYearRange(birthDate, todayInput);
-  const previousRange = getPreviousAgeYearRange(birthDate, todayInput);
-  const thisStats = getStatsForRange(entries, thisRange);
-  const previousStats = getStatsForRange(entries, previousRange);
-
-  if (thisStats.average === null || previousStats.average === null) {
-    return null;
-  }
-
-  return {
-    thisAverage: thisStats.average,
-    previousAverage: previousStats.average,
-    difference: Math.round((thisStats.average - previousStats.average) * 100) / 100,
   };
 }

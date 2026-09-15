@@ -1,7 +1,7 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { formatSignInError, isEmailNotConfirmedError } from '../auth-errors';
+import { isEmailNotConfirmedError } from '../auth-errors';
 import { AuthLayout } from '../components/auth-layout';
 import { EmailField } from '../components/email-field';
 import { PasswordField } from '../components/password-field';
@@ -44,10 +44,11 @@ export function LoginScreen({ navigation, route }: Props) {
       await signIn(email.trim(), password);
       showSuccess(t('auth.signedIn'));
     } catch (error) {
-      if (isEmailNotConfirmedError(error)) {
+      const message = error instanceof Error ? error.message : t('auth.signInFailed');
+      if (isEmailNotConfirmedError(error) || message === t('auth.confirmEmailFirst')) {
         setShowEmailNotConfirmed(true);
       }
-      showError(formatSignInError(error));
+      showError(message);
     } finally {
       setIsBusy(false);
     }

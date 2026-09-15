@@ -84,8 +84,9 @@ export function getDashboardPeriodRange(
       return toRange(start, today);
     }
     case 'lastYear': {
-      const start = addDays(today, -364);
-      return toRange(start, today);
+      const start = new Date(today.getFullYear() - 1, 0, 1);
+      const end = new Date(today.getFullYear() - 1, 11, 31);
+      return toRange(start, end);
     }
   }
 }

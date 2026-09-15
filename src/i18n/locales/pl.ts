@@ -25,7 +25,6 @@ const pl = {
     history: 'Historia',
     compare: 'Porównaj',
     profile: 'Profil',
-    loadingAccount: 'Ładowanie konta...',
     setupRequired: 'Wymagana konfiguracja',
     setupSubtitle:
       'Aplikacja nie może połączyć się z serwerem. Jeśli masz ten plik od kogoś innego, poproś o nowy APK. Przy lokalnym developmencie dodaj EXPO_PUBLIC_SUPABASE_URL i EXPO_PUBLIC_SUPABASE_ANON_KEY do .env i uruchom Expo ponownie.',
@@ -84,15 +83,17 @@ const pl = {
     emailPlaceholder: 'jan@example.com',
     showPassword: 'Pokaż hasło',
     hidePassword: 'Ukryj hasło',
+    resetLinkInvalid: 'Ten link resetujący jest nieprawidłowy lub wygasł. Poproś o nowy.',
+    emailAlreadyRegistered: 'Konto z tym adresem e-mail już istnieje.',
+    rateLimited: 'Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.',
   },
   dashboard: {
     title: 'Start',
     subtitle: 'Dodawaj pomiary i sprawdzaj istniejące trendy',
     averages: 'Statystyki',
     recentHistory: 'Ostatnie 7 dni',
-    last7Days: 'Ostatnie 7 dni',
     viewAll: 'Zobacz wszystkie',
-    emptyRecent: 'Dodaj swoją pierwszą wagę w sekcji powyżej, aby zobaczyć ją później tutaj.',
+    emptyRecent: 'Brak pomiarów w ostatnich 7 dniach.',
     profileBannerMessage:
       'Uzupełnij profil, aby w pełni korzystać z aplikacji i mieć dostęp do ciekawych porównań.',
     profileBannerAction: 'Uzupełnij profil',
@@ -101,9 +102,6 @@ const pl = {
     heaviestAtAge: 'Najwyższa waga',
     lightestAtAge: 'Najniższa waga',
     sinceBirthday: 'Od ostatnich urodzin',
-    birthdayWeight: 'Około %{age}',
-    birthdayRecap: 'Podsumowanie urodzin',
-    recapDifference: 'Ten rok życia vs poprzedni (średnia)',
     onDateAtAge: '%{date} · %{age}',
   },
   entryForm: {
@@ -116,6 +114,7 @@ const pl = {
     decreaseWeight: 'Zmniejsz wagę',
     increaseWeight: 'Zwiększ wagę',
     saved: 'Waga zapisana.',
+    savedRefreshFailed: 'Waga zapisana, ale nie udało się odświeżyć listy.',
     saveFailed: 'Nie udało się zapisać wagi.',
   },
   hero: {
@@ -137,11 +136,6 @@ const pl = {
     last6Months: 'Ostatnie 6 miesięcy',
     lastYear: 'Ostatni rok',
     thisAgeYear: 'Obecny rok życia',
-    lastAgeYear: 'Poprzedni rok życia',
-    thisAgeYearComparison: 'Obecny rok — %{age}',
-    lastAgeYearComparison: 'Poprzedni rok — %{age}',
-    last365Days: 'Ostatnie 365 dni',
-    previous365Days: 'Poprzednie 365 dni',
     rangeA: 'Pierwszy okres',
     rangeB: 'Drugi okres',
   },
@@ -172,8 +166,6 @@ const pl = {
       other: '%{count} w zakresie',
     },
     subtitleLoading: 'Ładowanie pomiarów…',
-    toggleFilter: 'Filtruj po dacie',
-    dateFilter: 'Filtruj po dacie',
     clearAll: 'Przywróć domyślne',
     from: 'Od',
     to: 'Do',
@@ -192,7 +184,6 @@ const pl = {
     editA11y: 'Edytuj pomiar z %{date}',
     createdA11y: 'Zapisano %{date}',
     updatedA11y: 'Zaktualizowano %{date}',
-    scrollToTop: 'Przewiń do góry',
   },
   comparison: {
     title: 'Porównaj',
@@ -268,10 +259,7 @@ const pl = {
     heightHistoryTitle: 'Historia wzrostu',
     heightHistorySubtitle:
       'Dodawaj wpisy i zarządzaj historią wzrostu.',
-    showMoreHeightRecords: 'Pokaż więcej',
     manageHeightRecords: 'Zarządzaj wpisami wzrostu',
-    heightHint:
-      'Dodaj wzrost i datę, od której obowiązuje.',
     heightTimelineEmptyHint:
       'Brak danych. Dodaj swój wzrost i datę, od której obowiązuje.',
     deleteHeight: 'Usuń wpis wzrostu',
@@ -304,6 +292,7 @@ const pl = {
     deleteAccount: 'Usuń konto',
     deleteAccountConfirm:
       'Czy na pewno chcesz usunąć swoje konto? Wszystkie pomiary wagi zostaną usunięte. Tej operacji nie można cofnąć.',
+    deleteAccountConfirmPhrase: 'USUŃ',
     deleteAccountTypeToConfirm: 'Wpisz %{phrase}, aby potwierdzić:',
     accountDeleted: 'Konto usunięte.',
     deleteFailed: 'Nie udało się usunąć konta.',
@@ -329,7 +318,10 @@ const pl = {
     couldNotLoadEntries: 'Nie udało się załadować pomiarów.',
     couldNotLoadProfile: 'Nie udało się załadować profilu.',
     mustBeSignedIn: 'Zaloguj się, aby kontynuować.',
-    databasePermission:
+    noConnection: 'Brak połączenia z internetem. Sprawdź sieć i spróbuj ponownie.',
+    sessionExpired: 'Sesja wygasła. Zaloguj się ponownie.',
+    databasePermission: 'Nie udało się wczytać danych. Spróbuj ponownie później.',
+    databasePermissionDev:
       'Błąd uprawnień bazy danych. W Supabase SQL Editor uruchom supabase/grants.sql z tego projektu.',
     jwtClockSkew:
       'Zegar urządzenia może być źle ustawiony. Włącz automatyczną datę i godzinę, a następnie spróbuj ponownie.',

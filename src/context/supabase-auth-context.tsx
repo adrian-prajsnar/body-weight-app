@@ -1,6 +1,16 @@
 import { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  formatAuthLinkError,
+  formatDeleteAccountError,
+  formatResetPasswordError,
+  formatResendConfirmationError,
+  formatSignInError,
+  formatSignOutError,
+  formatSignUpError,
+  formatUpdatePasswordError,
+} from '../auth-errors';
 import { createSessionFromUrl, getAuthRedirectUrl, isPasswordRecoveryUrl } from '../auth-redirect';
 import { assertDevAllowedEmail, isDevAllowedSession } from '../dev-auth-guard';
 import { registerSupabaseAppLifecycle, refreshSessionOnForeground } from '../supabase/app-lifecycle';
@@ -16,6 +26,8 @@ type SupabaseAuthContextValue = {
   isPasswordRecovery: boolean;
   isLoading: boolean;
   isConfigured: boolean;
+  authLinkError: string | null;
+  clearAuthLinkError: () => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
@@ -31,19 +43,26 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [authLinkError, setAuthLinkError] = useState<string | null>(null);
   const completingSignUpRef = useRef(false);
 
   const isAuthenticated = Boolean(session) && !completingSignUpRef.current && !isPasswordRecovery;
 
+  const clearAuthLinkError = useCallback(() => {
+    setAuthLinkError(null);
+  }, []);
+
   const handleAuthUrl = useCallback(async (url: string) => {
+    const isRecovery = isPasswordRecoveryUrl(url);
     try {
-      const isRecovery = isPasswordRecoveryUrl(url);
       await createSessionFromUrl(url);
       if (isRecovery) {
         setIsPasswordRecovery(true);
       }
-    } catch {
-      // Ignore malformed or unrelated deep links.
+    } catch (error) {
+      if (isRecovery) {
+        setAuthLinkError(formatAuthLinkError(error));
+      }
     }
   }, []);
 
@@ -107,7 +126,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     assertDevAllowedEmail(email);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatSignInError(error));
     }
   }, []);
 
@@ -123,7 +142,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         },
       });
       if (error) {
-        throw new Error(error.message);
+        throw new Error(formatSignUpError(error));
       }
 
       const needsEmailConfirmation = Boolean(data.user && !data.session);
@@ -140,18 +159,18 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatSignOutError(error));
     }
   }, []);
 
   const deleteAccount = useCallback(async () => {
     const { error } = await supabase.rpc('delete_own_account');
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatDeleteAccountError(error));
     }
 
-    await signOut();
-  }, [signOut]);
+    await supabase.auth.signOut({ scope: 'local' });
+  }, []);
 
   const resendConfirmationEmail = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resend({
@@ -163,7 +182,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatResendConfirmationError(error));
     }
   }, []);
 
@@ -173,14 +192,14 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatResetPasswordError(error));
     }
   }, []);
 
   const updatePassword = useCallback(async (password: string) => {
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      throw new Error(error.message);
+      throw new Error(formatUpdatePasswordError(error));
     }
 
     setIsPasswordRecovery(false);
@@ -194,6 +213,8 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
         isPasswordRecovery,
         isLoading,
         isConfigured: isSupabaseConfigured(),
+        authLinkError,
+        clearAuthLinkError,
         signIn,
         signUp,
         signOut,

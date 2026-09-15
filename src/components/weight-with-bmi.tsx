@@ -48,6 +48,7 @@ export function WeightWithBmi({
     <BmiBadge
       bmi={bmi}
       compact={compactBmi}
+      showUnavailable={heightCm === null}
       onPress={() =>
         openWeighIn({
           date: entry.date,
