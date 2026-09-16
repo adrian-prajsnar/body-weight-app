@@ -1,0 +1,423 @@
+---
+import { getMessages, type SiteLocale } from '../i18n';
+import { getLatestRelease } from '../lib/releases';
+import { absoluteUrl, withBase } from '../lib/paths';
+
+type Props = { locale: SiteLocale };
+const { locale } = Astro.props;
+const t = getMessages(locale);
+const latest = getLatestRelease();
+const downloadUrl = latest?.apkUrl ?? null;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: t.brand,
+  operatingSystem: 'Android',
+  applicationCategory: 'HealthApplication',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  description: t.meta.description,
+  downloadUrl: downloadUrl ?? undefined,
+  softwareVersion: latest?.version,
+  url: absoluteUrl(locale === 'pl' ? '/pl/' : '/'),
+};
+
+const headlineLines = t.home.headline.split('\n');
+const featureIcons = [
+  '<path d="M4 16l4-4 3 3 9-9"/><path d="M14 6h5v5"/>',
+  '<path d="M5 19V9M10 19V5M15 19v-7M20 19V8"/>',
+  '<circle cx="12" cy="8" r="3"/><path d="M5 19c1.2-3.4 3.8-5 7-5s5.8 1.6 7 5"/>',
+  '<path d="M5 8h8M5 12h14M5 16h10"/>',
+];
+const highlightIcons = [
+  '<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M4 10h16"/>',
+  '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 1.5"/>',
+  '<path d="M6 16a6 6 0 0 1 12 0"/><path d="M12 4v6M9 7h6"/>',
+];
+const floatCards = [
+  { value: t.home.preview.latestValue, label: t.home.preview.latest, tone: 'a' },
+  { value: t.home.preview.bmiValue, label: t.home.preview.bmi, tone: 'b' },
+  { value: t.home.preview.thisWeekValue, label: t.home.preview.thisWeek, tone: 'c' },
+];
+---
+
+<section class="hero" data-hero-slider>
+  <div class="section-inner hero-grid">
+    <div class="hero-slider-viewport">
+      <div class="hero-slider-track">
+        <div class="hero-copy hero-slider-slide is-visible" data-reveal>
+      <p class="eyebrow">{t.home.eyebrow}</p>
+      <h1>
+        {
+          headlineLines.map((line, index) => (
+            <>
+              {index === headlineLines.length - 1 ? <span class="headline-accent">{line}</span> : line}
+              {index < headlineLines.length - 1 && <br />}
+            </>
+          ))
+        }
+      </h1>
+      <p class="hero-sub">{t.home.subhead}</p>
+      <div class="chip-row">
+        <span class="chip">{t.home.freeBadge}</span>
+        <span class="chip">{t.home.androidBadge}</span>
+        <span class="chip">{t.home.privateBadge}</span>
+      </div>
+      <div class="hero-actions">
+        {
+          downloadUrl ? (
+            <a class="btn btn-primary" href={downloadUrl}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 4v12M7 11l5 5 5-5M5 20h14"></path>
+              </svg>
+              <span>{t.home.download}</span>
+            </a>
+          ) : (
+            <span class="btn btn-primary is-disabled" aria-disabled="true">
+              <span>{t.home.downloadUnavailable}</span>
+            </span>
+          )
+        }
+        {
+          latest && (
+            <span class="version-chip version-chip--live">
+              {t.home.versionLabel} {latest.version}
+            </span>
+          )
+        }
+      </div>
+        </div>
+        <div class="hero-visual hero-slider-slide is-visible" data-reveal style="--reveal-delay: 120ms">
+      <div class="hero-tilt" data-hero-tilt>
+        <div class="app-screen-frame app-screen-frame--hero">
+          <span class="phone-island" aria-hidden="true"></span>
+          <img
+            class="app-screen-shot screen-shot-image"
+            src={withBase('/screenshots/home.webp')}
+            data-fallback={withBase('/screenshots/home.svg')}
+            alt=""
+            loading="eager"
+            width="360"
+            height="660"
+          />
+          <span class="phone-home" aria-hidden="true"></span>
+        </div>
+      </div>
+      {
+        floatCards.map((card) => (
+          <aside class={`float-card float-card--${card.tone}`} aria-hidden="true">
+            <p class="float-card-value">{card.value}</p>
+            <p class="float-card-label">{card.label}</p>
+          </aside>
+        ))
+      }
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-slider-controls">
+    <button
+      type="button"
+      class="hero-slider-arrow hero-slider-arrow--prev"
+      data-hero-slider-prev
+      aria-label={t.home.heroSliderPrev}
+      hidden
+    >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="hero-slider-arrow hero-slider-arrow--next"
+          data-hero-slider-next
+          aria-label={t.home.heroSliderNext}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6"></path>
+          </svg>
+    </button>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-heading" data-reveal>
+      <h2>{t.home.highlightsTitle}</h2>
+    </div>
+    <div class="highlight-grid">
+      {
+        t.home.highlights.map((item, index) => (
+          <article class="card" data-reveal style={`--reveal-delay: ${index * 80}ms`}>
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <Fragment set:html={highlightIcons[index]} />
+              </svg>
+            </div>
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-heading" data-reveal>
+      <h2>{t.home.featuresTitle}</h2>
+      <p class="section-lead">{t.home.featuresSubtitle}</p>
+    </div>
+    <div class="feature-grid">
+      {
+        t.home.features.map((feature, index) => (
+          <article class="card" data-reveal style={`--reveal-delay: ${(index % 2) * 80}ms`}>
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <Fragment set:html={featureIcons[index]} />
+              </svg>
+            </div>
+            <h3>{feature.title}</h3>
+            <p>{feature.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-heading section-heading--wide" data-reveal>
+      <h2>{t.home.screensTitle}</h2>
+      <p class="section-lead">{t.home.screensSubtitle}</p>
+    </div>
+    <div class="screens-grid">
+      {
+        t.home.screens.map((screen, index) => (
+          <figure class="screen-card" data-reveal style={`--reveal-delay: ${index * 70}ms`}>
+            <div class="app-screen-frame">
+              <span class="phone-island" aria-hidden="true"></span>
+              <img
+                class="app-screen-shot screen-shot-image"
+                src={withBase(`/screenshots/${screen.id}.webp`)}
+                data-fallback={withBase(`/screenshots/${screen.id}.svg`)}
+                alt=""
+                loading="lazy"
+                width="360"
+                height="660"
+              />
+              <span class="phone-home" aria-hidden="true"></span>
+            </div>
+            <figcaption class="screen-caption">
+              <h3>{screen.title}</h3>
+              <p>{screen.body}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-heading" data-reveal>
+      <h2>{t.home.audienceTitle}</h2>
+      <p class="section-lead">{t.home.audienceSubtitle}</p>
+    </div>
+    <div class="audience-grid">
+      {
+        t.home.audience.map((item, index) => (
+          <article class="card" data-reveal style={`--reveal-delay: ${index * 80}ms`}>
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="section-heading" data-reveal>
+      <h2>{t.home.howTitle}</h2>
+      <p class="section-lead">{t.home.howSubtitle}</p>
+    </div>
+    <div class="step-grid">
+      {
+        t.home.steps.map((step, index) => (
+          <article class="card" data-reveal style={`--reveal-delay: ${index * 80}ms`}>
+            <div class="step-index">{index + 1}</div>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </article>
+        ))
+      }
+    </div>
+    <p class="privacy-banner" data-reveal>{t.home.privacyNote}</p>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="section-inner">
+    <div class="section-heading" data-reveal>
+      <h2>{t.home.faqTitle}</h2>
+      <p class="section-lead">{t.home.faqSubtitle}</p>
+    </div>
+    <div class="faq-list" data-faq-accordion>
+      {
+        t.home.faq.map((item, index) => (
+          <article class="faq-item" data-reveal style={`--reveal-delay: ${Math.min(index, 4) * 50}ms`}>
+            <h3 class="faq-question">
+              <button
+                type="button"
+                class="faq-trigger"
+                aria-expanded="false"
+                id={`faq-trigger-${index}`}
+                aria-controls={`faq-panel-${index}`}
+              >
+                <span>{item.question}</span>
+              </button>
+            </h3>
+            <div
+              class="faq-panel"
+              id={`faq-panel-${index}`}
+              role="region"
+              aria-labelledby={`faq-trigger-${index}`}
+            >
+              <div class="faq-panel-inner">
+                <p>{item.answer}</p>
+              </div>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner">
+    <div class="cta-band" data-reveal>
+      <div>
+        <h2>{t.home.ctaTitle}</h2>
+        <p class="section-lead">{t.home.ctaBody}</p>
+      </div>
+      {
+        downloadUrl ? (
+          <a class="btn btn-primary" href={downloadUrl}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 4v12M7 11l5 5 5-5M5 20h14"></path>
+            </svg>
+            <span>{t.home.download}</span>
+          </a>
+        ) : (
+          <span class="btn btn-primary is-disabled" aria-disabled="true">
+            <span>{t.home.downloadUnavailable}</span>
+          </span>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<script is:inline>
+  (function () {
+    document.querySelectorAll('.screen-shot-image').forEach(function (img) {
+      img.addEventListener(
+        'error',
+        function () {
+          var fallback = img.getAttribute('data-fallback');
+          if (fallback && img.src !== fallback) {
+            img.src = fallback;
+          }
+        },
+        { once: true },
+      );
+    });
+
+    document.querySelectorAll('[data-hero-slider]').forEach(function (slider) {
+      var viewport = slider.querySelector('.hero-slider-viewport');
+      var track = slider.querySelector('.hero-slider-track');
+      var prevBtn = slider.querySelector('[data-hero-slider-prev]');
+      var nextBtn = slider.querySelector('[data-hero-slider-next]');
+      if (!viewport || !track || !prevBtn || !nextBtn) return;
+
+      var index = 0;
+      var media = window.matchMedia('(max-width: 860px)');
+
+      function updateSlider() {
+        if (!media.matches) {
+          index = 0;
+          track.style.transform = '';
+          prevBtn.hidden = true;
+          nextBtn.hidden = true;
+          return;
+        }
+
+        var slideWidth = viewport.clientWidth;
+        track.style.transform = slideWidth ? 'translateX(-' + index * slideWidth + 'px)' : '';
+        prevBtn.hidden = index === 0;
+        nextBtn.hidden = index === 1;
+      }
+
+      prevBtn.addEventListener('click', function () {
+        if (!media.matches || index === 0) return;
+        index = 0;
+        updateSlider();
+      });
+
+      nextBtn.addEventListener('click', function () {
+        if (!media.matches || index === 1) return;
+        index = 1;
+        updateSlider();
+      });
+
+      if (typeof media.addEventListener === 'function') {
+        media.addEventListener('change', updateSlider);
+      } else if (typeof media.addListener === 'function') {
+        media.addListener(updateSlider);
+      }
+
+      window.addEventListener('resize', updateSlider);
+      updateSlider();
+    });
+
+    document.querySelectorAll('[data-faq-accordion]').forEach(function (list) {
+      var items = list.querySelectorAll('.faq-item');
+
+      items.forEach(function (item) {
+        var trigger = item.querySelector('.faq-trigger');
+        if (!trigger) return;
+
+        trigger.addEventListener('click', function () {
+          var isOpen = item.classList.contains('is-open');
+
+          items.forEach(function (other) {
+            if (other === item) return;
+            other.classList.remove('is-open');
+            var otherTrigger = other.querySelector('.faq-trigger');
+            if (otherTrigger) otherTrigger.setAttribute('aria-expanded', 'false');
+          });
+
+          if (isOpen) {
+            item.classList.remove('is-open');
+            trigger.setAttribute('aria-expanded', 'false');
+            return;
+          }
+
+          item.classList.add('is-open');
+          trigger.setAttribute('aria-expanded', 'true');
+        });
+      });
+    });
+  })();
+</script>

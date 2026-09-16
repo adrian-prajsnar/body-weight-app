@@ -1,0 +1,297 @@
+---
+import { getMessages, localePath, type SiteLocale, type SitePage } from '../i18n';
+import { withBase } from '../lib/paths';
+
+type Props = {
+  locale: SiteLocale;
+  page: SitePage;
+};
+
+const { locale, page } = Astro.props;
+const t = getMessages(locale);
+
+const links = [
+  { page: 'home' as const, href: withBase(localePath(locale, 'home')), label: t.nav.home },
+  { page: 'releases' as const, href: withBase(localePath(locale, 'releases')), label: t.nav.releases },
+  { page: 'privacy' as const, href: withBase(localePath(locale, 'privacy')), label: t.nav.privacy },
+];
+---
+
+<header class="site-header">
+  <div class="header-bar">
+    <div class="header-shell">
+      <div class="header-inner">
+        <a class="brand" href={withBase(localePath(locale, 'home'))}>
+          <img src={withBase('/app-icon.png')} alt="" width="36" height="36" />
+          <span class="brand-name">{t.brand}</span>
+        </a>
+        <button
+          type="button"
+          class="menu-toggle"
+          data-menu-toggle
+          data-label-open={t.nav.menu}
+          data-label-close={t.nav.close}
+          aria-expanded="false"
+          aria-controls="site-menu"
+          aria-label={t.nav.menu}
+        >
+          <span class="menu-toggle-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </div>
+      <div class="header-menu" id="site-menu">
+        <nav class="header-nav" aria-label={t.brand}>
+          {
+            links.map((link) => (
+              <a
+                class="nav-link"
+                href={link.href}
+                aria-current={link.page === page ? 'page' : undefined}
+              >
+                {link.label}
+              </a>
+            ))
+          }
+        </nav>
+        <div class="header-controls">
+          <div class="icon-toggle" role="group" aria-label={t.language.label} data-language-toggle>
+            <button type="button" data-language="en" aria-pressed="false">ENG</button>
+            <button type="button" data-language="pl" aria-pressed="false">PL</button>
+          </div>
+          <div class="icon-toggle icon-toggle--icons" role="group" aria-label={t.theme.label} data-theme-toggle>
+            <button type="button" data-theme="light" aria-label={t.theme.light} aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+              </svg>
+            </button>
+            <button type="button" data-theme="dark" aria-label={t.theme.dark} aria-pressed="false">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="menu-overlay" data-menu-overlay aria-hidden="true"></div>
+</header>
+
+<script is:inline define:vars={{ pageLocale: locale, baseUrl: import.meta.env.BASE_URL }}>
+  (function () {
+    var languageKey = 'body-weight-site/language';
+    var themeKey = 'body-weight-site/theme';
+
+    function normalizeLanguage(value) {
+      return value === 'pl' || value === 'en' ? value : pageLocale;
+    }
+
+    function normalizeTheme(value) {
+      return value === 'light' || value === 'dark' ? value : 'light';
+    }
+
+    function markToggle(selector, attr, value) {
+      document.querySelectorAll(selector + ' button').forEach(function (button) {
+        button.setAttribute('aria-pressed', button.getAttribute(attr) === value ? 'true' : 'false');
+      });
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      var themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) {
+        themeMeta.setAttribute('content', theme === 'dark' ? '#080B12' : '#F4F5F8');
+      }
+    }
+
+    var languagePref = normalizeLanguage(localStorage.getItem(languageKey));
+    var themePref = normalizeTheme(localStorage.getItem(themeKey));
+
+    markToggle('[data-language-toggle]', 'data-language', languagePref);
+    markToggle('[data-theme-toggle]', 'data-theme', themePref);
+    applyTheme(themePref);
+
+    document.querySelectorAll('[data-language-toggle] button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var next = button.getAttribute('data-language');
+        if (next !== 'pl' && next !== 'en') return;
+        localStorage.setItem(languageKey, next);
+        markToggle('[data-language-toggle]', 'data-language', next);
+        if (next === pageLocale) return;
+        var base = String(baseUrl).replace(/\/$/, '');
+        var rest = location.pathname.slice(base.length) || '/';
+        if (rest.indexOf('/pl/') === 0 || rest === '/pl') {
+          rest = rest.replace(/^\/pl/, '') || '/';
+        }
+        if (rest.charAt(0) !== '/') rest = '/' + rest;
+        var href = base + (next === 'pl' ? '/pl' : '') + rest;
+        if (href.slice(-1) !== '/') href += '/';
+        location.assign(href);
+      });
+    });
+
+    document.querySelectorAll('[data-theme-toggle] button').forEach(function (button) {
+      button.addEventListener('click', function (event) {
+        var next = button.getAttribute('data-theme');
+        if (next !== 'light' && next !== 'dark') return;
+
+        function commit() {
+          localStorage.setItem(themeKey, next);
+          applyTheme(next);
+          markToggle('[data-theme-toggle]', 'data-theme', next);
+        }
+
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduce && typeof document.startViewTransition === 'function') {
+          try {
+            document.documentElement.style.setProperty('--vt-x', event.clientX + 'px');
+            document.documentElement.style.setProperty('--vt-y', event.clientY + 'px');
+            document.documentElement.classList.add('theme-animating');
+            var transition = document.startViewTransition(commit);
+            if (transition && transition.finished) {
+              transition.finished.finally(function () {
+                document.documentElement.classList.remove('theme-animating');
+              });
+            } else {
+              document.documentElement.classList.remove('theme-animating');
+            }
+            return;
+          } catch (error) {
+            document.documentElement.classList.remove('theme-animating');
+          }
+        }
+
+        commit();
+      });
+    });
+
+    var header = document.querySelector('.site-header');
+    var menuToggle = document.querySelector('[data-menu-toggle]');
+    var menuOverlay = document.querySelector('[data-menu-overlay]');
+    var mobileMenu = document.getElementById('site-menu');
+    var menuMq = window.matchMedia('(max-width: 800px)');
+
+    function syncMenuA11y(open) {
+      if (!mobileMenu) return;
+      if (menuMq.matches) {
+        mobileMenu.setAttribute('aria-hidden', open ? 'false' : 'true');
+      } else {
+        mobileMenu.removeAttribute('aria-hidden');
+      }
+    }
+
+    var closeTimer;
+
+    function syncMenuToggle(open) {
+      menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (menuOverlay) menuOverlay.setAttribute('aria-hidden', open ? 'false' : 'true');
+      syncMenuA11y(open);
+      var label = menuToggle.getAttribute(open ? 'data-label-close' : 'data-label-open');
+      if (label) menuToggle.setAttribute('aria-label', label);
+    }
+
+    function clearMenuMotionState() {
+      window.clearTimeout(closeTimer);
+      header.classList.remove('is-closing', 'is-opening');
+      document.documentElement.classList.remove('menu-instant');
+    }
+
+    function finishMenuClose() {
+      clearMenuMotionState();
+      syncMenuToggle(false);
+    }
+
+    function setMenuOpen(open, instant) {
+      if (!header || !menuToggle) return;
+
+      if (open) {
+        clearMenuMotionState();
+        header.classList.add('is-open', 'is-opening');
+        document.documentElement.classList.add('menu-open');
+        syncMenuToggle(true);
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            header.classList.remove('is-opening');
+          });
+        });
+        return;
+      }
+
+      if (!header.classList.contains('is-open')) {
+        finishMenuClose();
+        return;
+      }
+
+      header.classList.remove('is-open');
+      document.documentElement.classList.remove('menu-open');
+
+      if (instant) {
+        document.documentElement.classList.add('menu-instant');
+        finishMenuClose();
+        window.requestAnimationFrame(function () {
+          document.documentElement.classList.remove('menu-instant');
+        });
+        return;
+      }
+
+      header.classList.add('is-closing');
+      syncMenuToggle(false);
+      window.clearTimeout(closeTimer);
+      closeTimer = window.setTimeout(finishMenuClose, 380);
+    }
+
+    if (mobileMenu) {
+      mobileMenu.addEventListener('transitionend', function (event) {
+        if (!header.classList.contains('is-closing')) return;
+        if (event.target !== mobileMenu) return;
+        finishMenuClose();
+      });
+    }
+
+    syncMenuA11y(false);
+
+    if (menuToggle) {
+      menuToggle.addEventListener('click', function () {
+        setMenuOpen(!header.classList.contains('is-open'));
+      });
+    }
+
+    if (menuOverlay) {
+      menuOverlay.addEventListener('click', function () {
+        setMenuOpen(false);
+      });
+    }
+
+    document.querySelectorAll('.header-nav .nav-link').forEach(function (link) {
+      link.addEventListener('click', function () {
+        setMenuOpen(false, true);
+      });
+    });
+
+    header.querySelectorAll('.brand').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (header.classList.contains('is-open')) setMenuOpen(false, true);
+      });
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') setMenuOpen(false);
+    });
+
+    if (typeof menuMq.addEventListener === 'function') {
+      menuMq.addEventListener('change', function (event) {
+        if (!event.matches) setMenuOpen(false);
+        syncMenuA11y(header.classList.contains('is-open'));
+      });
+    } else if (typeof menuMq.addListener === 'function') {
+      menuMq.addListener(function (event) {
+        if (!event.matches) setMenuOpen(false);
+        syncMenuA11y(header.classList.contains('is-open'));
+      });
+    }
+  })();
+</script>

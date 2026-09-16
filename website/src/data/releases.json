@@ -1,0 +1,16 @@
+[
+  {
+    "version": "1.1.1",
+    "date": "2026-09-05",
+    "notesEn": "### Bug fixes\n\n* Editing a weigh-in stays visible above the keyboard.",
+    "notesPl": "### Poprawki\n\n* Podczas edycji ważenia pole pozostaje widoczne nad klawiaturą.",
+    "apkUrl": null
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-09-04",
+    "notesEn": "### What's new\n\n* Clear message when the app is offline.\n* Easier date filtering and scrolling in History.\n* Profile now shows the app version.",
+    "notesPl": "### Co nowego\n\n* Jasny komunikat, gdy brak internetu.\n* Wygodniejsze filtrowanie dat i przewijanie w Historii.\n* Na ekranie Profilu widać teraz wersję aplikacji.",
+    "apkUrl": null
+  }
+]

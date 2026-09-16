@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/base-layout.astro';
+import SiteHeader from '../components/site-header.astro';
+import SiteFooter from '../components/site-footer.astro';
+import ReleasesPage from '../components/releases-page.astro';
+import { getMessages } from '../i18n';
+
+const locale = 'en' as const;
+const t = getMessages(locale);
+---
+
+<BaseLayout
+  locale={locale}
+  page="releases"
+  title={t.meta.releasesTitle}
+  description={t.meta.releasesDescription}
+>
+  <SiteHeader locale={locale} page="releases" />
+  <main id="content">
+    <ReleasesPage locale={locale} />
+  </main>
+  <SiteFooter locale={locale} />
+</BaseLayout>

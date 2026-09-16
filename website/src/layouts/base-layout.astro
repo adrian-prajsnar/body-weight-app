@@ -1,0 +1,159 @@
+---
+import '../styles/global.css';
+import { getMessages, localePath, type SiteLocale, type SitePage } from '../i18n';
+import { withBase, absoluteUrl } from '../lib/paths';
+
+type Props = {
+  locale: SiteLocale;
+  page: SitePage;
+  title: string;
+  description: string;
+};
+
+const { locale, page, title, description } = Astro.props;
+const t = getMessages(locale);
+const canonical = absoluteUrl(localePath(locale, page));
+const enUrl = absoluteUrl(localePath('en', page));
+const plUrl = absoluteUrl(localePath('pl', page));
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="pl" href={plUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={absoluteUrl('/app-icon.png')} />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href={withBase('/favicon.png')} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script is:inline>
+      (function () {
+        var themeKey = 'body-weight-site/theme';
+        var pref = localStorage.getItem(themeKey);
+        var theme = pref === 'light' || pref === 'dark' ? pref : 'light';
+        document.documentElement.classList.add('js');
+        document.documentElement.setAttribute('data-theme', theme);
+        var meta = document.createElement('meta');
+        meta.name = 'theme-color';
+        meta.content = theme === 'dark' ? '#080B12' : '#F4F5F8';
+        document.head.appendChild(meta);
+      })();
+    </script>
+    <script is:inline define:vars={{ pageLocale: locale, baseUrl: import.meta.env.BASE_URL }}>
+      (function () {
+        var key = 'body-weight-site/language';
+        var pref = localStorage.getItem(key);
+        if (pref !== 'pl' && pref !== 'en') return;
+        if (pref === pageLocale) return;
+        var base = String(baseUrl).replace(/\/$/, '');
+        var rest = location.pathname.slice(base.length) || '/';
+        if (rest.indexOf('/pl/') === 0 || rest === '/pl') {
+          rest = rest.replace(/^\/pl/, '') || '/';
+        }
+        if (rest.charAt(0) !== '/') rest = '/' + rest;
+        var next = base + (pref === 'pl' ? '/pl' : '') + rest;
+        if (next.slice(-1) !== '/') next += '/';
+        location.replace(next);
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="page-fx" aria-hidden="true">
+      <div class="page-fx-grid"></div>
+      <div class="page-fx-noise"></div>
+    </div>
+    <div class="scroll-progress" hidden></div>
+    <a class="skip-link" href="#content">{t.skip}</a>
+    <slot />
+    <script is:inline>
+      (function () {
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var header = document.querySelector('.site-header');
+        var progress = document.querySelector('.scroll-progress');
+
+        function updateScrollChrome() {
+          var scrolled = window.scrollY > 8;
+          if (header) header.classList.toggle('is-scrolled', scrolled);
+          if (!progress) return;
+          var doc = document.documentElement;
+          var max = doc.scrollHeight - window.innerHeight;
+          var ratio = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+          progress.style.transform = 'scaleX(' + ratio + ')';
+          progress.hidden = false;
+        }
+
+        updateScrollChrome();
+        window.addEventListener('scroll', updateScrollChrome, { passive: true });
+        window.addEventListener('resize', updateScrollChrome);
+
+        if (!reduceMotion && 'IntersectionObserver' in window) {
+          var reveal = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add('is-visible');
+                reveal.unobserve(entry.target);
+              });
+            },
+            { threshold: 0.16, rootMargin: '0px 0px -8% 0px' },
+          );
+          document.querySelectorAll('[data-reveal]').forEach(function (el) {
+            reveal.observe(el);
+          });
+        } else {
+          document.querySelectorAll('[data-reveal]').forEach(function (el) {
+            el.classList.add('is-visible');
+          });
+        }
+
+        document.querySelectorAll('.card, .release-card, .faq-item, .cta-band').forEach(function (card) {
+          card.addEventListener('pointermove', function (event) {
+            var rect = card.getBoundingClientRect();
+            card.style.setProperty('--spot-x', event.clientX - rect.left + 'px');
+            card.style.setProperty('--spot-y', event.clientY - rect.top + 'px');
+          });
+        });
+
+        if (reduceMotion) return;
+
+        document.querySelectorAll('[data-hero-tilt]').forEach(function (frame) {
+          var resetTimer;
+
+          function setTilt(x, y) {
+            frame.style.setProperty('--tilt-x', x.toFixed(2) + 'deg');
+            frame.style.setProperty('--tilt-y', y.toFixed(2) + 'deg');
+          }
+
+          frame.addEventListener('pointermove', function (event) {
+            var rect = frame.getBoundingClientRect();
+            var x = ((event.clientX - rect.left) / rect.width - 0.5) * 10;
+            var y = ((event.clientY - rect.top) / rect.height - 0.5) * -10;
+            setTilt(x, y);
+          });
+
+          frame.addEventListener('pointerleave', function () {
+            window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(function () {
+              setTilt(0, 0);
+            }, 80);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

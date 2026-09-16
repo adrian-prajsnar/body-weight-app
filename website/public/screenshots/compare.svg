@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="780" viewBox="0 0 360 780" fill="none">
+  <rect width="360" height="780" rx="32" fill="#E8EBF1"/>
+  <rect x="24" y="72" width="312" height="636" rx="20" fill="#F4F5F8"/>
+  <rect x="48" y="108" width="140" height="12" rx="6" fill="#C7D2FE"/>
+  <rect x="48" y="148" width="120" height="180" rx="16" fill="#EEF1F6"/>
+  <rect x="192" y="148" width="120" height="180" rx="16" fill="#EEF1F6"/>
+  <rect x="72" y="220" width="72" height="8" rx="4" fill="#818CF8"/>
+  <rect x="216" y="240" width="72" height="8" rx="4" fill="#818CF8"/>
+  <text x="180" y="420" text-anchor="middle" fill="#667085" font-family="system-ui,sans-serif" font-size="18" font-weight="600">Compare</text>
+  <text x="180" y="448" text-anchor="middle" fill="#98A2B3" font-family="system-ui,sans-serif" font-size="13">Screenshot placeholder</text>
+</svg>

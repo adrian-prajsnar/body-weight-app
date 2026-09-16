@@ -5,15 +5,24 @@ on:
     branches:
       - main
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   issues: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    outputs:
+      new_release: ${{ steps.meta.outputs.new_release }}
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,4 +42,92 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
         run: npm run release
+
+      - name: Read release metadata
+        id: meta
+        run: |
+          if [ -f .release-version ]; then
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+            echo "version=$(tr -d '\n' < .release-version)" >> "$GITHUB_OUTPUT"
+          else
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  apk:
+    name: Build Android APK
+    needs: release
+    if: needs.release.outputs.new_release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.release.outputs.version }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli build -p android --profile production --non-interactive --wait --json > eas-android.json
+
+      - name: Upload APK to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL=$(node scripts/eas-apk-url.cjs eas-android.json)
+          curl -fsSL "$URL" -o body-weight-app.apk
+          gh release upload "v${{ needs.release.outputs.version }}" body-weight-app.apk --clobber
+
+  website:
+    name: Deploy website
+    needs: [release, apk]
+    if: always() && needs.release.result == 'success' && (needs.apk.result == 'success' || needs.apk.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.new_release == 'true' && format('v{0}', needs.release.outputs.version) || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install website dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Build website
+        working-directory: website
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

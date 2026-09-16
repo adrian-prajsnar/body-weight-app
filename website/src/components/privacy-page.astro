@@ -1,0 +1,27 @@
+---
+import { getMessages, type SiteLocale } from '../i18n';
+
+type Props = { locale: SiteLocale };
+const { locale } = Astro.props;
+const t = getMessages(locale);
+---
+
+<section class="page-hero">
+  <div class="section-inner is-visible" data-reveal>
+    <h1>{t.privacy.title}</h1>
+    <p class="section-lead">{t.privacy.updated}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-inner stack">
+    {
+      t.privacy.sections.map((section, index) => (
+        <article class="card" data-reveal style={`--reveal-delay: ${index * 70}ms`}>
+          <h2>{section.title}</h2>
+          <p class="card-body">{section.body}</p>
+        </article>
+      ))
+    }
+  </div>
+</section>

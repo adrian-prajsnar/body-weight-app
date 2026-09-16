@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://adrian-prajsnar.github.io/body-weight-app/sitemap-index.xml

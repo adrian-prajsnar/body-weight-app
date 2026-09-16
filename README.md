@@ -223,6 +223,41 @@ No paid Apple Developer account required. GitHub Actions builds an **unsigned** 
 
 Supabase **Authentication → URL Configuration** must include `body-weight-app://auth/callback` (same as Android).
 
+## Marketing site
+
+The public site lives in [`website/`](website/) and deploys to GitHub Pages on every push to `main`:
+
+`https://adrian-prajsnar.github.io/body-weight-app/`
+
+Local preview:
+
+```bash
+cd website
+npm install
+npm run dev
+```
+
+The dev server is at `http://localhost:4321/body-weight-app/`. English is `/`, Polish is `/pl/`. Appearance and language follow **System / Light / Dark** and **System / English / Polski**, same idea as Profile in the app.
+
+### Release notes and Android download
+
+English notes come from semantic-release (`CHANGELOG.md`), then are rewritten for customers: internal changes (`ci`, `dev`, etc.) are dropped, scopes are removed, and sections become **What's new** / **Bug fixes**. CI writes `website/content/releases/{version}.en.md` and translates that copy with DeepL into `{version}.pl.md`. Existing `.en.md` or `.pl.md` files are never overwritten (edit them to fix wording).
+
+The production APK is built with EAS after a version bump and uploaded to that GitHub Release as `body-weight-app.apk`. Latest download:
+
+`https://github.com/adrian-prajsnar/body-weight-app/releases/latest/download/body-weight-app.apk`
+
+Website-only commits still deploy the site; they do not start an EAS build.
+
+### One-time GitHub setup
+
+1. Repo **Settings → Pages → Source: GitHub Actions**
+2. **Settings → Secrets and variables → Actions** — add:
+   - `EXPO_TOKEN` — Expo access token for EAS cloud builds
+   - `DEEPL_API_KEY` — DeepL Free API key (English → Polish notes)
+
+EAS Free includes 15 Android builds per month. Two production releases a week fits; unused quota does not roll over.
+
 ## Privacy
 
 - Each user only sees their own entries (Supabase row-level security)

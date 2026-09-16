@@ -1,0 +1,36 @@
+---
+import { getMessages, localePath, type SiteLocale } from '../i18n';
+import { withBase } from '../lib/paths';
+
+type Props = { locale: SiteLocale };
+const { locale } = Astro.props;
+const t = getMessages(locale);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img
+        class="footer-logo"
+        src={withBase('/app-icon.png')}
+        alt=""
+        width="40"
+        height="40"
+      />
+      <div>
+        <p class="footer-brand-name">{t.brand}</p>
+        <p class="footer-tagline">{t.footer.tagline}</p>
+        <p class="footer-copy">© {year} {t.footer.copyrightName}</p>
+      </div>
+    </div>
+    <nav class="footer-links" aria-label={t.brand}>
+      <a href={withBase(localePath(locale, 'home'))}>{t.footer.home}</a>
+      <a href={withBase(localePath(locale, 'releases'))}>{t.nav.releases}</a>
+      <a href={withBase(localePath(locale, 'privacy'))}>{t.footer.privacy}</a>
+      <a href="https://github.com/adrian-prajsnar/body-weight-app" rel="noopener noreferrer">
+        {t.footer.github}
+      </a>
+    </nav>
+  </div>
+</footer>

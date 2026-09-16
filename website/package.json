@@ -1,0 +1,15 @@
+{
+  "name": "body-weight-app-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/fetch-releases.mjs && astro dev",
+    "build": "node scripts/fetch-releases.mjs && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^5.14.0",
+    "marked": "^15.0.12"
+  }
+}

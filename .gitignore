@@ -45,3 +45,10 @@ Thumbs.db
 /android
 /ios-build
 /dist/ios
+
+# release metadata written by CI
+.release-version
+
+# marketing site
+website/.astro
+website/dist
