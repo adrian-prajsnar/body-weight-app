@@ -5,7 +5,7 @@ const pl: SiteMessages = {
     title: 'Body Weight Tracker',
     description:
       'Spokojna aplikacja na Androida do codziennego ważenia, obliczania BMI na podstawie historii wzrostu oraz przejrzystego porównywania wyników w czasie. Bezpłatna, z synchronizacją w chmurze, dostępna po polsku i angielsku.',
-    releasesTitle: 'Wydania — Body Weight Tracker',
+    releasesTitle: 'Aktualizacje — Body Weight Tracker',
     releasesDescription:
       'Najnowsze wersje, informacje o zmianach widoczne dla użytkownika oraz pliki APK na Androida.',
     privacyTitle: 'Prywatność — Body Weight Tracker',
@@ -16,7 +16,7 @@ const pl: SiteMessages = {
   skip: 'Przejdź do treści',
   nav: {
     home: 'Strona główna',
-    releases: 'Wydania',
+    releases: 'Aktualizacje',
     privacy: 'Prywatność',
     menu: 'Otwórz menu',
     close: 'Zamknij menu',
@@ -73,7 +73,7 @@ const pl: SiteMessages = {
     ],
     featuresTitle: 'Co otrzymujesz',
     featuresSubtitle:
-      'Stworzona z myślą o regularnym ważeniu — a nie o przeładowanym informacjami panelu.',
+      'Stworzona z myślą o regularnym ważeniu — bez przeładowanego panelu i zbędnych informacji.',
     features: [
       {
         title: 'Średnie i rekordy',
@@ -81,37 +81,37 @@ const pl: SiteMessages = {
       },
       {
         title: 'Porównuj okresy',
-        body: 'Porównuj tygodnie, miesiące, lata lub własne zakresy dat i sprawdzaj, jak zmieniała się średnia.',
+        body: 'Porównuj dni, tygodnie, miesiące, lata. Sprawdzaj niestandardowe okresy, które Cię interesują i sprawdzaj, jak zmieniała się Twoja waga.',
       },
       {
         title: 'Twoje dane, Twoje konto',
-        body: 'Logowanie jest wymagane. Każda osoba widzi wyłącznie własne wpisy. Konto możesz w każdej chwili usunąć w Profilu.',
+        body: 'Po zalogowaniu każdy ma dostęp wyłącznie do własnych wpisów, a swoje konto możesz w każdej chwili usunąć w Profilu.',
       },
       {
-        title: 'Polski i angielski',
-        body: 'Korzystaj z języka telefonu albo wybierz na stałe English lub Polski w Profilu. Jasny i ciemny motyw działają w ten sam sposób.',
+        title: 'Dwa języki, dwa motywy',
+        body: 'Korzystaj z domyślnych opcji systemu lub wybierz na stałe język i motyw w Profilu. Aplikacja dostępna w języku polskim lub angielskim, z jasnym lub ciemnym motywem.',
       },
     ],
-    audienceTitle: 'Dla spokojnego nawyku',
+    audienceTitle: 'Twój nawyk, bez presji',
     audienceSubtitle:
-      'Bez publicznego feedu, bez serii, które domagają się uwagi — tylko liczby, które zapisujesz.',
+      'Bez zbędnych powiadomień, rywalizacji i presji — po prostu zapisuj swoje wyniki.',
     audience: [
       {
-        title: 'Prywatnie, nie społecznościowo',
-        body: 'To Twój prywatny dziennik. Nie ma udostępniania, rankingu ani innych osób w Twoich pomiarach.',
+        title: 'Tylko dla Ciebie',
+        body: 'To Twój prywatny dziennik wagi — bez udostępniania, rankingów i społeczności. Tylko Twoje pomiary.',
       },
       {
-        title: 'Bez oceniania w czasie',
-        body: 'Trendy, średnie i porównania okresów pomagają zobaczyć zmiany bez zamieniania każdego dnia w ocenę Twoich postępów.',
+        title: 'Maraton, nie sprint',
+        body: 'Trendy, średnie i porównania okresów pomagają dostrzec zmiany bez skupiania się na wyniku każdego pojedynczego ważenia.',
       },
       {
-        title: 'To Ty decydujesz o swoich danych',
-        body: 'Edytuj lub usuń pojedynczy dzień, zarządzaj historią wzrostu albo usuń całe konto. Aplikacja nie powinna przechowywać Twoich danych dłużej, niż tego chcesz.',
+        title: 'Ty decydujesz',
+        body: 'Edytuj lub usuwaj swoje pomiary, zmieniaj historię wzrostu i zarządzaj kontem tak, jak chcesz. Kiedy zechcesz, możesz też usunąć wszystkie swoje dane.',
       },
     ],
     screensTitle: 'W środku aplikacji',
     screensSubtitle:
-      'Cztery zakładki, jeden spokojny przepływ — od dzisiejszego ważenia po historię, porównania i profil.',
+      'Cztery zakładki, wszystko czego potrzebujesz — od dzisiejszego ważenia po historię, porównania i profil.',
     screens: [
       {
         id: 'home',
@@ -126,75 +126,75 @@ const pl: SiteMessages = {
       {
         id: 'compare',
         title: 'Porównaj',
-        body: 'Porównuj tygodnie, miesiące lub lata i sprawdzaj, jak zmieniała się średnia.',
+        body: 'Porównuj dni tygodnie, miesiące lub lata i sprawdzaj, jak zmieniała się Twoja waga.',
       },
       {
         id: 'profile',
         title: 'Profil',
-        body: 'Historia wzrostu, jednostki, motyw, język i ustawienia konta.',
+        body: 'Wzrostu, jednostki wagi i wzrostu, motyw, język i ustawienia konta.',
       },
     ],
     howTitle: 'Jak to działa',
     howSubtitle:
-      'Trzy kroki. Potem obraz stopniowo się uzupełnia, gdy regularnie zapisujesz wyniki.',
+      'Trzy kroki. Potem wszystko dzieje się samo — regularnie zapisujesz wyniki, a obraz Twoich postępów stopniowo się uzupełnia.',
     steps: [
       {
         title: 'Utwórz konto',
-        body: 'Zarejestruj się za pomocą adresu e-mail, potwierdź link i gotowe. To Twój osobisty dziennik — nie wspólny rodzinny skarbiec danych.',
+        body: 'Zarejestruj się za pomocą adresu e-mail, potwierdź link i gotowe. Od tego momentu masz własny, prywatny dziennik swoich pomiarów.',
       },
       {
         title: 'Zapisz ważenie',
-        body: 'Wybierz datę, wpisz wagę i zapisz. Opcjonalna historia wzrostu umożliwia obliczanie BMI dla danego dnia.',
+        body: 'Wybierz datę, wpisz wagę i zapisz. Jeśli uzupełnisz swój wzrost, aplikacja obliczy i wyświetli Twoje BMI dla konkretnego dnia.',
       },
       {
         title: 'Obserwuj zmiany',
-        body: 'Strony Główna, Historia i Porównaj są synchronizowane przez chmurę. Możesz korzystać z aplikacji na dowolnym urządzeniu z Androidem, na którym ją zainstalujesz.',
+        body: 'Obserwuj postępy korzystając z aplikacji na dowolnym urządzeniu z Androidem. Twoje dane są zapisywane w chmurze.',
       },
     ],
     privacyNote:
       'Waga i wzrost są przechowywane na Twoim koncie. Nie są udostępniane innym użytkownikom.',
-    faqTitle: 'Najczęstsze pytania',
-    faqSubtitle: 'Krótkie odpowiedzi przed instalacją.',
+    faqTitle: 'Najczęściej zadawane pytania',
+    faqSubtitle: 'Krótkie odpowiedzi, przed instalacją.',
     faq: [
       {
         question: 'Czy aplikacja jest bezpłatna?',
         answer:
-          'Tak. Monitorowanie masy ciała jest bezpłatne. Na tej stronie nie ma reklam ani płatnego planu.',
+          'Tak. Aplikacja Body Weight Tracker jest bezpłatna — nie ma reklam ani płatnego planu.',
       },
       {
         question: 'Czy potrzebuję konta?',
         answer:
-          'Tak. Logowanie sprawia, że Twoje pomiary są prywatne i pozwala synchronizować je między urządzeniami z Androidem. Inne osoby nie mogą odczytać Twoich wpisów w aplikacji.',
+          'Tak. Konto pozwala zachować prywatność Twoich pomiarów i synchronizować je między urządzeniami, a Twoje wpisy są dostępne tylko dla Ciebie.',
       },
       {
         question: 'Czy mogę używać funtów?',
         answer:
-          'Tak. W Profilu wybierz jednostki metryczne lub imperialne. Jednostki wagi i wzrostu będą zgodne z tym ustawieniem.',
+          'Tak. W Profilu wybierz jednostki metryczne lub imperialne. Jednostki wagi i wzrostu zostaną automatycznie dopasowane do wybranego ustawienia.',
       },
       {
         question: 'Jak obliczane jest BMI?',
         answer:
-          'BMI korzysta ze wzrostu obowiązującego w dniu ważenia. Jeśli dla danej daty nie ma odpowiedniego wpisu wzrostu, BMI jest wyświetlane jako „—”. BMI możesz wyłączyć w Profilu.',
+          'BMI obliczane jest na podstawie wzrostu obowiązującego w dniu ważenia. Jeśli dla danej daty nie ma odpowiedniego wpisu wzrostu, BMI wyświetla się jako niedostępne. Wyświetlanie BMI możesz wyłączyć w Profilu.',
       },
       {
         question: 'Czy mogę usunąć swoje dane?',
         answer:
-          'Tak. Możesz edytować lub usuwać pojedyncze pomiary i wpisy dotyczące wzrostu. Usunięcie konta w Profilu usuwa dane aplikacji.',
+          'Tak. Możesz edytować lub usuwać pojedyncze pomiary i wpisy dotyczące wzrostu. Usunięcie konta w Profilu spowoduje usunięcie Twoich danych na stałe. Przed każdym usunięciem pojawia się prośba o potwierdzenie, aby uniknąć przypadkowych usunięć.',
       },
       {
         question: 'Gdzie mogę pobrać aplikację?',
         answer:
-          'Aplikacja na Androida jest udostępniana jako plik APK na tej stronie oraz w GitHub Releases. Instaluj aplikację wyłącznie z oficjalnego źródła dostępnego na tej stronie.',
+          'Aplikację na Androida możesz pobrać jako plik APK z tej strony lub z GitHub Releases. Dla bezpieczeństwa korzystaj wyłącznie z oficjalnych źródeł podanych na tej stronie.',
       },
     ],
-    ctaTitle: 'Gotowy na pierwsze ważenie?',
+    ctaTitle: 'Gotowy na pierwsze wRażenie?',
     ctaBody:
-      'Pobierz bezpłatny plik APK na Androida, utwórz konto i zacznij od dzisiejszego wyniku.',
+      'Pobierz bezpłatną aplikację na Androida, utwórz konto i zacznij budować swoją historię!',
   },
   releases: {
-    title: 'Wydania',
+    title: 'Aktualizacje',
     subtitle:
-      'Co zmieniło się w każdej wersji. Najnowsza wersja aplikacji na Androida jest dostępna do pobrania, gdy opublikowano produkcyjny plik APK.',
+      'Zobacz, co zmieniło się w kolejnych wersjach aplikacji. Najnowsza wersja aplikacji powinna być dostępna do pobrania zaraz po opublikowaniu.',
     latest: 'Najnowsza',
     download: 'Pobierz APK',
     empty: 'Nie opublikowano jeszcze żadnych wydań.',
@@ -233,7 +233,7 @@ const pl: SiteMessages = {
     ],
   },
   footer: {
-    tagline: 'Spokojna aplikacja na Androida do codziennego ważenia.',
+    tagline: 'Prosta aplikacja na Androida do codziennego ważenia.',
     home: 'Strona główna',
     privacy: 'Prywatność',
     github: 'GitHub',
