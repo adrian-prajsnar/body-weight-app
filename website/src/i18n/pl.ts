@@ -60,7 +60,7 @@ const pl: SiteMessages = {
     highlights: [
       {
         title: 'Jedno ważenie dziennie',
-        body: 'Zapisz dzisiejszą wagę w kg lub lbs. Pomyliłeś się? Nic nie szkodzi — po prostu edytuj istniejący wpis. Bez duplikatów, bez zbędnego bałaganu.',
+        body: 'Zapisz dzisiejszą wagę w wybranej jednostce. Pomyliłeś się? Nic nie szkodzi — po prostu edytuj istniejący wpis. Bez duplikatów, bez zbędnego bałaganu.',
       },
       {
         title: 'BMI na podstawie wzrostu',
@@ -203,32 +203,32 @@ const pl: SiteMessages = {
   privacy: {
     title: 'Prywatność',
     updated:
-      'Ta strona opisuje, jak aplikacja obecnie przetwarza Twoje dane.',
+      'Ta strona opisuje, w jaki sposób aplikacja przetwarza Twoje dane oraz jakie dane są przechowywane.',
     sections: [
       {
         title: 'Co przechowujemy',
         body:
-          'Adres e-mail konta, hasło (obsługiwane przez dostawcę uwierzytelniania), codzienne pomiary wagi, historię wzrostu oraz opcjonalne dane profilu, takie jak data urodzenia i płeć. Ustawienia takie jak motyw, język i jednostki są przechowywane na urządzeniu.',
+          'Przechowujemy adres e-mail konta, hasło (obsługiwane przez dostawcę uwierzytelniania), codzienne pomiary wagi, historię wzrostu oraz opcjonalne dane profilu, takie jak data urodzenia i płeć. Ustawienia, takie jak motyw, język i jednostki, są przechowywane na urządzeniu.',
       },
       {
-        title: 'Gdzie są przechowywane',
+        title: 'Gdzie przechowujemy dane',
         body:
-          'Dane dotyczące wagi, wzrostu i profilu są przechowywane w bazie danych w chmurze. Każdy wpis jest powiązany z identyfikatorem użytkownika. Inne osoby nie mogą odczytać Twoich danych za pośrednictwem aplikacji.',
+          'Dane dotyczące wagi, wzrostu i profilu są przechowywane w bazie danych w chmurze. Każdy wpis jest powiązany z konkretnym kontem użytkownika, a inne osoby nie mogą uzyskać dostępu do Twoich danych za pośrednictwem aplikacji.',
       },
       {
         title: 'Czego nie robimy',
         body:
-          'Nie sprzedajemy Twoich danych, nie wyświetlamy reklam i nie udostępniamy pomiarów innym kontom. Nie ma też publicznego feedu.',
+          'Nie sprzedajemy Twoich danych, nie wyświetlamy reklam ani nie udostępniamy Twoich pomiarów innym kontom. Aplikacja nie ma funkcji społecznościowych — Twoje dane pozostają tylko Twoje.',
       },
       {
         title: 'Masz kontrolę',
         body:
-          'Możesz edytować lub usuwać pojedyncze pomiary wagi i wpisy dotyczące wzrostu. Możesz również usunąć konto w Profilu, co spowoduje usunięcie danych aplikacji.',
+          'Możesz w każdej chwili edytować lub usuwać pojedyncze pomiary wagi i wpisy dotyczące wzrostu. Możesz również usunąć konto w Profilu, co spowoduje całkowite usunięcie Twoich danych z aplikacji.',
       },
       {
         title: 'Dystrybucja',
         body:
-          'Aplikacja na Androida jest obecnie udostępniana jako plik APK na tej stronie oraz w GitHub Releases. Instaluj ją wyłącznie z oficjalnego linku pobierania.',
+          'Aplikacja na Androida jest obecnie dostępna jako plik APK na tej stronie oraz w GitHub Releases. Ze względów bezpieczeństwa korzystaj wyłącznie z oficjalnego linku pobierania.',
       },
     ],
   },

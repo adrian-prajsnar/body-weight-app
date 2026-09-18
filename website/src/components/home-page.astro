@@ -126,7 +126,7 @@ const floatCards = [
       aria-label={t.home.heroSliderPrev}
       hidden
     >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6"></path>
           </svg>
         </button>
@@ -136,7 +136,7 @@ const floatCards = [
           data-hero-slider-next
           aria-label={t.home.heroSliderNext}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6"></path>
           </svg>
     </button>
@@ -352,21 +352,132 @@ const floatCards = [
       if (!viewport || !track || !prevBtn || !nextBtn) return;
 
       var index = 0;
+      var touchStartX = 0;
+      var touchStartY = 0;
+      var dragOffset = 0;
+      var isDragging = false;
+      var isHorizontalSwipe = false;
+      var swipeThreshold = 48;
       var media = window.matchMedia('(max-width: 860px)');
+
+      var copySlide = track.querySelector('.hero-copy');
+      var resizeObserver = null;
+
+      function syncViewportHeight() {
+        if (!media.matches || !copySlide) {
+          slider.style.removeProperty('--hero-slider-height');
+          viewport.style.height = '';
+          return;
+        }
+
+        var height = copySlide.offsetHeight;
+        var shadowSpread = 0;
+        if (media.matches) {
+          var spreadValue = getComputedStyle(slider).getPropertyValue('--hero-phone-shadow-spread-y').trim();
+          shadowSpread = spreadValue ? parseFloat(spreadValue) || 48 : 48;
+        }
+        slider.style.setProperty('--hero-slider-height', height + 'px');
+        viewport.style.height = height + shadowSpread + 'px';
+      }
+
+      function startHeightObserver() {
+        if (!copySlide || resizeObserver) return;
+        resizeObserver = new ResizeObserver(syncViewportHeight);
+        resizeObserver.observe(copySlide);
+      }
+
+      function stopHeightObserver() {
+        if (!resizeObserver) return;
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+
+      function getSlideWidth() {
+        var slide = track.querySelector('.hero-slider-slide');
+        return slide ? slide.offsetWidth : viewport.clientWidth;
+      }
+
+      function clampDragOffset(offset) {
+        if (index === 0 && offset > 0) return offset * 0.28;
+        if (index === 1 && offset < 0) return offset * 0.28;
+        return offset;
+      }
+
+      function setTrackPosition(offsetPx, animate) {
+        var slideWidth = getSlideWidth();
+        if (!slideWidth) return;
+
+        track.classList.toggle('is-dragging', !animate);
+        track.style.transform = 'translateX(' + (-index * slideWidth + offsetPx) + 'px)';
+      }
 
       function updateSlider() {
         if (!media.matches) {
           index = 0;
+          dragOffset = 0;
+          isDragging = false;
+          isHorizontalSwipe = false;
+          track.classList.remove('is-dragging');
           track.style.transform = '';
           prevBtn.hidden = true;
           nextBtn.hidden = true;
+          stopHeightObserver();
+          syncViewportHeight();
           return;
         }
 
-        var slideWidth = viewport.clientWidth;
-        track.style.transform = slideWidth ? 'translateX(-' + index * slideWidth + 'px)' : '';
+        startHeightObserver();
+        syncViewportHeight();
+        setTrackPosition(0, true);
         prevBtn.hidden = index === 0;
         nextBtn.hidden = index === 1;
+      }
+
+      function onTouchMove(event) {
+        if (!media.matches || !isDragging || event.touches.length !== 1) return;
+
+        var touch = event.touches[0];
+        var deltaX = touch.clientX - touchStartX;
+        var deltaY = touch.clientY - touchStartY;
+
+        if (!isHorizontalSwipe) {
+          if (Math.abs(deltaX) < 8 && Math.abs(deltaY) < 8) return;
+          if (Math.abs(deltaY) > Math.abs(deltaX)) {
+            isDragging = false;
+            viewport.removeEventListener('touchmove', onTouchMove);
+            return;
+          }
+          isHorizontalSwipe = true;
+        }
+
+        dragOffset = clampDragOffset(deltaX);
+        setTrackPosition(dragOffset, false);
+        event.preventDefault();
+      }
+
+      function endTouch(event) {
+        viewport.removeEventListener('touchmove', onTouchMove);
+
+        if (!media.matches || !isDragging) return;
+
+        if (isHorizontalSwipe) {
+          var touch = event.changedTouches[0];
+          var deltaX = touch ? touch.clientX - touchStartX : dragOffset;
+          var slideWidth = getSlideWidth();
+          var shouldAdvance =
+            Math.abs(deltaX) > swipeThreshold || Math.abs(dragOffset) > slideWidth * 0.18;
+
+          if (deltaX < 0 && index < 1 && shouldAdvance) {
+            index = 1;
+          } else if (deltaX > 0 && index > 0 && shouldAdvance) {
+            index = 0;
+          }
+        }
+
+        isDragging = false;
+        isHorizontalSwipe = false;
+        dragOffset = 0;
+        updateSlider();
       }
 
       prevBtn.addEventListener('click', function () {
@@ -380,6 +491,23 @@ const floatCards = [
         index = 1;
         updateSlider();
       });
+
+      viewport.addEventListener(
+        'touchstart',
+        function (event) {
+          if (!media.matches || event.touches.length !== 1) return;
+          touchStartX = event.touches[0].clientX;
+          touchStartY = event.touches[0].clientY;
+          dragOffset = 0;
+          isDragging = true;
+          isHorizontalSwipe = false;
+          viewport.addEventListener('touchmove', onTouchMove, { passive: false });
+        },
+        { passive: true },
+      );
+
+      viewport.addEventListener('touchend', endTouch, { passive: true });
+      viewport.addEventListener('touchcancel', endTouch, { passive: true });
 
       if (typeof media.addEventListener === 'function') {
         media.addEventListener('change', updateSlider);

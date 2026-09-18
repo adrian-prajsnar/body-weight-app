@@ -21,7 +21,7 @@ const links = [
   <div class="header-bar">
     <div class="header-shell">
       <div class="header-inner">
-        <a class="brand" href={withBase(localePath(locale, 'home'))}>
+        <a class="brand" href={withBase(localePath(locale, page))}>
           <img src={withBase('/app-icon.png')} alt="" width="36" height="36" />
           <span class="brand-name">{t.brand}</span>
         </a>
@@ -173,7 +173,7 @@ const links = [
     var menuToggle = document.querySelector('[data-menu-toggle]');
     var menuOverlay = document.querySelector('[data-menu-overlay]');
     var mobileMenu = document.getElementById('site-menu');
-    var menuMq = window.matchMedia('(max-width: 800px)');
+    var menuMq = window.matchMedia('(max-width: 850px)');
 
     function syncMenuA11y(open) {
       if (!mobileMenu) return;
@@ -273,8 +273,21 @@ const links = [
     });
 
     header.querySelectorAll('.brand').forEach(function (link) {
-      link.addEventListener('click', function () {
+      link.addEventListener('click', function (event) {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+        event.preventDefault();
         if (header.classList.contains('is-open')) setMenuOpen(false, true);
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
       });
     });
 

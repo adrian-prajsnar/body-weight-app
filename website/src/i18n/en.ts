@@ -99,7 +99,7 @@ const en: SiteMessages = {
   meta: {
     title: 'Body Weight Tracker',
     description:
-      'A calm Android app for daily weigh-ins, BMI from your height history, and clear comparisons over time. Free, with cloud sync, in English and Polish.',
+      'A simple Android app for daily weigh-ins, BMI from your height history, and clear comparisons over time. Free, with cloud sync, in English and Polish.',
     releasesTitle: 'Releases — Body Weight Tracker',
     releasesDescription: 'Latest versions, user-facing release notes, and Android APK downloads.',
     privacyTitle: 'Privacy — Body Weight Tracker',
@@ -127,10 +127,10 @@ const en: SiteMessages = {
     dark: 'Dark',
   },
   home: {
-    eyebrow: 'Personal weight tracking',
+    eyebrow: 'Personal weight tracker',
     headline: 'Log your weight.\nSee the trend.\nStay consistent.',
     subhead:
-      'A calm Android app for daily weigh-ins, BMI tracking based on your height history, and clear comparisons across weeks, months, and years. Free for everyone — no ads, no feed, no noise.',
+      'A simple Android app for daily weigh-ins, BMI tracking based on your height history, and clear comparisons across weeks, months, and years. Free for everyone — no ads, no feed, no noise.',
     download: 'Download for Android',
     downloadUnavailable: 'APK coming with the next release',
     versionLabel: 'Latest',
@@ -160,7 +160,7 @@ const en: SiteMessages = {
         body: 'Height can change. Each weigh-in uses the height that applied on that date, or shows “—” if none exists yet.',
       },
       {
-        title: 'Cloud, not a local vault',
+        title: 'Your data in the cloud',
         body: 'Home, History, and Compare stay in sync. Install the app on another Android phone and pick up where you left off.',
       },
     ],
@@ -184,20 +184,20 @@ const en: SiteMessages = {
         body: 'Follow the phone language, or pin English or Polski in Profile. Light and dark themes work the same way.',
       },
     ],
-    audienceTitle: 'Made for a quiet habit',
-    audienceSubtitle: 'No public feed, no streaks shouting at you — just the numbers you logged.',
+    audienceTitle: 'A habit without the pressure',
+    audienceSubtitle: 'No social features, no streaks, no pressure — just the numbers you logged.',
     audience: [
       {
         title: 'Personal, not social',
         body: 'This is a private journal. There is no sharing, no leaderboard, and no one else in your weigh-ins.',
       },
       {
-        title: 'Honest over time',
+        title: 'Look at the bigger picture',
         body: 'Trends, averages, and period comparisons help you see movement without turning every day into a verdict.',
       },
       {
         title: 'Yours to delete',
-        body: 'Edit or remove a single day, manage height history, or delete the whole account. The app should not outlive your consent.',
+        body: 'Edit or remove a single day, manage height history, or delete the whole account. You decide how long your data stays in the app.',
       },
     ],
     screensTitle: 'Inside the app',
@@ -226,19 +226,19 @@ const en: SiteMessages = {
       },
     ],
     howTitle: 'How it works',
-    howSubtitle: 'Three steps. Then the picture fills in as you keep logging.',
+    howSubtitle: 'Three steps. Then your progress starts to take shape as you keep logging.',
     steps: [
       {
         title: 'Create an account',
-        body: 'Sign up with email, confirm the link, and you are in. It is a personal journal — not a shared family vault.',
+        body: 'Sign up with email, confirm the link, and you are in. It’s your personal journal — your data is private to you.',
       },
       {
         title: 'Log a weigh-in',
         body: 'Pick the date, enter the weight, save. Optional height history unlocks BMI for that date.',
       },
       {
-        title: 'Watch the picture form',
-        body: 'Home, History, and Compare stay in sync through the cloud. Use it from any Android install of the app.',
+        title: 'See your progress take shape',
+        body: 'Your data stays in sync across all screens. Install the app on another Android device and pick up where you left off.',
       },
     ],
     privacyNote: 'Weight and height stay in your account. They are not shared with other users.',
@@ -253,7 +253,7 @@ const en: SiteMessages = {
       {
         question: 'Do I need an account?',
         answer:
-          'Yes. Sign-in keeps weigh-ins private to you and lets them sync across Android installs. Other people cannot read your entries in the app.',
+          'Yes. Sign-in keeps weigh-ins private to you and lets them sync across Android installs. Other people cannot access your entries.',
       },
       {
         question: 'Can I use pounds?',
@@ -277,7 +277,7 @@ const en: SiteMessages = {
       },
     ],
     ctaTitle: 'Ready for the first weigh-in?',
-    ctaBody: 'Download the free Android APK, create an account, and start with today’s number.',
+    ctaBody: 'Download the free Android APK, create an account, and log your first weigh-in.',
   },
   releases: {
     title: 'Releases',
@@ -297,15 +297,15 @@ const en: SiteMessages = {
         body: 'Your account email, password (handled by the auth provider), daily weight entries, height history, and optional profile details such as birth date and sex. Preferences like theme, language, and units stay on the device.',
       },
       {
-        title: 'Where it lives',
+        title: 'Where your data is stored',
         body: 'Weight, height, and profile rows are stored in a cloud database. Each row is tied to your user id. Other people cannot read your entries through the app.',
       },
       {
-        title: 'What we do not do',
-        body: 'We do not sell your data, show ads, or share weigh-ins with other accounts. There is no public feed.',
+        title: 'What we don\'t do',
+        body: 'We do not sell your data, show ads, or share weigh-ins with other accounts. There are no social features, and your measurements are never public.',
       },
       {
-        title: 'Your control',
+        title: 'You’re in control',
         body: 'You can edit or delete individual weigh-ins and height records. You can delete your account from Profile, which removes your app data.',
       },
       {
@@ -315,7 +315,7 @@ const en: SiteMessages = {
     ],
   },
   footer: {
-    tagline: 'A calm Android app for daily weigh-ins.',
+    tagline: 'A simple Android app for daily weigh-ins.',
     home: 'Home',
     privacy: 'Privacy',
     github: 'GitHub',
