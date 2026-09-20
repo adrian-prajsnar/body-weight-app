@@ -89,7 +89,7 @@ const pl = {
     hidePassword: 'Ukryj hasło',
     resetLinkInvalid: 'Ten link resetujący jest nieprawidłowy lub wygasł. Poproś o nowy.',
     emailAlreadyRegistered: 'Konto z tym adresem e-mail już istnieje.',
-    rateLimited: 'Zbyt wiele prób. Odczekaj chwilę i spróbuj ponownie.',
+    rateLimited: 'Osiągnięto limit e-maili — spróbuj ponownie za godzinę.',
   },
   dashboard: {
     title: 'Start',

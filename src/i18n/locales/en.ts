@@ -87,7 +87,7 @@ export default {
     hidePassword: 'Hide password',
     resetLinkInvalid: 'This reset link is invalid or has expired. Request a new one.',
     emailAlreadyRegistered: 'An account with this email already exists.',
-    rateLimited: 'Too many attempts. Please wait a moment and try again.',
+    rateLimited: 'Email limit reached — try again in an hour.',
   },
   dashboard: {
     title: 'Home',
