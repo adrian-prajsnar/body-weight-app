@@ -26,6 +26,15 @@ const jsonLd = {
 };
 
 const headlineLines = t.home.headline.split('\n');
+const ctaPlayLetter = t.home.ctaTitlePlayLetter;
+const ctaPlayIndex = ctaPlayLetter ? t.home.ctaTitle.indexOf(ctaPlayLetter) : -1;
+const ctaWordStart = ctaPlayIndex >= 0 ? t.home.ctaTitle.lastIndexOf(' ', ctaPlayIndex) + 1 : -1;
+const ctaWordEnd =
+  ctaPlayIndex >= 0 && ctaPlayLetter
+    ? ctaPlayIndex +
+      ctaPlayLetter.length +
+      (t.home.ctaTitle.slice(ctaPlayIndex + ctaPlayLetter.length).match(/^[^\s?!.]*/)?.[0].length ?? 0)
+    : -1;
 const featureIcons = [
   '<path d="M4 16l4-4 3 3 9-9"/><path d="M14 6h5v5"/>',
   '<path d="M5 19V9M10 19V5M15 19v-7M20 19V8"/>',
@@ -192,7 +201,7 @@ const floatCards = [
 
 <section class="section">
   <div class="section-inner">
-    <div class="section-heading section-heading--wide" data-reveal>
+    <div class="section-heading section-heading--screens" data-reveal>
       <h2>{t.home.screensTitle}</h2>
       <p class="section-lead">{t.home.screensSubtitle}</p>
     </div>
@@ -200,6 +209,7 @@ const floatCards = [
       {
         t.home.screens.map((screen, index) => (
           <figure class="screen-card" data-reveal style={`--reveal-delay: ${index * 70}ms`}>
+            <h3 class="screen-title">{screen.title}</h3>
             <div class="app-screen-frame">
               <span class="phone-island" aria-hidden="true"></span>
               <img
@@ -214,7 +224,6 @@ const floatCards = [
               <span class="phone-home" aria-hidden="true"></span>
             </div>
             <figcaption class="screen-caption">
-              <h3>{screen.title}</h3>
               <p>{screen.body}</p>
             </figcaption>
           </figure>
@@ -260,7 +269,6 @@ const floatCards = [
         ))
       }
     </div>
-    <p class="privacy-banner" data-reveal>{t.home.privacyNote}</p>
   </div>
 </section>
 
@@ -306,7 +314,15 @@ const floatCards = [
   <div class="section-inner">
     <div class="cta-band" data-reveal>
       <div>
-        <h2>{t.home.ctaTitle}</h2>
+        <h2 aria-label={ctaPlayLetter && ctaPlayIndex >= 0 ? t.home.ctaTitle : undefined}>
+          {
+            ctaPlayLetter && ctaPlayIndex >= 0 && ctaWordStart >= 0 ? (
+              <>{t.home.ctaTitle.slice(0, ctaWordStart)}<span class="cta-play-word">{t.home.ctaTitle.slice(ctaWordStart, ctaPlayIndex)}<span class="cta-play-letter">{ctaPlayLetter}</span>{t.home.ctaTitle.slice(ctaPlayIndex + ctaPlayLetter.length, ctaWordEnd)}</span>{t.home.ctaTitle.slice(ctaWordEnd)}</>
+            ) : (
+              t.home.ctaTitle
+            )
+          }
+        </h2>
         <p class="section-lead">{t.home.ctaBody}</p>
       </div>
       {

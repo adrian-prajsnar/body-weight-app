@@ -66,11 +66,11 @@ export type SiteMessages = {
     howTitle: string;
     howSubtitle: string;
     steps: { title: string; body: string }[];
-    privacyNote: string;
     faqTitle: string;
     faqSubtitle: string;
     faq: { question: string; answer: string }[];
     ctaTitle: string;
+    ctaTitlePlayLetter?: string;
     ctaBody: string;
   };
   releases: {
@@ -90,7 +90,6 @@ export type SiteMessages = {
     tagline: string;
     home: string;
     privacy: string;
-    github: string;
     copyrightName: string;
   };
 };
@@ -153,15 +152,15 @@ const en: SiteMessages = {
     highlights: [
       {
         title: 'One weigh-in a day',
-        body: 'Save today’s number in kg or lb. Logging the same date updates that entry — no duplicate rows.',
+        body: 'Save today’s number in the selected unit. Logging the same date updates that entry — no duplicate rows.',
       },
       {
         title: 'BMI that follows height',
-        body: 'Height can change. Each weigh-in uses the height that applied on that date, or shows “—” if none exists yet.',
+        body: 'Height can change over time. Each weigh-in uses the height that applied on that date, or is not displayed if none exists yet.',
       },
       {
         title: 'Your data in the cloud',
-        body: 'Home, History, and Compare stay in sync. Install the app on another Android phone and pick up where you left off.',
+        body: 'All your data stays in sync. Install the app on another Android phone and pick up where you left off.',
       },
     ],
     featuresTitle: 'What you get',
@@ -180,8 +179,8 @@ const en: SiteMessages = {
         body: 'Sign-in is required. Each person only sees their own entries. You can delete the account from Profile at any time.',
       },
       {
-        title: 'English and Polish',
-        body: 'Follow the phone language, or pin English or Polski in Profile. Light and dark themes work the same way.',
+        title: 'Two languages, two themes',
+        body: 'Use your system settings by default, or choose your preferred language and theme in Profile. The app is available in English and Polish, with both light and dark themes.',
       },
     ],
     audienceTitle: 'A habit without the pressure',
@@ -196,7 +195,7 @@ const en: SiteMessages = {
         body: 'Trends, averages, and period comparisons help you see movement without turning every day into a verdict.',
       },
       {
-        title: 'Yours to delete',
+        title: 'You’re in control',
         body: 'Edit or remove a single day, manage height history, or delete the whole account. You decide how long your data stays in the app.',
       },
     ],
@@ -217,7 +216,7 @@ const en: SiteMessages = {
       {
         id: 'compare',
         title: 'Compare',
-        body: 'Stack weeks, months, or years and see how the average moved.',
+        body: 'Stack days, weeks, months, or years and see how the average moved.',
       },
       {
         id: 'profile',
@@ -241,7 +240,6 @@ const en: SiteMessages = {
         body: 'Your data stays in sync across all screens. Install the app on another Android device and pick up where you left off.',
       },
     ],
-    privacyNote: 'Weight and height stay in your account. They are not shared with other users.',
     faqTitle: 'Common questions',
     faqSubtitle: 'Short answers before you install.',
     faq: [
@@ -253,7 +251,7 @@ const en: SiteMessages = {
       {
         question: 'Do I need an account?',
         answer:
-          'Yes. Sign-in keeps weigh-ins private to you and lets them sync across Android installs. Other people cannot access your entries.',
+          'Yes. Sign-in keeps weigh-ins private to you and lets them sync across various devices. Other people cannot access your entries.',
       },
       {
         question: 'Can I use pounds?',
@@ -263,17 +261,17 @@ const en: SiteMessages = {
       {
         question: 'How is BMI calculated?',
         answer:
-          'BMI uses the height that applied on that weigh-in date. If no height covers the date, BMI shows as “—”. You can turn BMI off in Profile.',
+          'BMI uses the height that applied on that weigh-in date. If no height covers the date, BMI is not displayed. You can turn BMI off in Profile.',
       },
       {
         question: 'Can I delete my data?',
         answer:
-          'Yes. Edit or delete individual weigh-ins and height records. Deleting the account from Profile removes your app data.',
+          'Yes. Edit or delete individual weigh-ins and height records. Deleting the account from Profile removes your app data permanently.',
       },
       {
         question: 'Where do I download it?',
         answer:
-          'The Android app is distributed as an APK from this website and GitHub Releases. Install only from the official download on this site.',
+          'The Android app is distributed as an APK from this website. Install only from the official download on this site.',
       },
     ],
     ctaTitle: 'Ready for the first weigh-in?',
@@ -310,7 +308,7 @@ const en: SiteMessages = {
       },
       {
         title: 'Distribution',
-        body: 'The Android app is currently distributed as an APK from this website and GitHub Releases. Install only from this official download link.',
+        body: 'The Android app is currently distributed as an APK from this website. Install only from this official download link.',
       },
     ],
   },
@@ -318,7 +316,6 @@ const en: SiteMessages = {
     tagline: 'A simple Android app for daily weigh-ins.',
     home: 'Home',
     privacy: 'Privacy',
-    github: 'GitHub',
     copyrightName: 'Adrian Prajsnar DEV',
   },
 };

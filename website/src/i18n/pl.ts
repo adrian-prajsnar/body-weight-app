@@ -116,7 +116,7 @@ const pl: SiteMessages = {
       {
         id: 'home',
         title: 'Strona główna',
-        body: 'Zapisz ważenie, sprawdź ostatni wynik, trend i najważniejsze statystyki.',
+        body: 'Zapisz wagę, sprawdź ostatni wynik, trend i najważniejsze statystyki.',
       },
       {
         id: 'history',
@@ -126,7 +126,7 @@ const pl: SiteMessages = {
       {
         id: 'compare',
         title: 'Porównaj',
-        body: 'Porównuj dni tygodnie, miesiące lub lata i sprawdzaj, jak zmieniała się Twoja waga.',
+        body: 'Porównuj dni, tygodnie, miesiące lub lata i sprawdzaj, jak zmieniała się Twoja waga.',
       },
       {
         id: 'profile',
@@ -143,7 +143,7 @@ const pl: SiteMessages = {
         body: 'Zarejestruj się za pomocą adresu e-mail, potwierdź link i gotowe. Od tego momentu masz własny, prywatny dziennik swoich pomiarów.',
       },
       {
-        title: 'Zapisz ważenie',
+        title: 'Zapisz swoją wagę',
         body: 'Wybierz datę, wpisz wagę i zapisz. Jeśli uzupełnisz swój wzrost, aplikacja obliczy i wyświetli Twoje BMI dla konkretnego dnia.',
       },
       {
@@ -151,8 +151,6 @@ const pl: SiteMessages = {
         body: 'Obserwuj postępy korzystając z aplikacji na dowolnym urządzeniu z Androidem. Twoje dane są zapisywane w chmurze.',
       },
     ],
-    privacyNote:
-      'Waga i wzrost są przechowywane na Twoim koncie. Nie są udostępniane innym użytkownikom.',
     faqTitle: 'Najczęściej zadawane pytania',
     faqSubtitle: 'Krótkie odpowiedzi, przed instalacją.',
     faq: [
@@ -184,12 +182,13 @@ const pl: SiteMessages = {
       {
         question: 'Gdzie mogę pobrać aplikację?',
         answer:
-          'Aplikację na Androida możesz pobrać jako plik APK z tej strony lub z GitHub Releases. Dla bezpieczeństwa korzystaj wyłącznie z oficjalnych źródeł podanych na tej stronie.',
+          'Aplikację na Androida możesz pobrać jako plik APK z tej strony. Dla bezpieczeństwa korzystaj wyłącznie z oficjalnych źródeł podanych na tej stronie.',
       },
     ],
     ctaTitle: 'Gotowy na pierwsze wRażenie?',
+    ctaTitlePlayLetter: 'R',
     ctaBody:
-      'Pobierz bezpłatną aplikację na Androida, utwórz konto i zacznij budować swoją historię!',
+      'Pobierz bezpłatną aplikację na Androida, utwórz konto i zacznij monitorować swoje postępy!',
   },
   releases: {
     title: 'Aktualizacje',
@@ -228,7 +227,7 @@ const pl: SiteMessages = {
       {
         title: 'Dystrybucja',
         body:
-          'Aplikacja na Androida jest obecnie dostępna jako plik APK na tej stronie oraz w GitHub Releases. Ze względów bezpieczeństwa korzystaj wyłącznie z oficjalnego linku pobierania.',
+          'Aplikacja na Androida jest obecnie dostępna jako plik APK na tej stronie. Ze względów bezpieczeństwa korzystaj wyłącznie z oficjalnego linku pobierania.',
       },
     ],
   },
@@ -236,7 +235,6 @@ const pl: SiteMessages = {
     tagline: 'Prosta aplikacja na Androida do codziennego ważenia.',
     home: 'Strona główna',
     privacy: 'Prywatność',
-    github: 'GitHub',
     copyrightName: 'Adrian Prajsnar DEV',
   },
 };
