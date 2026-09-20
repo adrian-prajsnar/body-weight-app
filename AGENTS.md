@@ -1,4 +1,4 @@
-# Body Weight Tracker — Agent Guide
+# WeighWay — Agent Guide
 
 Personal Android app (Expo SDK 54). Supabase-backed, auth required.
 

@@ -1,6 +1,6 @@
-# Body Weight Tracker
+# WeighWay
 
-A minimal Android app for logging daily body weight, with metric (kg) or imperial (lb) display and data stored in Supabase.
+Your weight, your progress — a minimal Android app for logging daily body weight, with metric (kg) or imperial (lb) display and data stored in Supabase.
 
 ## Features
 

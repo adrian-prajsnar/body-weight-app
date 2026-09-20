@@ -96,15 +96,15 @@ export type SiteMessages = {
 
 const en: SiteMessages = {
   meta: {
-    title: 'Body Weight Tracker',
+    title: 'WeighWay',
     description:
-      'A simple Android app for daily weigh-ins, BMI from your height history, and clear comparisons over time. Free, with cloud sync, in English and Polish.',
-    releasesTitle: 'Releases — Body Weight Tracker',
+      'Your weight, your progress. A free Android app for daily weigh-ins, BMI from your height history, and clear comparisons over time — with cloud sync in English and Polish.',
+    releasesTitle: 'Releases — WeighWay',
     releasesDescription: 'Latest versions, user-facing release notes, and Android APK downloads.',
-    privacyTitle: 'Privacy — Body Weight Tracker',
-    privacyDescription: 'How Body Weight Tracker stores weight, height, and account data.',
+    privacyTitle: 'Privacy — WeighWay',
+    privacyDescription: 'How WeighWay stores weight, height, and account data.',
   },
-  brand: 'Body Weight Tracker',
+  brand: 'WeighWay',
   skip: 'Skip to content',
   nav: {
     home: 'Home',
@@ -126,7 +126,7 @@ const en: SiteMessages = {
     dark: 'Dark',
   },
   home: {
-    eyebrow: 'Personal weight tracker',
+    eyebrow: 'Your weight, your progress.',
     headline: 'Log your weight.\nSee the trend.\nStay consistent.',
     subhead:
       'A simple Android app for daily weigh-ins, BMI tracking based on your height history, and clear comparisons across weeks, months, and years. Free for everyone — no ads, no feed, no noise.',
@@ -246,7 +246,7 @@ const en: SiteMessages = {
       {
         question: 'Is the app free?',
         answer:
-          'Yes. Body Weight Tracker is free to use. There are no ads and no paid plan on this site.',
+          'Yes. WeighWay is free to use. There are no ads and no paid plan on this site.',
       },
       {
         question: 'Do I need an account?',
@@ -313,7 +313,7 @@ const en: SiteMessages = {
     ],
   },
   footer: {
-    tagline: 'A simple Android app for daily weigh-ins.',
+    tagline: 'Your weight, your progress.',
     home: 'Home',
     privacy: 'Privacy',
     copyrightName: 'Adrian Prajsnar DEV',

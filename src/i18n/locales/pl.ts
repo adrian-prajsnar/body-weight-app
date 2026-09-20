@@ -1,4 +1,8 @@
 const pl = {
+  app: {
+    name: 'WeighWay',
+    tagline: 'Twoja waga, Twój progres.',
+  },
   common: {
     cancel: 'Anuluj',
     delete: 'Usuń',

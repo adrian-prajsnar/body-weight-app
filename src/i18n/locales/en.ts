@@ -1,4 +1,8 @@
 export default {
+  app: {
+    name: 'WeighWay',
+    tagline: 'Your weight, your progress.',
+  },
   common: {
     cancel: 'Cancel',
     delete: 'Delete',

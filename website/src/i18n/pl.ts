@@ -2,17 +2,17 @@ import type { SiteMessages } from './en';
 
 const pl: SiteMessages = {
   meta: {
-    title: 'Body Weight Tracker',
+    title: 'WeighWay',
     description:
-      'Spokojna aplikacja na Androida do codziennego ważenia, obliczania BMI na podstawie historii wzrostu oraz przejrzystego porównywania wyników w czasie. Bezpłatna, z synchronizacją w chmurze, dostępna po polsku i angielsku.',
-    releasesTitle: 'Aktualizacje — Body Weight Tracker',
+      'Twoja waga, Twój progres. Spokojna aplikacja na Androida do codziennego ważenia, obliczania BMI na podstawie historii wzrostu oraz przejrzystego porównywania wyników w czasie. Bezpłatna, z synchronizacją w chmurze, dostępna po polsku i angielsku.',
+    releasesTitle: 'Aktualizacje — WeighWay',
     releasesDescription:
       'Najnowsze wersje, informacje o zmianach widoczne dla użytkownika oraz pliki APK na Androida.',
-    privacyTitle: 'Prywatność — Body Weight Tracker',
+    privacyTitle: 'Prywatność — WeighWay',
     privacyDescription:
-      'Informacje o tym, jak aplikacja przechowuje dane dotyczące masy ciała, wzrostu i konta.',
+      'Informacje o tym, jak WeighWay przechowuje dane dotyczące masy ciała, wzrostu i konta.',
   },
-  brand: 'Body Weight Tracker',
+  brand: 'WeighWay',
   skip: 'Przejdź do treści',
   nav: {
     home: 'Strona główna',
@@ -34,7 +34,7 @@ const pl: SiteMessages = {
     dark: 'Ciemny',
   },
   home: {
-    eyebrow: 'Osobisty dziennik wagi',
+    eyebrow: 'Twoja waga, Twój progres.',
     headline: 'Zapisuj swoją wagę.\nObserwuj trend.\nTrzymaj się planu.',
     subhead:
       'Prosta i przejrzysta aplikacja na Androida do codziennego zapisywania wagi, śledzenia BMI na podstawie historii wzrostu oraz porównywania wyników na przestrzeni dni, tygodni, miesięcy i lat.\nBezpłatna dla każdego — bez reklam, bez rozpraszaczy, bez zbędnych dodatków.',
@@ -157,7 +157,7 @@ const pl: SiteMessages = {
       {
         question: 'Czy aplikacja jest bezpłatna?',
         answer:
-          'Tak. Aplikacja Body Weight Tracker jest bezpłatna — nie ma reklam ani płatnego planu.',
+          'Tak. WeighWay jest bezpłatna — nie ma reklam ani płatnego planu.',
       },
       {
         question: 'Czy potrzebuję konta?',
@@ -232,7 +232,7 @@ const pl: SiteMessages = {
     ],
   },
   footer: {
-    tagline: 'Prosta aplikacja na Androida do codziennego ważenia.',
+    tagline: 'Twoja waga, Twój progres.',
     home: 'Strona główna',
     privacy: 'Prywatność',
     copyrightName: 'Adrian Prajsnar DEV',
