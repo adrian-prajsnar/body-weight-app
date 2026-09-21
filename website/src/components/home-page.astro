@@ -2,6 +2,7 @@
 import { getMessages, type SiteLocale } from '../i18n';
 import { getLatestRelease } from '../lib/releases';
 import { absoluteUrl, withBase } from '../lib/paths';
+import { screenshotPath, type ScreenshotId } from '../lib/screenshots';
 
 type Props = { locale: SiteLocale };
 const { locale } = Astro.props;
@@ -51,6 +52,7 @@ const floatCards = [
   { value: t.home.preview.bmiValue, label: t.home.preview.bmi, tone: 'b' },
   { value: t.home.preview.thisWeekValue, label: t.home.preview.thisWeek, tone: 'c' },
 ];
+const homeScreen = t.home.screens.find((screen) => screen.id === 'home');
 ---
 
 <section class="hero" data-hero-slider>
@@ -105,9 +107,9 @@ const floatCards = [
           <span class="phone-island" aria-hidden="true"></span>
           <img
             class="app-screen-shot screen-shot-image"
-            src={withBase('/screenshots/home.webp')}
-            data-fallback={withBase('/screenshots/home.svg')}
-            alt=""
+            data-screenshot="home"
+            src={withBase(screenshotPath('home', locale, 'light'))}
+            alt={homeScreen?.title ?? 'Home'}
             loading="eager"
             width="360"
             height="660"
@@ -214,9 +216,9 @@ const floatCards = [
               <span class="phone-island" aria-hidden="true"></span>
               <img
                 class="app-screen-shot screen-shot-image"
-                src={withBase(`/screenshots/${screen.id}.webp`)}
-                data-fallback={withBase(`/screenshots/${screen.id}.svg`)}
-                alt=""
+                data-screenshot={screen.id}
+                src={withBase(screenshotPath(screen.id as ScreenshotId, locale, 'light'))}
+                alt={screen.title}
                 loading="lazy"
                 width="360"
                 height="660"
@@ -347,19 +349,6 @@ const floatCards = [
 
 <script is:inline>
   (function () {
-    document.querySelectorAll('.screen-shot-image').forEach(function (img) {
-      img.addEventListener(
-        'error',
-        function () {
-          var fallback = img.getAttribute('data-fallback');
-          if (fallback && img.src !== fallback) {
-            img.src = fallback;
-          }
-        },
-        { once: true },
-      );
-    });
-
     document.querySelectorAll('[data-hero-slider]').forEach(function (slider) {
       var viewport = slider.querySelector('.hero-slider-viewport');
       var track = slider.querySelector('.hero-slider-track');

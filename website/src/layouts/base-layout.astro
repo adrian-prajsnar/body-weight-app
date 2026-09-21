@@ -18,7 +18,7 @@ const plUrl = absoluteUrl(localePath('pl', page));
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} data-screenshot-locale={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -80,6 +80,26 @@ const plUrl = absoluteUrl(localePath('pl', page));
     <div class="scroll-progress" hidden></div>
     <a class="skip-link" href="#content">{t.skip}</a>
     <slot />
+    <script is:inline define:vars={{ baseUrl: import.meta.env.BASE_URL }}>
+      (function () {
+        function syncScreenshotImages() {
+          var locale = document.documentElement.getAttribute('data-screenshot-locale') || 'en';
+          var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+          var base = String(baseUrl).replace(/\/$/, '');
+          document.querySelectorAll('[data-screenshot]').forEach(function (img) {
+            var id = img.getAttribute('data-screenshot');
+            if (!id) return;
+            var next = base + '/screenshots/' + id + '-' + theme + '-' + locale + '.webp';
+            if (img.getAttribute('src') !== next) {
+              img.setAttribute('src', next);
+            }
+          });
+        }
+
+        window.syncScreenshotImages = syncScreenshotImages;
+        syncScreenshotImages();
+      })();
+    </script>
     <script is:inline>
       (function () {
         var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

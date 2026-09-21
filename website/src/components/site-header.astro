@@ -82,6 +82,16 @@ const links = [
   <div class="menu-overlay" data-menu-overlay aria-hidden="true"></div>
 </header>
 
+<div class="theme-splash" data-theme-splash aria-hidden="true">
+  <div class="theme-splash-inner">
+    <div class="theme-splash-logo">
+      <BrandLogo size={72} />
+    </div>
+    <p class="theme-splash-name">{t.brand}</p>
+    <p class="theme-splash-tagline">{t.footer.tagline}</p>
+  </div>
+</div>
+
 <script is:inline define:vars={{ pageLocale: locale, baseUrl: import.meta.env.BASE_URL }}>
   (function () {
     var languageKey = 'body-weight-site/language';
@@ -109,12 +119,131 @@ const links = [
       }
     }
 
+    function getScreenshotIds() {
+      var ids = [];
+      document.querySelectorAll('[data-screenshot]').forEach(function (img) {
+        var id = img.getAttribute('data-screenshot');
+        if (id && ids.indexOf(id) === -1) ids.push(id);
+      });
+      return ids;
+    }
+
+    function screenshotUrl(id, theme) {
+      var locale = document.documentElement.getAttribute('data-screenshot-locale') || 'en';
+      var base = String(baseUrl).replace(/\/$/, '');
+      return base + '/screenshots/' + id + '-' + theme + '-' + locale + '.webp';
+    }
+
+    function preloadScreenshot(id, theme) {
+      return new Promise(function (resolve) {
+        var img = new Image();
+        img.decoding = 'async';
+        img.onload = function () {
+          if (typeof img.decode === 'function') {
+            img.decode().then(resolve).catch(resolve);
+            return;
+          }
+          resolve();
+        };
+        img.onerror = function () {
+          resolve();
+        };
+        img.src = screenshotUrl(id, theme);
+      });
+    }
+
+    function preloadThemeScreenshots(theme) {
+      var ids = getScreenshotIds();
+      if (!ids.length) return Promise.resolve();
+      return Promise.all(ids.map(function (id) {
+        return preloadScreenshot(id, theme);
+      }));
+    }
+
+    function getRevealRadius(x, y) {
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+      return (
+        Math.ceil(
+          Math.max(
+            Math.hypot(x, y),
+            Math.hypot(w - x, y),
+            Math.hypot(x, h - y),
+            Math.hypot(w - x, h - y),
+          ),
+        ) + 24
+      );
+    }
+
+    function decodeDomScreenshots() {
+      var tasks = [];
+      document.querySelectorAll('[data-screenshot]').forEach(function (img) {
+        if (typeof img.decode !== 'function') return;
+        tasks.push(img.decode().catch(function () {}));
+      });
+      return tasks.length ? Promise.all(tasks) : Promise.resolve();
+    }
+
+    function wait(ms) {
+      return new Promise(function (resolve) {
+        window.setTimeout(resolve, ms);
+      });
+    }
+
+    function fadeSplash(overlay, from, to, duration) {
+      return overlay.animate([{ opacity: from }, { opacity: to }], {
+        duration: duration,
+        easing: 'cubic-bezier(0.22, 1, 0.28, 1)',
+        fill: 'forwards',
+      }).finished;
+    }
+
+    function runDesktopFlashTransition(next, commit) {
+      var overlay = document.querySelector('[data-theme-splash]');
+      if (!overlay) {
+        commit();
+        return Promise.resolve();
+      }
+
+      var assets = preloadThemeScreenshots(next);
+      overlay.setAttribute('data-mode', next);
+      overlay.classList.add('is-on');
+      overlay.classList.remove('is-ready');
+      document.documentElement.classList.add('theme-animating');
+
+      window.requestAnimationFrame(function () {
+        overlay.classList.add('is-ready');
+      });
+
+      return fadeSplash(overlay, 0, 1, 280)
+        .then(function () {
+          return Promise.all([assets, wait(420)]);
+        })
+        .then(function () {
+          commit();
+          return decodeDomScreenshots();
+        })
+        .then(function () {
+          return wait(520);
+        })
+        .then(function () {
+          return fadeSplash(overlay, 1, 0, 380);
+        })
+        .finally(function () {
+          overlay.classList.remove('is-on', 'is-ready');
+          overlay.removeAttribute('data-mode');
+          document.documentElement.classList.remove('theme-animating');
+          preloadThemeScreenshots(next === 'dark' ? 'light' : 'dark');
+        });
+    }
+
     var languagePref = normalizeLanguage(localStorage.getItem(languageKey));
     var themePref = normalizeTheme(localStorage.getItem(themeKey));
 
     markToggle('[data-language-toggle]', 'data-language', languagePref);
     markToggle('[data-theme-toggle]', 'data-theme', themePref);
     applyTheme(themePref);
+    preloadThemeScreenshots(themePref === 'dark' ? 'light' : 'dark');
 
     document.querySelectorAll('[data-language-toggle] button').forEach(function (button) {
       button.addEventListener('click', function () {
@@ -139,23 +268,44 @@ const links = [
       button.addEventListener('click', function (event) {
         var next = button.getAttribute('data-theme');
         if (next !== 'light' && next !== 'dark') return;
+        if (next === themePref) return;
 
         function commit() {
+          themePref = next;
           localStorage.setItem(themeKey, next);
           applyTheme(next);
           markToggle('[data-theme-toggle]', 'data-theme', next);
+          if (window.syncScreenshotImages) {
+            window.syncScreenshotImages();
+          }
         }
 
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var desktop = window.matchMedia('(min-width: 851px)').matches;
+
+        if (!reduce && desktop) {
+          runDesktopFlashTransition(next, commit);
+          return;
+        }
+
         if (!reduce && typeof document.startViewTransition === 'function') {
           try {
-            document.documentElement.style.setProperty('--vt-x', event.clientX + 'px');
-            document.documentElement.style.setProperty('--vt-y', event.clientY + 'px');
+            var x = event.clientX;
+            var y = event.clientY;
+            document.documentElement.style.setProperty('--vt-x', x + 'px');
+            document.documentElement.style.setProperty('--vt-y', y + 'px');
+            document.documentElement.style.setProperty('--vt-r', getRevealRadius(x, y) + 'px');
             document.documentElement.classList.add('theme-animating');
-            var transition = document.startViewTransition(commit);
+            var transition = document.startViewTransition(function () {
+              return preloadThemeScreenshots(next).then(function () {
+                commit();
+                return decodeDomScreenshots();
+              });
+            });
             if (transition && transition.finished) {
               transition.finished.finally(function () {
                 document.documentElement.classList.remove('theme-animating');
+                preloadThemeScreenshots(next === 'dark' ? 'light' : 'dark');
               });
             } else {
               document.documentElement.classList.remove('theme-animating');
