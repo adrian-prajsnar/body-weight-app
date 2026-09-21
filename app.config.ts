@@ -24,12 +24,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    plugins: [...(config.plugins ?? []), 'expo-splash-screen'],
-    splash: {
-      image: './assets/splash-icon.png',
-      resizeMode: 'contain',
-      backgroundColor: SPLASH_BACKGROUND,
-    },
+    plugins: [
+      ...(config.plugins ?? []),
+      [
+        'expo-splash-screen',
+        {
+          image: './assets/splash-icon.png',
+          resizeMode: 'contain',
+          backgroundColor: SPLASH_BACKGROUND,
+        },
+      ],
+      'expo-web-browser',
+    ],
     android: {
       ...config.android,
       versionCode: 3,
