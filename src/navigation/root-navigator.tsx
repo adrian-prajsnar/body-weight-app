@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native';
+import { AuthShell } from '../components/auth-shell';
 import { useSupabaseAuth } from '../context/supabase-auth-context';
 import { useTranslation } from '../i18n/language-context';
 import { NewPasswordScreen } from '../screens/new-password-screen';
@@ -25,7 +26,9 @@ export function RootNavigator() {
   }
 
   return isPasswordRecovery ? (
-    <NewPasswordScreen />
+    <AuthShell>
+      <NewPasswordScreen />
+    </AuthShell>
   ) : isAuthenticated ? (
     <MainTabNavigator />
   ) : (

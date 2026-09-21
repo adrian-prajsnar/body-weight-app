@@ -298,8 +298,11 @@ html[data-theme='dark'] .page-fx-noise {
   transform: translateY(-1px);
 }
 
-.brand img,
+.brand svg,
 .footer-logo {
+  display: block;
+  flex-shrink: 0;
+  overflow: hidden;
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
@@ -309,7 +312,7 @@ html[data-theme='dark'] .page-fx-noise {
 }
 
 .footer-brand:hover .footer-logo,
-.brand:hover img {
+.brand:hover svg {
   transform: scale(1.04) rotate(-2deg);
 }
 

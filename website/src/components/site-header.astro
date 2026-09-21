@@ -1,6 +1,7 @@
 ---
 import { getMessages, localePath, type SiteLocale, type SitePage } from '../i18n';
 import { withBase } from '../lib/paths';
+import BrandLogo from './brand-logo.astro';
 
 type Props = {
   locale: SiteLocale;
@@ -22,7 +23,7 @@ const links = [
     <div class="header-shell">
       <div class="header-inner">
         <a class="brand" href={withBase(localePath(locale, page))}>
-          <img src={withBase('/app-icon.png')} alt="" width="36" height="36" />
+          <BrandLogo size={36} />
           <span class="brand-name">{t.brand}</span>
         </a>
         <button

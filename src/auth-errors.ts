@@ -42,6 +42,22 @@ function isRateLimitError(error: unknown): boolean {
   return message.includes('rate limit') || message.includes('too many requests');
 }
 
+function isWeakPasswordError(error: unknown): boolean {
+  if (typeof error === 'object' && error !== null) {
+    const candidate = error as { code?: string; reasons?: unknown };
+    if (candidate.code === 'weak_password' || Array.isArray(candidate.reasons)) {
+      return true;
+    }
+  }
+
+  const message = getErrorMessage(error);
+  return (
+    message.includes('password should') ||
+    message.includes('password is known to be weak') ||
+    message.includes('weak password')
+  );
+}
+
 function isInvalidResetLinkError(error: unknown): boolean {
   const message = getErrorMessage(error);
   return (
@@ -87,6 +103,10 @@ export function formatSignUpError(error: unknown): string {
     return t('auth.rateLimited');
   }
 
+  if (isWeakPasswordError(error)) {
+    return t('auth.passwordRequirements');
+  }
+
   return t('auth.signUpFailed');
 }
 
@@ -107,6 +127,10 @@ export function formatUpdatePasswordError(error: unknown): string {
   const network = mapNetworkError(error);
   if (network) {
     return network;
+  }
+
+  if (isWeakPasswordError(error)) {
+    return t('auth.passwordRequirements');
   }
 
   return t('auth.couldNotUpdatePassword');

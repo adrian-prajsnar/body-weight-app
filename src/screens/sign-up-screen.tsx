@@ -8,6 +8,7 @@ import { PasswordField } from '../components/password-field';
 import { useToast } from '../context/toast-context';
 import { useTranslation } from '../i18n/language-context';
 import { AuthStackParamList } from '../navigation/types';
+import { isValidPassword } from '../password';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 
@@ -30,8 +31,8 @@ export function SignUpScreen({ navigation }: Props) {
       return;
     }
 
-    if (password.length < 8) {
-      showError(t('auth.passwordMinLength'));
+    if (!isValidPassword(password)) {
+      showError(t('auth.passwordRequirements'));
       return;
     }
 

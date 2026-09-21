@@ -1,6 +1,7 @@
 ---
 import { getMessages, localePath, type SiteLocale } from '../i18n';
 import { withBase } from '../lib/paths';
+import BrandLogo from './brand-logo.astro';
 
 type Props = { locale: SiteLocale };
 const { locale } = Astro.props;
@@ -11,13 +12,7 @@ const year = new Date().getFullYear();
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <img
-        class="footer-logo"
-        src={withBase('/app-icon.png')}
-        alt=""
-        width="40"
-        height="40"
-      />
+      <BrandLogo class="footer-logo" size={40} />
       <div>
         <p class="footer-brand-name">{t.brand}</p>
         <p class="footer-tagline">{t.footer.tagline}</p>

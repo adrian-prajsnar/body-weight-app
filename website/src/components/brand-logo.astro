@@ -1,0 +1,26 @@
+---
+type Props = {
+  class?: string;
+  size?: number;
+};
+
+const { class: className = '', size = 40 } = Astro.props;
+---
+
+<svg
+  class={className}
+  width={size}
+  height={size}
+  viewBox="0 0 32 32"
+  aria-hidden="true"
+  focusable="false"
+>
+  <rect width="32" height="32" rx="7" fill="var(--accent-soft)"></rect>
+  <polyline
+    points="5,7.5 11,19 16,12.5 22.5,24.8 27,7.5"
+    fill="none"
+    stroke="var(--accent)"
+    stroke-width="3.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"></polyline>
+</svg>
