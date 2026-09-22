@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = '@body-weight-app/units';
+const STORAGE_KEY = '@weigh-way/units';
 
 export type UnitPreference = 'system' | 'metric' | 'imperial';
 

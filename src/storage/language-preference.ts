@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = '@body-weight-app/language';
+const STORAGE_KEY = '@weigh-way/language';
 
 export type LanguagePreference = 'system' | 'en' | 'pl';
 

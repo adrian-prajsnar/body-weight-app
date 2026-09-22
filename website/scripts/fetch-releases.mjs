@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NOTES_DIR = path.join(ROOT, 'content', 'releases');
 const OUTPUT_PATH = path.join(ROOT, 'src', 'data', 'releases.json');
-const REPO = process.env.GITHUB_REPOSITORY || 'adrian-prajsnar/body-weight-app';
-const APK_NAME = 'body-weight-app.apk';
+const REPO = process.env.GITHUB_REPOSITORY || 'adrian-prajsnar/weigh-way';
+const APK_NAME = 'weigh-way.apk';
 
 function parseNotesFile(raw) {
   const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
@@ -43,7 +43,7 @@ function compareVersions(a, b) {
 async function loadGitHubApkUrls() {
   const headers = {
     Accept: 'application/vnd.github+json',
-    'User-Agent': 'body-weight-app-website',
+    'User-Agent': 'weigh-way-website',
   };
   if (process.env.GITHUB_TOKEN) {
     headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;

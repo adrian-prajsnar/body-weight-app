@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   site: 'https://adrian-prajsnar.github.io',
-  base: '/body-weight-app',
+  base: '/weigh-way',
   trailingSlash: 'always',
   integrations: [sitemap()],
 });

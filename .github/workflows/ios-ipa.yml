@@ -29,6 +29,6 @@ jobs:
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: body-weight-app-ios
-          path: dist/ios/body-weight-app.ipa
+          name: weigh-way-ios
+          path: dist/ios/weigh-way.ipa
           retention-days: 14

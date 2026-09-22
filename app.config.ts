@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           autoVerify: false,
           data: [
             {
-              scheme: 'body-weight-app',
+              scheme: 'weigh-way',
               host: 'auth',
               pathPrefix: '/callback',
             },

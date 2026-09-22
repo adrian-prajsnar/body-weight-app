@@ -86,8 +86,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           URL=$(node scripts/eas-apk-url.cjs eas-android.json)
-          curl -fsSL "$URL" -o body-weight-app.apk
-          gh release upload "v${{ needs.release.outputs.version }}" body-weight-app.apk --clobber
+          curl -fsSL "$URL" -o weigh-way.apk
+          gh release upload "v${{ needs.release.outputs.version }}" weigh-way.apk --clobber
 
   website:
     name: Deploy website

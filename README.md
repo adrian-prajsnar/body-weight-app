@@ -66,9 +66,9 @@ If you already ran an older schema without `height_entries`, run the full `supab
 1. **Authentication** → **Providers** → **Email** → enabled
 2. Turn on **Confirm email** (recommended)
 3. **Authentication** → **URL Configuration**:
-   - **Site URL**: `body-weight-app://auth/callback`
+   - **Site URL**: `weigh-way://auth/callback`
    - **Redirect URLs** — add both:
-     - `body-weight-app://auth/callback`
+     - `weigh-way://auth/callback`
      - `exp://127.0.0.1:8081/--/auth/callback` (Expo Go on your PC; adjust port if Expo uses another)
 
 Supabase sends confirmation and password-reset emails on the free tier (built-in mailer). For better delivery later, you can add custom SMTP under **Authentication** → **SMTP**.
@@ -195,7 +195,7 @@ Local build on your PC (copy the APK to your phone):
 npx eas-cli build -p android --profile production --local
 ```
 
-Before friends sign up, confirm Supabase **Authentication → URL Configuration** includes `body-weight-app://auth/callback`.
+Before friends sign up, confirm Supabase **Authentication → URL Configuration** includes `weigh-way://auth/callback`.
 
 ## Build iOS IPA (free Apple ID + SideStore)
 
@@ -212,22 +212,22 @@ No paid Apple Developer account required. GitHub Actions builds an **unsigned** 
 
 1. GitHub repo → **Actions** → **Build iOS IPA** → **Run workflow**.
 2. Wait for the job to finish (~15–25 min on first run).
-3. Open the completed run → **Artifacts** → download `body-weight-app-ios` (contains `body-weight-app.ipa`).
+3. Open the completed run → **Artifacts** → download `weigh-way-ios` (contains `weigh-way.ipa`).
 
 ### Install with SideStore
 
-1. Transfer `body-weight-app.ipa` to your iPhone (AirDrop, iCloud Drive, or Safari).
+1. Transfer `weigh-way.ipa` to your iPhone (AirDrop, iCloud Drive, or Safari).
 2. SideStore → **My Apps** → **+** → select the IPA.
 3. If prompted: **Settings → General → VPN & Device Management** → trust the profile.
 4. Refresh in SideStore about every **7 days** (free Apple ID limit).
 
-Supabase **Authentication → URL Configuration** must include `body-weight-app://auth/callback` (same as Android).
+Supabase **Authentication → URL Configuration** must include `weigh-way://auth/callback` (same as Android).
 
 ## Marketing site
 
 The public site lives in [`website/`](website/) and deploys to GitHub Pages on every push to `main`:
 
-`https://adrian-prajsnar.github.io/body-weight-app/`
+`https://adrian-prajsnar.github.io/weigh-way/`
 
 Local preview:
 
@@ -237,15 +237,15 @@ npm install
 npm run dev
 ```
 
-The dev server is at `http://localhost:4321/body-weight-app/`. English is `/`, Polish is `/pl/`. Appearance and language follow **System / Light / Dark** and **System / English / Polski**, same idea as Profile in the app.
+The dev server is at `http://localhost:4321/weigh-way/`. English is `/`, Polish is `/pl/`. Appearance and language follow **System / Light / Dark** and **System / English / Polski**, same idea as Profile in the app.
 
 ### Release notes and Android download
 
 English notes come from semantic-release (`CHANGELOG.md`), then are rewritten for customers: internal changes (`ci`, `dev`, etc.) are dropped, scopes are removed, and sections become **What's new** / **Bug fixes**. CI writes `website/content/releases/{version}.en.md` and translates that copy with DeepL into `{version}.pl.md`. Existing `.en.md` or `.pl.md` files are never overwritten (edit them to fix wording).
 
-The production APK is built with EAS after a version bump and uploaded to that GitHub Release as `body-weight-app.apk`. Latest download:
+The production APK is built with EAS after a version bump and uploaded to that GitHub Release as `weigh-way.apk`. Latest download:
 
-`https://github.com/adrian-prajsnar/body-weight-app/releases/latest/download/body-weight-app.apk`
+`https://github.com/adrian-prajsnar/weigh-way/releases/latest/download/weigh-way.apk`
 
 Website-only commits still deploy the site; they do not start an EAS build.
 

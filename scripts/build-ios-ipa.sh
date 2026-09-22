@@ -57,14 +57,14 @@ if [[ -z "$APP_PATH" || ! -d "$APP_PATH" ]]; then
 fi
 
 OUTPUT_DIR="$ROOT/dist/ios"
-IPA_PATH="$OUTPUT_DIR/body-weight-app.ipa"
+IPA_PATH="$OUTPUT_DIR/weigh-way.ipa"
 rm -rf "$OUTPUT_DIR/Payload"
 mkdir -p "$OUTPUT_DIR/Payload"
 cp -R "$APP_PATH" "$OUTPUT_DIR/Payload/"
 
 cd "$OUTPUT_DIR"
-rm -f body-weight-app.ipa
-zip -0 -y -r body-weight-app.ipa Payload
+rm -f weigh-way.ipa
+zip -0 -y -r weigh-way.ipa Payload
 cd "$ROOT"
 
 echo "IPA ready: $IPA_PATH"

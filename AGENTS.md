@@ -67,7 +67,7 @@ When changing app code that reads/writes Supabase, ensure the migration ships **
 ## Localization
 
 - Supported locales: English (`en`) and Polish (`pl`)
-- Profile → Appearance: System / English / Polski (stored in `@body-weight-app/language`)
+- Profile → Appearance: System / English / Polski (stored in `@weigh-way/language`)
 - System follows the device locale; non-Polish devices default to English
 - Components use `useTranslation()` from `src/i18n/language-context.tsx`
 - Non-React modules use `t()` from `src/i18n/index.ts`

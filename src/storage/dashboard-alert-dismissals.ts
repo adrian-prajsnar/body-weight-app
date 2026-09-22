@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = '@body-weight-app/dashboard-alert-dismissals';
+const STORAGE_KEY = '@weigh-way/dashboard-alert-dismissals';
 
 export type DashboardAlertId =
   | 'missingBirthDate'

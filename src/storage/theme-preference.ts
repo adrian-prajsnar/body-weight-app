@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = '@body-weight-app/theme';
+const STORAGE_KEY = '@weigh-way/theme';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
