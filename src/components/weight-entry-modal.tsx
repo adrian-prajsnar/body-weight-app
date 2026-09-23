@@ -3,6 +3,7 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fromDateKey } from '../format';
 import { useKeyboardHeight } from '../hooks/use-keyboard-height';
+import { useSheetContainerStyle } from '../hooks/use-sheet-container-style';
 import { useTranslation } from '../i18n/language-context';
 import { WeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -31,6 +32,7 @@ export function WeightEntryModal({
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const keyboardHeight = useKeyboardHeight(visible && date !== null);
+  const sheetContainerStyle = useSheetContainerStyle();
   const { t } = useTranslation();
 
   if (!date) {
@@ -46,7 +48,7 @@ export function WeightEntryModal({
         <Pressable style={styles.modalSheetDismissArea} onPress={onClose} />
         <View
           style={[
-            styles.datePickerSheet,
+            sheetContainerStyle,
             {
               marginBottom: sheetLift,
               paddingBottom: sheetBottomInset,

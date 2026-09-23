@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
-import { fontFamily, radius, spacing } from '../tokens';
+import { fontFamily, layoutWidth, radius, spacing } from '../tokens';
 import { StyleContext, cardSurface, floatingSurface, tabularNums } from './helpers';
 
 export function createAuthStyles({ colors, scheme }: StyleContext) {
@@ -14,6 +14,12 @@ export function createAuthStyles({ colors, scheme }: StyleContext) {
       paddingBottom: spacing.lg,
       gap: spacing.lg,
       justifyContent: 'center',
+      alignItems: 'center',
+    },
+    authFrame: {
+      width: '100%',
+      maxWidth: layoutWidth.auth,
+      gap: spacing.lg,
     },
     authBrand: {
       alignItems: 'center',

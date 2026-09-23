@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useState } from 'react';
-import { LayoutChangeEvent, Pressable, Text } from 'react-native';
+import { LayoutChangeEvent, Pressable, Text, useWindowDimensions } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getContentFrameWidth } from '../hooks/use-content-frame-width';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { spacing } from '../theme/tokens';
@@ -22,7 +23,12 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
   const styles = useAppStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const [barWidth, setBarWidth] = useState(0);
+  const contentFrameWidth = getContentFrameWidth(windowWidth);
+  const tabBarWidth =
+    typeof contentFrameWidth === 'number' ? contentFrameWidth : windowWidth - spacing.lg * 2;
+  const tabBarLeft = (windowWidth - tabBarWidth) / 2;
 
   const itemWidth =
     barWidth > 0 ? (barWidth - spacing.sm * 2) / state.routes.length : 0;
@@ -46,7 +52,14 @@ export function AppTabBar({ state, descriptors, navigation }: BottomTabBarProps)
 
   return (
     <Animated.View
-      style={[styles.tabBar, { bottom: insets.bottom + spacing.sm }]}
+      style={[
+        styles.tabBar,
+        {
+          bottom: insets.bottom + spacing.sm,
+          width: tabBarWidth,
+          left: tabBarLeft,
+        },
+      ]}
       onLayout={handleLayout}
     >
       <Animated.View style={[styles.tabBarIndicator, indicatorStyle]} />

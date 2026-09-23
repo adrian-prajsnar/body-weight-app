@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
+import { ContentFrame } from '../components/content-frame';
 import { EntryForm } from '../components/entry-form';
 import { ErrorCard } from '../components/error-card';
 import { HeroWeightCard } from '../components/hero-weight-card';
@@ -120,23 +121,24 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('dashboard.title')}
-        subtitle={t('dashboard.subtitle')}
-        scrollY={scrollY}
-      />
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => void refreshEntries().catch(() => undefined)}
-          />
-        }
-      >
+      <ContentFrame>
+        <ScreenHeader
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
+          scrollY={scrollY}
+        />
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void refreshEntries().catch(() => undefined)}
+            />
+          }
+        >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshEntries().catch(() => undefined)} />
         ) : null}
@@ -202,7 +204,8 @@ export function DashboardScreen({ navigation }: Props) {
             isBusy={isRefreshing}
           />
         ) : null}
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      </ContentFrame>
 
       <WeightEntryModal
         visible={editingDate !== null}

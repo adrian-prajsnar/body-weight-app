@@ -118,6 +118,21 @@ export const radius = {
   pill: 999,
 } as const;
 
+/** Max content width on wide portrait tablets; phones stay full width below these caps. */
+export const layoutWidth = {
+  /** Soft cap on very wide portrait screens; primary constraint is window minus side padding. */
+  content: 960,
+  auth: 440,
+  sheet: 560,
+  dialog: 420,
+  toast: 480,
+} as const;
+
+/** Minimum window width before side-by-side date filters and taller charts apply. */
+export const layoutBreakpoint = {
+  wide: 600,
+} as const;
+
 /**
  * Android ignores `fontWeight` on custom fonts, so every weight must be
  * addressed by its own family name.

@@ -93,8 +93,6 @@ export function createProfileStyles({ colors, scheme }: StyleContext) {
     versionFooterContainer: {
       alignItems: 'center',
       gap: 4,
-      paddingTop: spacing.sm,
-      paddingBottom: spacing.lg,
     },
     versionFooter: {
       textAlign: 'center',

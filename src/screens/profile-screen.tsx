@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
+import { ContentFrame } from '../components/content-frame';
 import { ErrorCard } from '../components/error-card';
 import { AboutYouSection, AboutYouSkeleton } from '../components/about-you-section';
 import { PreferenceTransition } from '../components/preference-transition';
@@ -252,20 +253,21 @@ export function ProfileScreen({
   return (
     <View style={styles.screen}>
       <PreferenceTransition style={{ flex: 1 }}>
-        <ScreenHeader
-          title={t('profile.title')}
-          subtitle={user?.email ?? t('profile.subtitleFallback')}
-          scrollY={scrollY}
-        />
-        <Animated.ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
-          }
-        >
+        <ContentFrame>
+          <ScreenHeader
+            title={t('profile.title')}
+            subtitle={user?.email ?? t('profile.subtitleFallback')}
+            scrollY={scrollY}
+          />
+          <Animated.ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
+            }
+          >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshProfile()} />
         ) : null}
@@ -379,7 +381,8 @@ export function ProfileScreen({
             {t('profile.copyright', { year: new Date().getFullYear() })}
           </Text>
         </View>
-        </Animated.ScrollView>
+          </Animated.ScrollView>
+        </ContentFrame>
       </PreferenceTransition>
     </View>
   );

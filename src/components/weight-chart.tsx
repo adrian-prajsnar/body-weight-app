@@ -15,6 +15,7 @@ import { getDateLocale } from '../i18n/resolve-locale';
 import { dateKeyToDate } from '../stats';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
+import { layoutWidth } from '../theme/tokens';
 import { WeightSeries } from '../types';
 import { EmptyState } from './empty-state';
 
@@ -76,8 +77,9 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
     );
   }
 
+  const chartHeight = width > layoutWidth.sheet ? 200 : height;
   const innerWidth = Math.max(width - PADDING_X * 2, 1);
-  const innerHeight = height - PADDING_Y * 2;
+  const innerHeight = chartHeight - PADDING_Y * 2;
 
   const span = series.max - series.min;
   const padding = span === 0 ? 1 : span * 0.15;
@@ -105,15 +107,15 @@ export function WeightChart({ series, height = 160 }: WeightChartProps) {
   const linePath = buildSmoothPath(points);
   const areaPath =
     points.length > 1
-      ? `${linePath} L ${points[points.length - 1].x} ${height} L ${points[0].x} ${height} Z`
+      ? `${linePath} L ${points[points.length - 1].x} ${chartHeight} L ${points[0].x} ${chartHeight} Z`
       : '';
   const lastPoint = points[points.length - 1];
 
   return (
     <Animated.View entering={FadeIn.duration(400)} style={{ gap: 8 }}>
-      <View style={[styles.chartArea, { height }]} onLayout={handleLayout}>
+      <View style={[styles.chartArea, { height: chartHeight }]} onLayout={handleLayout}>
         {width > 0 ? (
-          <Svg width={width} height={height}>
+          <Svg width={width} height={chartHeight}>
             <Defs>
               <LinearGradient id="weightChartFill" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0" stopColor={colors.accent} stopOpacity={0.28} />

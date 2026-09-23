@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
+import { ContentFrame } from '../components/content-frame';
 import { DateField } from '../components/date-field';
 import { ErrorCard } from '../components/error-card';
 import { HistoryList } from '../components/history-list';
@@ -13,6 +14,7 @@ import { useConfirm } from '../context/confirm-context';
 import { useToast } from '../context/toast-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { useScrollHeader } from '../hooks/use-scroll-header';
+import { useWideLayout } from '../hooks/use-wide-layout';
 import { useTranslation } from '../i18n/language-context';
 import {
   formatDateLabel,
@@ -39,6 +41,7 @@ export function HistoryScreen() {
   const { showError, showSuccess } = useToast();
   const { confirm } = useConfirm();
   const { scrollY, onScroll } = useScrollHeader();
+  const isWideLayout = useWideLayout();
   const today = getTodayDate();
   const defaultRange = useMemo(() => getDefaultHistoryDateRange(today), [today]);
   const [fromDate, setFromDate] = useState(() => defaultRange.from);
@@ -166,40 +169,50 @@ export function HistoryScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={t('history.title')} subtitle={subtitle} scrollY={scrollY} />
+      <ContentFrame>
+        <ScreenHeader title={t('history.title')} subtitle={subtitle} scrollY={scrollY} />
 
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => void refreshEntries().catch(() => undefined)}
-          />
-        }
-      >
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void refreshEntries().catch(() => undefined)}
+            />
+          }
+        >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshEntries().catch(() => undefined)} />
         ) : null}
 
         <AppCard delay={0}>
-          <View style={styles.historyDateFilters}>
-            <DateField
-              label={t('history.from')}
-              value={fromDate}
-              onChange={handleFromChange}
-              maximumDate={toDate}
-              invalid={rangeFieldHighlight.from}
-            />
-            <DateField
-              label={t('history.to')}
-              value={toDate}
-              onChange={handleToChange}
-              maximumDate={today}
-              invalid={rangeFieldHighlight.to}
-            />
+          <View
+            style={[
+              styles.historyDateFilters,
+              isWideLayout && styles.historyDateFiltersWide,
+            ]}
+          >
+            <View style={isWideLayout ? styles.historyDateFilterField : undefined}>
+              <DateField
+                label={t('history.from')}
+                value={fromDate}
+                onChange={handleFromChange}
+                maximumDate={toDate}
+                invalid={rangeFieldHighlight.from}
+              />
+            </View>
+            <View style={isWideLayout ? styles.historyDateFilterField : undefined}>
+              <DateField
+                label={t('history.to')}
+                value={toDate}
+                onChange={handleToChange}
+                maximumDate={today}
+                invalid={rangeFieldHighlight.to}
+              />
+            </View>
           </View>
           {isFilterCustom || isClearingFilter ? (
             <View style={styles.filterActionsRow}>
@@ -237,7 +250,8 @@ export function HistoryScreen() {
             <HistoryListSkeleton rows={6} />
           )}
         </AppCard>
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      </ContentFrame>
 
       <WeightEntryModal
         visible={editingDate !== null}

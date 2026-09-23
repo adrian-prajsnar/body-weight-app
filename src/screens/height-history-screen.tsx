@@ -3,6 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Pressable, RefreshControl, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
+import { ContentFrame } from '../components/content-frame';
 import { ErrorCard } from '../components/error-card';
 import { HeightTimelineEditor } from '../components/height-timeline';
 import { ScreenHeader } from '../components/screen-header';
@@ -92,30 +93,31 @@ export function HeightHistoryScreen({ navigation }: Props) {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('profile.heightHistoryTitle')}
-        subtitle={t('profile.heightHistorySubtitle')}
-        scrollY={scrollY}
-        leading={
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={({ pressed }) => [styles.iconButton, pressed && styles.buttonPressed]}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.back')}
-          >
-            <Ionicons name="chevron-back" size={22} color={colors.text} />
-          </Pressable>
-        }
-      />
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
-        }
-      >
+      <ContentFrame>
+        <ScreenHeader
+          title={t('profile.heightHistoryTitle')}
+          subtitle={t('profile.heightHistorySubtitle')}
+          scrollY={scrollY}
+          leading={
+            <Pressable
+              onPress={() => navigation.goBack()}
+              style={({ pressed }) => [styles.iconButton, pressed && styles.buttonPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.text} />
+            </Pressable>
+          }
+        />
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={() => void refreshProfile()} />
+          }
+        >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshProfile()} />
         ) : null}
@@ -133,7 +135,8 @@ export function HeightHistoryScreen({ navigation }: Props) {
             />
           ) : null}
         </AppCard>
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      </ContentFrame>
     </View>
   );
 }

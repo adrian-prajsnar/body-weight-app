@@ -1,5 +1,5 @@
 import { Platform, StyleSheet } from 'react-native';
-import { fontFamily, radius, spacing } from '../tokens';
+import { fontFamily, layoutWidth, radius, spacing } from '../tokens';
 import { StyleContext, cardSurface, floatingSurface, tabularNums } from './helpers';
 
 export function createOverlayStyles({ colors, scheme }: StyleContext) {
@@ -15,9 +15,12 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
       flex: 1,
       backgroundColor: scheme === 'dark' ? 'rgba(0, 0, 0, 0.62)' : 'rgba(15, 23, 42, 0.42)',
       justifyContent: 'center',
+      alignItems: 'center',
       paddingHorizontal: spacing.xl,
     },
     confirmDialogCard: {
+      width: '100%',
+      maxWidth: layoutWidth.dialog,
       backgroundColor: colors.surface,
       borderRadius: radius.lg,
       padding: spacing.xl,
@@ -63,11 +66,14 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
       flex: 1,
       backgroundColor: scheme === 'dark' ? 'rgba(0, 0, 0, 0.62)' : 'rgba(15, 23, 42, 0.42)',
       justifyContent: 'flex-end',
+      alignItems: 'center',
     },
     modalSheetDismissArea: {
       flex: 1,
     },
     datePickerSheet: {
+      width: '100%',
+      maxWidth: layoutWidth.sheet,
       backgroundColor: colors.surface,
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
@@ -76,6 +82,11 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
       gap: spacing.md,
       borderTopWidth: scheme === 'dark' ? 1 : StyleSheet.hairlineWidth,
       borderColor: colors.borderStrong,
+    },
+    datePickerSheetFloating: {
+      borderBottomLeftRadius: radius.xl,
+      borderBottomRightRadius: radius.xl,
+      marginBottom: spacing.lg,
     },
     datePickerSheetHeader: {
       flexDirection: 'row',
@@ -183,11 +194,15 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
     },
     toastContainer: {
       position: 'absolute',
-      left: spacing.lg,
-      right: spacing.lg,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
       zIndex: 100,
     },
     toastCard: {
+      width: '100%',
+      maxWidth: layoutWidth.toast,
       flexDirection: 'row',
       alignItems: 'flex-start',
       gap: spacing.md,
@@ -280,8 +295,6 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
     tabBar: {
       flexDirection: 'row',
       position: 'absolute',
-      left: spacing.lg,
-      right: spacing.lg,
       borderRadius: radius.xl,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.sm,

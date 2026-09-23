@@ -23,8 +23,21 @@ export function createScreenStyles({ colors, scheme }: StyleContext) {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.border,
     },
+    contentFrame: {
+      flex: 1,
+      width: '100%',
+      alignSelf: 'center',
+    },
     historyDateFilters: {
       gap: spacing.sm,
+    },
+    historyDateFiltersWide: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    historyDateFilterField: {
+      flex: 1,
+      minWidth: 0,
     },
     filterActionsRow: {
       alignItems: 'flex-end',

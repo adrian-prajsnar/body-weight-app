@@ -19,8 +19,10 @@ export function RootNavigator() {
   if (!isConfigured) {
     return (
       <View style={[styles.screen, styles.centered, styles.authContent]}>
-        <Text style={styles.title}>{t('navigation.setupRequired')}</Text>
-        <Text style={styles.subtitle}>{t('navigation.setupSubtitle')}</Text>
+        <View style={styles.authFrame}>
+          <Text style={styles.title}>{t('navigation.setupRequired')}</Text>
+          <Text style={styles.subtitle}>{t('navigation.setupSubtitle')}</Text>
+        </View>
       </View>
     );
   }

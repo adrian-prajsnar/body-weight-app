@@ -28,35 +28,37 @@ export function OfflineScreen({ isRefreshing, onRefresh }: OfflineScreenProps) {
         pointerEvents="none"
       />
       <View style={[styles.centered, styles.authContent]}>
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.authBrand}>
-          <View style={[styles.emptyStateIcon, { width: 72, height: 72, marginBottom: 0 }]}>
-            <Ionicons name="cloud-offline-outline" size={36} color={colors.textSubtle} />
-          </View>
-          <Text style={[styles.title, { textAlign: 'center' }]}>{t('navigation.offlineTitle')}</Text>
-          <Text style={[styles.subtitle, { textAlign: 'center' }]}>
-            {t('navigation.offlineSubtitle')}
-          </Text>
-        </Animated.View>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.primaryButton,
-            { alignSelf: 'stretch' },
-            pressed && styles.buttonPressed,
-            isRefreshing && { opacity: 0.7 },
-          ]}
-          onPress={onRefresh}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? (
-            <ActivityIndicator color={colors.onAccent} />
-          ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name="refresh" size={18} color={colors.onAccent} />
-              <Text style={styles.primaryButtonText}>{t('navigation.offlineRefresh')}</Text>
+        <View style={styles.authFrame}>
+          <Animated.View entering={FadeInDown.duration(400)} style={styles.authBrand}>
+            <View style={[styles.emptyStateIcon, { width: 72, height: 72, marginBottom: 0 }]}>
+              <Ionicons name="cloud-offline-outline" size={36} color={colors.textSubtle} />
             </View>
-          )}
-        </Pressable>
+            <Text style={[styles.title, { textAlign: 'center' }]}>{t('navigation.offlineTitle')}</Text>
+            <Text style={[styles.subtitle, { textAlign: 'center' }]}>
+              {t('navigation.offlineSubtitle')}
+            </Text>
+          </Animated.View>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.primaryButton,
+              { alignSelf: 'stretch' },
+              pressed && styles.buttonPressed,
+              isRefreshing && { opacity: 0.7 },
+            ]}
+            onPress={onRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? (
+              <ActivityIndicator color={colors.onAccent} />
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="refresh" size={18} color={colors.onAccent} />
+                <Text style={styles.primaryButtonText}>{t('navigation.offlineRefresh')}</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );

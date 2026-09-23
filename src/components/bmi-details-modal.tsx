@@ -16,6 +16,7 @@ import { t } from '../i18n';
 import { TranslationKey } from '../i18n/translation-keys';
 import { getBmiStatsForRange, getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
+import { useSheetContainerStyle } from '../hooks/use-sheet-container-style';
 import { DateRange, WeightEntry } from '../types';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
@@ -234,6 +235,7 @@ export function BmiDetailsModal({ details, onClose }: BmiDetailsModalProps) {
   const styles = useAppStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const sheetContainerStyle = useSheetContainerStyle({ paddingBottom: Math.max(insets.bottom, 16) });
   const { t } = useTranslation();
   const title = details?.type === 'period' ? t(periodTitleKey(details.metric)) : t('bmi.detailsTitle');
 
@@ -241,7 +243,7 @@ export function BmiDetailsModal({ details, onClose }: BmiDetailsModalProps) {
     <Modal visible={details !== null} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalSheetBackdrop}>
         <Pressable style={styles.modalSheetDismissArea} onPress={onClose} />
-        <View style={[styles.datePickerSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={sheetContainerStyle}>
           <View style={styles.datePickerSheetHeader}>
             <Text style={styles.datePickerSheetTitle}>{title}</Text>
             <Pressable

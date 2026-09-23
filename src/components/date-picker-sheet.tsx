@@ -8,6 +8,7 @@ import { getDateLocale } from '../i18n/resolve-locale';
 import { useTranslation } from '../i18n/language-context';
 import { toDateKey } from '../format';
 import { waitForPaint } from '../wait-for-paint';
+import { useSheetContainerStyle } from '../hooks/use-sheet-container-style';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { fontFamily } from '../theme/tokens';
@@ -99,6 +100,7 @@ export function DatePickerSheet({
   const styles = useAppStyles();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const sheetContainerStyle = useSheetContainerStyle({ paddingBottom: Math.max(insets.bottom, 16) });
   const { t, locale } = useTranslation();
   const dateLocale = getDateLocale(locale);
   const yearListRef = useRef<FlatList<number>>(null);
@@ -238,7 +240,7 @@ export function DatePickerSheet({
           onPress={isConfirming ? undefined : onClose}
           disabled={isConfirming}
         />
-        <View style={[styles.datePickerSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={sheetContainerStyle}>
           <View style={styles.datePickerSheetHeader}>
             <Text style={styles.datePickerSheetTitle}>{title ?? t('dateField.selectDate')}</Text>
             <Pressable

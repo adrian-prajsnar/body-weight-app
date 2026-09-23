@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
+import { ContentFrame } from '../components/content-frame';
 import { ComparisonModeSelector } from '../components/comparison-mode-selector';
 import { ComparisonResult } from '../components/comparison-result';
 import { ComparisonResultSkeleton } from '../components/comparison-result-skeleton';
@@ -16,6 +17,7 @@ import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { isTrendMode, useComparison } from '../hooks/use-comparison';
 import { useScrollHeader } from '../hooks/use-scroll-header';
+import { useWideLayout } from '../hooks/use-wide-layout';
 import { useTranslation } from '../i18n/language-context';
 import { CustomCompareKind } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -71,6 +73,7 @@ export function ComparisonScreen() {
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const { birthDate } = useSharedUserProfile();
   const { scrollY, onScroll } = useScrollHeader();
+  const isWideLayout = useWideLayout();
 
   const comparison = useComparison({
     entries,
@@ -89,23 +92,24 @@ export function ComparisonScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={t('comparison.title')}
-        subtitle={t('comparison.subtitle')}
-        scrollY={scrollY}
-      />
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => void refreshEntries().catch(() => undefined)}
-          />
-        }
-      >
+      <ContentFrame>
+        <ScreenHeader
+          title={t('comparison.title')}
+          subtitle={t('comparison.subtitle')}
+          scrollY={scrollY}
+        />
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => void refreshEntries().catch(() => undefined)}
+            />
+          }
+        >
         {error && !isLoading ? (
           <ErrorCard message={error} onRetry={() => void refreshEntries().catch(() => undefined)} />
         ) : null}
@@ -120,23 +124,32 @@ export function ComparisonScreen() {
 
             {isTrendMode(comparison.mode) ? (
               <>
-                <View style={styles.historyDateFilters}>
-                  <DateField
-                    label={t('comparison.start')}
-                    value={comparison.fromDate}
-                    onChange={comparison.handleFromChange}
-                    maximumDate={comparison.toDate}
-                    minimumDate={comparison.filterMinimumFrom}
-                    invalid={comparison.rangeFieldHighlight.from}
-                  />
-                  <DateField
-                    label={t('comparison.end')}
-                    value={comparison.toDate}
-                    onChange={comparison.handleToChange}
-                    maximumDate={comparison.today}
-                    minimumDate={comparison.fromDate}
-                    invalid={comparison.rangeFieldHighlight.to}
-                  />
+                <View
+                  style={[
+                    styles.historyDateFilters,
+                    isWideLayout && styles.historyDateFiltersWide,
+                  ]}
+                >
+                  <View style={isWideLayout ? styles.historyDateFilterField : undefined}>
+                    <DateField
+                      label={t('comparison.start')}
+                      value={comparison.fromDate}
+                      onChange={comparison.handleFromChange}
+                      maximumDate={comparison.toDate}
+                      minimumDate={comparison.filterMinimumFrom}
+                      invalid={comparison.rangeFieldHighlight.from}
+                    />
+                  </View>
+                  <View style={isWideLayout ? styles.historyDateFilterField : undefined}>
+                    <DateField
+                      label={t('comparison.end')}
+                      value={comparison.toDate}
+                      onChange={comparison.handleToChange}
+                      maximumDate={comparison.today}
+                      minimumDate={comparison.fromDate}
+                      invalid={comparison.rangeFieldHighlight.to}
+                    />
+                  </View>
                 </View>
                 {!comparison.isDefaultRange ? (
                   <View style={styles.filterActionsRow}>
@@ -269,7 +282,8 @@ export function ComparisonScreen() {
             />
           </AppCard>
         )}
-      </Animated.ScrollView>
+        </Animated.ScrollView>
+      </ContentFrame>
     </View>
   );
 }

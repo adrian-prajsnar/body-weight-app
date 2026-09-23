@@ -18,17 +18,19 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
   return (
     <KeyboardAvoidingView style={styles.authMain} behavior="padding">
       <ScrollView contentContainerStyle={styles.authContent} keyboardShouldPersistTaps="handled">
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.authHeader}>
-          <BrandLogo />
-          <View style={styles.authHeading}>
-            <Text style={styles.authTitle}>{title}</Text>
-            <Text style={styles.authSubtitle}>{subtitle}</Text>
-          </View>
-        </Animated.View>
+        <View style={styles.authFrame}>
+          <Animated.View entering={FadeInDown.duration(400)} style={styles.authHeader}>
+            <BrandLogo />
+            <View style={styles.authHeading}>
+              <Text style={styles.authTitle}>{title}</Text>
+              <Text style={styles.authSubtitle}>{subtitle}</Text>
+            </View>
+          </Animated.View>
 
-        <AppCard delay={100}>{children}</AppCard>
+          <AppCard delay={100}>{children}</AppCard>
 
-        {footer}
+          {footer}
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
