@@ -160,6 +160,8 @@ main,
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  contain: strict;
+  transform: translateZ(0);
   background:
     radial-gradient(ellipse 42% 38% at 78% 8%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
     radial-gradient(ellipse 36% 32% at 8% 28%, color-mix(in srgb, #22d3ee 14%, transparent), transparent 72%);
@@ -262,6 +264,10 @@ html[data-theme='dark'] .page-fx-noise {
   align-items: center;
   gap: var(--space-lg);
   min-width: 0;
+}
+
+.header-menu-locale:not([hidden]) {
+  display: contents;
 }
 
 @media (min-width: 851px) {
@@ -1086,16 +1092,22 @@ html[data-theme='dark'] .page-fx-noise {
   overflow: hidden;
   position: relative;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--shadow) 3%, transparent);
-  transition:
-    transform var(--duration) var(--ease),
-    box-shadow var(--duration) var(--ease),
-    border-color var(--duration) var(--ease);
+  transition: border-color var(--duration) var(--ease);
 }
 
-.faq-item:hover {
-  transform: translateY(-3px);
-  border-color: var(--accent-border);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--shadow) 6%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .faq-item {
+    transition:
+      transform var(--duration) var(--ease),
+      box-shadow var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
+  }
+
+  .faq-item:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent-border);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--shadow) 6%, transparent);
+  }
 }
 
 .faq-item.is-open {
@@ -1121,6 +1133,8 @@ html[data-theme='dark'] .page-fx-noise {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .faq-trigger::after {
@@ -1139,17 +1153,16 @@ html[data-theme='dark'] .page-fx-noise {
 }
 
 .faq-panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 280ms var(--ease);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 280ms var(--ease);
 }
 
 .faq-item.is-open .faq-panel {
-  grid-template-rows: 1fr;
+  max-height: var(--faq-panel-height, 24rem);
 }
 
 .faq-panel-inner {
-  min-height: 0;
   overflow: hidden;
 }
 
@@ -1824,11 +1837,11 @@ html.theme-animating::view-transition-new(root) {
     align-items: flex-start;
     width: max-content;
     transition: transform 420ms var(--ease);
-    will-change: transform;
   }
 
   .hero-slider-track.is-dragging {
     transition: none;
+    will-change: transform;
   }
 
   .hero-slider-slide {
@@ -1955,6 +1968,18 @@ html.theme-animating::view-transition-new(root) {
 }
 
 @media (max-width: 850px) {
+  .page-fx-noise {
+    display: none;
+  }
+
+  .page-fx-grid {
+    opacity: 0.22;
+  }
+
+  html.js [data-reveal] {
+    transition-duration: 480ms;
+  }
+
   html.menu-open {
     overflow: hidden;
   }

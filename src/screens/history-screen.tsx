@@ -26,7 +26,6 @@ import { filterEntriesByBounds } from '../stats';
 import { runWhenIdle } from '../run-when-idle';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
-import { spacing } from '../theme/tokens';
 import { waitForInteractions, waitForPaint } from '../wait-for-paint';
 
 export function HistoryScreen() {
@@ -181,8 +180,22 @@ export function HistoryScreen() {
         ) : null}
 
         <AppCard delay={0}>
+          <View style={styles.historyDateFilters}>
+            <DateField
+              label={t('history.from')}
+              value={fromDate}
+              onChange={handleFromChange}
+              maximumDate={toDate}
+            />
+            <DateField
+              label={t('history.to')}
+              value={toDate}
+              onChange={handleToChange}
+              maximumDate={today}
+            />
+          </View>
           {isFilterCustom || isClearingFilter ? (
-            <View style={{ alignItems: 'flex-end', marginBottom: spacing.sm, minHeight: 20 }}>
+            <View style={styles.filterActionsRow}>
               <Pressable
                 onPress={clearFilter}
                 disabled={isClearingFilter}
@@ -198,20 +211,6 @@ export function HistoryScreen() {
               </Pressable>
             </View>
           ) : null}
-          <View style={styles.historyDateFilters}>
-            <DateField
-              label={t('history.from')}
-              value={fromDate}
-              onChange={handleFromChange}
-              maximumDate={toDate}
-            />
-            <DateField
-              label={t('history.to')}
-              value={toDate}
-              onChange={handleToChange}
-              maximumDate={today}
-            />
-          </View>
           {rangeValidationMessage ? (
             <Text style={styles.warningText}>{rangeValidationMessage}</Text>
           ) : null}

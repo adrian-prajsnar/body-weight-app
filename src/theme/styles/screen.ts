@@ -28,7 +28,7 @@ export function createScreenStyles({ colors, scheme }: StyleContext) {
     },
     filterActionsRow: {
       alignItems: 'flex-end',
-      marginBottom: spacing.sm,
+      marginTop: spacing.sm,
       minHeight: 20,
     },
     comparisonFilterSection: {

@@ -95,6 +95,7 @@ const links = [
 <script is:inline define:vars={{ pageLocale: locale, baseUrl: import.meta.env.BASE_URL }}>
   (function () {
     var languageKey = 'weigh-way-site/language';
+    var scrollKey = 'weigh-way-site/preserve-scroll';
     var themeKey = 'weigh-way-site/theme';
 
     function normalizeLanguage(value) {
@@ -158,21 +159,6 @@ const links = [
       return Promise.all(ids.map(function (id) {
         return preloadScreenshot(id, theme);
       }));
-    }
-
-    function getRevealRadius(x, y) {
-      var w = window.innerWidth;
-      var h = window.innerHeight;
-      return (
-        Math.ceil(
-          Math.max(
-            Math.hypot(x, y),
-            Math.hypot(w - x, y),
-            Math.hypot(x, h - y),
-            Math.hypot(w - x, h - y),
-          ),
-        ) + 24
-      );
     }
 
     function decodeDomScreenshots() {
@@ -260,6 +246,7 @@ const links = [
         if (rest.charAt(0) !== '/') rest = '/' + rest;
         var href = base + (next === 'pl' ? '/pl' : '') + rest;
         if (href.slice(-1) !== '/') href += '/';
+        sessionStorage.setItem(scrollKey, String(window.scrollY));
         location.assign(href);
       });
     });
@@ -281,39 +268,10 @@ const links = [
         }
 
         var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var desktop = window.matchMedia('(min-width: 851px)').matches;
 
-        if (!reduce && desktop) {
+        if (!reduce) {
           runDesktopFlashTransition(next, commit);
           return;
-        }
-
-        if (!reduce && typeof document.startViewTransition === 'function') {
-          try {
-            var x = event.clientX;
-            var y = event.clientY;
-            document.documentElement.style.setProperty('--vt-x', x + 'px');
-            document.documentElement.style.setProperty('--vt-y', y + 'px');
-            document.documentElement.style.setProperty('--vt-r', getRevealRadius(x, y) + 'px');
-            document.documentElement.classList.add('theme-animating');
-            var transition = document.startViewTransition(function () {
-              return preloadThemeScreenshots(next).then(function () {
-                commit();
-                return decodeDomScreenshots();
-              });
-            });
-            if (transition && transition.finished) {
-              transition.finished.finally(function () {
-                document.documentElement.classList.remove('theme-animating');
-                preloadThemeScreenshots(next === 'dark' ? 'light' : 'dark');
-              });
-            } else {
-              document.documentElement.classList.remove('theme-animating');
-            }
-            return;
-          } catch (error) {
-            document.documentElement.classList.remove('theme-animating');
-          }
         }
 
         commit();

@@ -17,17 +17,8 @@ import { useSharedWeightEntries } from '../context/weight-entries-context';
 import { isTrendMode, useComparison } from '../hooks/use-comparison';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
-import { TranslationKey } from '../i18n/translation-keys';
-import { CustomCompareKind, TrendGranularity } from '../types';
+import { CustomCompareKind } from '../types';
 import { useAppStyles } from '../theme/styles';
-
-const COMPARISON_RESET_KEYS: Record<TrendGranularity, TranslationKey> = {
-  day: 'comparison.reset.day',
-  week: 'comparison.reset.week',
-  month: 'comparison.reset.month',
-  year: 'comparison.reset.year',
-  ageYear: 'comparison.reset.ageYear',
-};
 
 type RangePickerProps = {
   title: string;
@@ -128,15 +119,6 @@ export function ComparisonScreen() {
 
             {isTrendMode(comparison.mode) ? (
               <>
-                {!comparison.isDefaultRange ? (
-                  <View style={styles.filterActionsRow}>
-                    <Pressable onPress={comparison.resetRange} hitSlop={8}>
-                      <Text style={styles.linkText}>
-                        {t(COMPARISON_RESET_KEYS[comparison.mode])}
-                      </Text>
-                    </Pressable>
-                  </View>
-                ) : null}
                 <View style={styles.historyDateFilters}>
                   <DateField
                     label={t('comparison.start')}
@@ -153,6 +135,13 @@ export function ComparisonScreen() {
                     minimumDate={comparison.fromDate}
                   />
                 </View>
+                {!comparison.isDefaultRange ? (
+                  <View style={styles.filterActionsRow}>
+                    <Pressable onPress={comparison.resetRange} hitSlop={8}>
+                      <Text style={styles.linkText}>{t('history.clearAll')}</Text>
+                    </Pressable>
+                  </View>
+                ) : null}
                 {comparison.rangeValidationMessage ? (
                   <Text style={styles.warningText}>{comparison.rangeValidationMessage}</Text>
                 ) : null}

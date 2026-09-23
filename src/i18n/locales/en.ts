@@ -219,13 +219,6 @@ export default {
     noData: 'No weigh-in in this period.',
     difference: 'Change in average',
     differenceNote: 'First period minus second period',
-    reset: {
-      day: 'Last month',
-      week: 'Last year',
-      month: 'Last 5 years',
-      year: 'Last 15 years',
-      ageYear: 'Last 15 years',
-    },
   },
   profile: {
     title: 'Profile',

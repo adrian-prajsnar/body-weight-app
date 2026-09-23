@@ -227,13 +227,6 @@ const pl = {
     noData: 'Brak pomiaru w tym okresie.',
     difference: 'Zmiana średniej',
     differenceNote: 'Pierwszy okres minus drugi',
-    reset: {
-      day: 'Ostatni miesiąc',
-      week: 'Ostatni rok',
-      month: 'Ostatnie 5 lat',
-      year: 'Ostatnie 15 lat',
-      ageYear: 'Ostatnie 15 lat',
-    },
   },
   profile: {
     title: 'Profil',

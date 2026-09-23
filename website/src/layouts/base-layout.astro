@@ -73,6 +73,26 @@ const plUrl = absoluteUrl(localePath('pl', page));
     </script>
   </head>
   <body>
+    <script is:inline>
+      (function () {
+        var key = 'weigh-way-site/preserve-scroll';
+        var raw = sessionStorage.getItem(key);
+        if (raw === null) return;
+        sessionStorage.removeItem(key);
+        var y = parseInt(raw, 10);
+        if (!isFinite(y) || y < 0) return;
+        if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+        function restore() {
+          window.scrollTo(0, y);
+        }
+        restore();
+        document.addEventListener('DOMContentLoaded', restore);
+        window.addEventListener('load', restore);
+        window.addEventListener('pageshow', function (event) {
+          if (event.persisted) restore();
+        });
+      })();
+    </script>
     <div class="page-fx" aria-hidden="true">
       <div class="page-fx-grid"></div>
       <div class="page-fx-noise"></div>
@@ -106,6 +126,8 @@ const plUrl = absoluteUrl(localePath('pl', page));
         var header = document.querySelector('.site-header');
         var progress = document.querySelector('.scroll-progress');
 
+        var scrollTicking = false;
+
         function updateScrollChrome() {
           var scrolled = window.scrollY > 8;
           if (header) header.classList.toggle('is-scrolled', scrolled);
@@ -117,9 +139,18 @@ const plUrl = absoluteUrl(localePath('pl', page));
           progress.hidden = false;
         }
 
+        function onScrollOrResize() {
+          if (scrollTicking) return;
+          scrollTicking = true;
+          window.requestAnimationFrame(function () {
+            updateScrollChrome();
+            scrollTicking = false;
+          });
+        }
+
         updateScrollChrome();
-        window.addEventListener('scroll', updateScrollChrome, { passive: true });
-        window.addEventListener('resize', updateScrollChrome);
+        window.addEventListener('scroll', onScrollOrResize, { passive: true });
+        window.addEventListener('resize', onScrollOrResize);
 
         if (!reduceMotion && 'IntersectionObserver' in window) {
           var reveal = new IntersectionObserver(
@@ -141,13 +172,16 @@ const plUrl = absoluteUrl(localePath('pl', page));
           });
         }
 
-        document.querySelectorAll('.card, .release-card, .faq-item, .cta-band').forEach(function (card) {
-          card.addEventListener('pointermove', function (event) {
-            var rect = card.getBoundingClientRect();
-            card.style.setProperty('--spot-x', event.clientX - rect.left + 'px');
-            card.style.setProperty('--spot-y', event.clientY - rect.top + 'px');
+        var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        if (finePointer) {
+          document.querySelectorAll('.card, .release-card, .faq-item, .cta-band').forEach(function (card) {
+            card.addEventListener('pointermove', function (event) {
+              var rect = card.getBoundingClientRect();
+              card.style.setProperty('--spot-x', event.clientX - rect.left + 'px');
+              card.style.setProperty('--spot-y', event.clientY - rect.top + 'px');
+            });
           });
-        });
+        }
 
         if (reduceMotion) return;
 
