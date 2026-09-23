@@ -10,6 +10,7 @@ type WeightEntriesContextValue = {
   error: string | null;
   refreshEntries: () => Promise<void>;
   removeEntry: (date: string) => Promise<void>;
+  upsertEntry: (date: string, weightKg: number) => Promise<void>;
 };
 
 const WeightEntriesContext = createContext<WeightEntriesContextValue | null>(null);

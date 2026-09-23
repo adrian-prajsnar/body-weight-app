@@ -13,14 +13,14 @@ import {
   LanguagePreference,
   setStoredLanguagePreference,
 } from '../storage/language-preference';
-import { setI18nLocale, t as translate } from './index';
+import { setI18nLocale, t as translate, TranslationKey, TranslateOptions } from './index';
 import { AppLocale } from './resolve-locale';
 
 type LanguageContextValue = {
   locale: AppLocale;
   preference: LanguagePreference;
   setPreference: (next: LanguagePreference) => Promise<void>;
-  t: (scope: string, options?: Record<string, unknown>) => string;
+  t: (scope: TranslationKey, options?: TranslateOptions) => string;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -62,7 +62,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   );
 
   const t = useCallback(
-    (scope: string, options?: Record<string, unknown>) => translate(scope, options),
+    (scope: TranslationKey, options?: TranslateOptions) => translate(scope, options),
     [locale],
   );
 

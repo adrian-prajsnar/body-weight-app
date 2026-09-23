@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { AppCard } from '../components/app-card';
@@ -14,20 +14,20 @@ import { ScreenHeader } from '../components/screen-header';
 import { SegmentedControl, SegmentedOption } from '../components/segmented-control';
 import { useSharedUserProfile } from '../context/user-profile-context';
 import { useSharedWeightEntries } from '../context/weight-entries-context';
+import { isTrendMode, useComparison } from '../hooks/use-comparison';
 import { useScrollHeader } from '../hooks/use-scroll-header';
 import { useTranslation } from '../i18n/language-context';
-import {
-  fromDateKey,
-  getDefaultTrendDateRange,
-  getTrendDateRangeValidationMessageKey,
-  getTodayDate,
-  toDateKey,
-  validateTrendDateRange,
-} from '../format';
-import { getComparison, getEarliestEntryDate, getTrendRows } from '../stats';
-import { ComparisonMode, CustomCompareKind, TrendGranularity } from '../types';
-import { runWhenIdle } from '../run-when-idle';
+import { TranslationKey } from '../i18n/translation-keys';
+import { CustomCompareKind, TrendGranularity } from '../types';
 import { useAppStyles } from '../theme/styles';
+
+const COMPARISON_RESET_KEYS: Record<TrendGranularity, TranslationKey> = {
+  day: 'comparison.reset.day',
+  week: 'comparison.reset.week',
+  month: 'comparison.reset.month',
+  year: 'comparison.reset.year',
+  ageYear: 'comparison.reset.ageYear',
+};
 
 type RangePickerProps = {
   title: string;
@@ -73,66 +73,19 @@ function RangePicker({
   );
 }
 
-function isTrendMode(mode: ComparisonMode): mode is TrendGranularity {
-  return mode !== 'custom';
-}
-
 export function ComparisonScreen() {
   const styles = useAppStyles();
   const { t, locale } = useTranslation();
   const { entries, isLoading, isRefreshing, error, refreshEntries } = useSharedWeightEntries();
   const { birthDate } = useSharedUserProfile();
-  const listReadyTaskRef = useRef<ReturnType<typeof runWhenIdle> | null>(null);
-  const today = getTodayDate();
-  const [isListReady, setIsListReady] = useState(false);
-  const [mode, setMode] = useState<ComparisonMode>('day');
-
-  const earliestWeighInDate = useMemo(() => getEarliestEntryDate(entries), [entries]);
-  const defaultTrendRange = useMemo(
-    () => getDefaultTrendDateRange('day', today, birthDate, earliestWeighInDate),
-    [birthDate, earliestWeighInDate, today],
-  );
-  const [fromDate, setFromDate] = useState(defaultTrendRange.from);
-  const [toDate, setToDate] = useState(defaultTrendRange.to);
-
-  const [customKind, setCustomKind] = useState<CustomCompareKind>('period');
-
-  const [rangeAStart, setRangeAStart] = useState<Date | null>(null);
-  const [rangeAEnd, setRangeAEnd] = useState<Date | null>(null);
-  const [rangeBStart, setRangeBStart] = useState<Date | null>(null);
-  const [rangeBEnd, setRangeBEnd] = useState<Date | null>(null);
-  const [dateA, setDateA] = useState<Date | null>(null);
-  const [dateB, setDateB] = useState<Date | null>(null);
-
   const { scrollY, onScroll } = useScrollHeader();
 
-  const beginListLoading = useCallback(() => {
-    listReadyTaskRef.current?.cancel();
-    setIsListReady(false);
-    listReadyTaskRef.current = runWhenIdle(() => {
-      setIsListReady(true);
-      listReadyTaskRef.current = null;
-    });
-  }, []);
-
-  useEffect(() => {
-    const task = runWhenIdle(() => {
-      setIsListReady(true);
-    });
-    return () => task.cancel();
-  }, []);
-
-  const resetCustomRanges = () => {
-    setRangeAStart(null);
-    setRangeAEnd(null);
-    setRangeBStart(null);
-    setRangeBEnd(null);
-  };
-
-  const resetCustomDates = () => {
-    setDateA(null);
-    setDateB(null);
-  };
+  const comparison = useComparison({
+    entries,
+    isLoading,
+    birthDate,
+    t,
+  });
 
   const customKindOptions = useMemo<SegmentedOption<CustomCompareKind>[]>(
     () => [
@@ -141,218 +94,6 @@ export function ComparisonScreen() {
     ],
     [locale, t],
   );
-
-  useEffect(() => {
-    if (!birthDate && mode === 'ageYear') {
-      setMode('day');
-    }
-  }, [birthDate, mode]);
-
-  const applyDefaultRange = useCallback(
-    (granularity: TrendGranularity) => {
-      const next = getDefaultTrendDateRange(granularity, today, birthDate, earliestWeighInDate);
-      setFromDate(next.from);
-      setToDate(next.to);
-    },
-    [birthDate, earliestWeighInDate, today],
-  );
-
-  const fromKey = toDateKey(fromDate);
-  const toKey = toDateKey(toDate);
-
-  const rangeValidation = useMemo(() => {
-    if (!isTrendMode(mode)) {
-      return null;
-    }
-    return validateTrendDateRange(fromDate, toDate, mode, today, birthDate);
-  }, [birthDate, fromDate, mode, today, toDate]);
-
-  const rangeValidationMessage = useMemo(() => {
-    if (!rangeValidation || !isTrendMode(mode)) {
-      return null;
-    }
-    return t(getTrendDateRangeValidationMessageKey(rangeValidation, mode));
-  }, [mode, rangeValidation, t]);
-
-  const isInvalidRange = rangeValidation !== null;
-
-  const isDefaultRange = useMemo(() => {
-    if (!isTrendMode(mode)) {
-      return true;
-    }
-    const defaultRange = getDefaultTrendDateRange(mode, today, birthDate, earliestWeighInDate);
-    return (
-      fromKey === toDateKey(defaultRange.from) && toKey === toDateKey(defaultRange.to)
-    );
-  }, [birthDate, earliestWeighInDate, fromKey, mode, today, toKey]);
-
-  const appliedEarliestWeighInRef = useRef<string | null | undefined>(undefined);
-
-  useEffect(() => {
-    if (isLoading || !isTrendMode(mode)) {
-      return;
-    }
-    if (appliedEarliestWeighInRef.current === earliestWeighInDate) {
-      return;
-    }
-
-    const entryAwareDefault = getDefaultTrendDateRange(
-      mode,
-      today,
-      birthDate,
-      earliestWeighInDate,
-    );
-    if (
-      fromKey === toDateKey(entryAwareDefault.from) &&
-      toKey === toDateKey(entryAwareDefault.to)
-    ) {
-      appliedEarliestWeighInRef.current = earliestWeighInDate;
-      return;
-    }
-
-    const preDataDefault = getDefaultTrendDateRange(mode, today, birthDate);
-    if (
-      fromKey !== toDateKey(preDataDefault.from) ||
-      toKey !== toDateKey(preDataDefault.to)
-    ) {
-      appliedEarliestWeighInRef.current = earliestWeighInDate;
-      return;
-    }
-
-    appliedEarliestWeighInRef.current = earliestWeighInDate;
-    applyDefaultRange(mode);
-  }, [
-    applyDefaultRange,
-    birthDate,
-    earliestWeighInDate,
-    fromKey,
-    isLoading,
-    mode,
-    today,
-    toKey,
-  ]);
-
-  const filterRange = useMemo(
-    () => ({ start: fromKey, end: toKey }),
-    [fromKey, toKey],
-  );
-
-  const trendRows = useMemo(() => {
-    if (!isListReady || !isTrendMode(mode) || isInvalidRange) {
-      return [];
-    }
-    return getTrendRows(entries, mode, filterRange, birthDate);
-  }, [birthDate, entries, filterRange, isInvalidRange, isListReady, mode]);
-
-  const showTrendContent = !isLoading && isListReady && !isInvalidRange;
-
-  const filterMinimumFrom = useMemo(() => {
-    if (!birthDate || !isTrendMode(mode) || mode === 'day') {
-      return undefined;
-    }
-    return fromDateKey(birthDate);
-  }, [birthDate, mode]);
-
-  const customRanges = useMemo(() => {
-    if (mode !== 'custom') {
-      return null;
-    }
-    if (customKind === 'dates') {
-      if (!dateA || !dateB) {
-        return null;
-      }
-      const dateAKey = toDateKey(dateA);
-      const dateBKey = toDateKey(dateB);
-      return {
-        rangeA: { start: dateAKey, end: dateAKey },
-        rangeB: { start: dateBKey, end: dateBKey },
-      };
-    }
-    if (!rangeAStart || !rangeAEnd || !rangeBStart || !rangeBEnd) {
-      return null;
-    }
-    return {
-      rangeA: { start: toDateKey(rangeAStart), end: toDateKey(rangeAEnd) },
-      rangeB: { start: toDateKey(rangeBStart), end: toDateKey(rangeBEnd) },
-    };
-  }, [customKind, dateA, dateB, mode, rangeAStart, rangeAEnd, rangeBStart, rangeBEnd]);
-
-  const customIncomplete =
-    mode === 'custom' &&
-    (customKind === 'period'
-      ? !rangeAStart || !rangeAEnd || !rangeBStart || !rangeBEnd
-      : !dateA || !dateB);
-
-  const comparison = useMemo(() => {
-    if (mode !== 'custom' || !customRanges) {
-      return null;
-    }
-    return getComparison(entries, 'custom', customRanges, birthDate, customKind);
-  }, [birthDate, customKind, customRanges, entries, mode]);
-
-  const customInvalid =
-    mode === 'custom' &&
-    customKind === 'period' &&
-    customRanges &&
-    (customRanges.rangeA.start > customRanges.rangeA.end ||
-      customRanges.rangeB.start > customRanges.rangeB.end);
-
-  const rangeAInvalid =
-    Boolean(rangeAStart && rangeAEnd && toDateKey(rangeAStart) > toDateKey(rangeAEnd));
-  const rangeBInvalid =
-    Boolean(rangeBStart && rangeBEnd && toDateKey(rangeBStart) > toDateKey(rangeBEnd));
-
-  const handleModeChange = (nextMode: ComparisonMode) => {
-    if (nextMode === 'custom' && mode !== 'custom') {
-      setCustomKind('period');
-      resetCustomRanges();
-      resetCustomDates();
-    }
-    if (isTrendMode(nextMode)) {
-      applyDefaultRange(nextMode);
-      beginListLoading();
-    }
-    setMode(nextMode);
-  };
-
-  const handleCustomKindChange = (nextKind: CustomCompareKind) => {
-    if (nextKind === customKind) {
-      return;
-    }
-    if (nextKind === 'period') {
-      resetCustomDates();
-    } else {
-      resetCustomRanges();
-    }
-    setCustomKind(nextKind);
-  };
-
-  const handleFromChange = (date: Date | null) => {
-    if (!date || !isTrendMode(mode)) {
-      return;
-    }
-    beginListLoading();
-    setFromDate(date);
-  };
-
-  const handleToChange = (date: Date | null) => {
-    if (!date || !isTrendMode(mode)) {
-      return;
-    }
-    beginListLoading();
-    setToDate(date);
-  };
-
-  const resetRange = () => {
-    if (isTrendMode(mode)) {
-      applyDefaultRange(mode);
-      beginListLoading();
-    }
-  };
-
-  const trendEmptyMessage = isInvalidRange
-    ? (rangeValidationMessage ?? t('comparison.invalidRange'))
-    : t('comparison.nothingMessage');
 
   return (
     <View style={styles.screen}>
@@ -380,117 +121,119 @@ export function ComparisonScreen() {
         <AppCard delay={0}>
           <View style={styles.comparisonFilterSection}>
             <ComparisonModeSelector
-              selected={mode}
-              onSelect={handleModeChange}
+              selected={comparison.mode}
+              onSelect={comparison.handleModeChange}
               showAgeYear={Boolean(birthDate)}
             />
 
-            {isTrendMode(mode) ? (
+            {isTrendMode(comparison.mode) ? (
               <>
-                {!isDefaultRange ? (
+                {!comparison.isDefaultRange ? (
                   <View style={styles.filterActionsRow}>
-                    <Pressable onPress={resetRange} hitSlop={8}>
-                      <Text style={styles.linkText}>{t(`comparison.reset.${mode}`)}</Text>
+                    <Pressable onPress={comparison.resetRange} hitSlop={8}>
+                      <Text style={styles.linkText}>
+                        {t(COMPARISON_RESET_KEYS[comparison.mode])}
+                      </Text>
                     </Pressable>
                   </View>
                 ) : null}
                 <View style={styles.historyDateFilters}>
                   <DateField
                     label={t('comparison.start')}
-                    value={fromDate}
-                    onChange={handleFromChange}
-                    maximumDate={toDate}
-                    minimumDate={filterMinimumFrom}
+                    value={comparison.fromDate}
+                    onChange={comparison.handleFromChange}
+                    maximumDate={comparison.toDate}
+                    minimumDate={comparison.filterMinimumFrom}
                   />
                   <DateField
                     label={t('comparison.end')}
-                    value={toDate}
-                    onChange={handleToChange}
-                    maximumDate={today}
-                    minimumDate={fromDate}
+                    value={comparison.toDate}
+                    onChange={comparison.handleToChange}
+                    maximumDate={comparison.today}
+                    minimumDate={comparison.fromDate}
                   />
                 </View>
-                {rangeValidationMessage ? (
-                  <Text style={styles.warningText}>{rangeValidationMessage}</Text>
+                {comparison.rangeValidationMessage ? (
+                  <Text style={styles.warningText}>{comparison.rangeValidationMessage}</Text>
                 ) : null}
               </>
             ) : (
               <SegmentedControl
                 options={customKindOptions}
-                value={customKind}
-                onChange={handleCustomKindChange}
+                value={comparison.customKind}
+                onChange={comparison.handleCustomKindChange}
               />
             )}
           </View>
         </AppCard>
 
-        {mode === 'custom' && customKind === 'period' ? (
+        {comparison.mode === 'custom' && comparison.customKind === 'period' ? (
           <>
             <RangePicker
               title={t('periods.rangeA')}
               delay={60}
-              start={rangeAStart}
-              end={rangeAEnd}
-              onStartChange={setRangeAStart}
-              onEndChange={setRangeAEnd}
-              invalid={rangeAInvalid}
-              maximumDate={today}
+              start={comparison.rangeAStart}
+              end={comparison.rangeAEnd}
+              onStartChange={comparison.setRangeAStart}
+              onEndChange={comparison.setRangeAEnd}
+              invalid={comparison.rangeAInvalid}
+              maximumDate={comparison.today}
             />
             <RangePicker
               title={t('periods.rangeB')}
               delay={120}
-              start={rangeBStart}
-              end={rangeBEnd}
-              onStartChange={setRangeBStart}
-              onEndChange={setRangeBEnd}
-              invalid={rangeBInvalid}
-              maximumDate={today}
+              start={comparison.rangeBStart}
+              end={comparison.rangeBEnd}
+              onStartChange={comparison.setRangeBStart}
+              onEndChange={comparison.setRangeBEnd}
+              invalid={comparison.rangeBInvalid}
+              maximumDate={comparison.today}
             />
           </>
         ) : null}
 
-        {mode === 'custom' && customKind === 'dates' ? (
+        {comparison.mode === 'custom' && comparison.customKind === 'dates' ? (
           <AppCard delay={60}>
             <DateField
               label={t('comparison.dateA')}
-              value={dateA}
-              onChange={setDateA}
-              maximumDate={today}
+              value={comparison.dateA}
+              onChange={comparison.setDateA}
+              maximumDate={comparison.today}
             />
             <DateField
               label={t('comparison.dateB')}
-              value={dateB}
-              onChange={setDateB}
-              maximumDate={today}
+              value={comparison.dateB}
+              onChange={comparison.setDateB}
+              maximumDate={comparison.today}
             />
           </AppCard>
         ) : null}
 
-        {isTrendMode(mode) ? (
+        {isTrendMode(comparison.mode) ? (
           <AppCard
-            isBusy={isRefreshing && showTrendContent}
+            isBusy={isRefreshing && comparison.showTrendContent}
             delay={60}
             animateEntry={false}
           >
-            {isInvalidRange ? (
+            {comparison.isInvalidRange ? (
               <EmptyState
                 icon="git-compare-outline"
                 title={t('comparison.nothingTitle')}
-                message={trendEmptyMessage}
+                message={comparison.trendEmptyMessage}
               />
-            ) : showTrendContent ? (
+            ) : comparison.showTrendContent ? (
               <ComparisonTrendList
-                mode={mode}
-                rows={trendRows}
+                mode={comparison.mode}
+                rows={comparison.trendRows}
                 entries={entries}
                 embedded
-                emptyMessage={trendEmptyMessage}
+                emptyMessage={comparison.trendEmptyMessage}
               />
             ) : (
               <HistoryListSkeleton rows={6} />
             )}
           </AppCard>
-        ) : customIncomplete ? (
+        ) : comparison.customIncomplete ? (
           <AppCard delay={60}>
             <EmptyState
               icon="git-compare-outline"
@@ -502,7 +245,7 @@ export function ComparisonScreen() {
           <AppCard delay={60}>
             <ComparisonResultSkeleton />
           </AppCard>
-        ) : customInvalid ? (
+        ) : comparison.customInvalid ? (
           <AppCard delay={60}>
             <EmptyState
               icon="git-compare-outline"
@@ -510,18 +253,18 @@ export function ComparisonScreen() {
               message={t('comparison.invalidCustom')}
             />
           </AppCard>
-        ) : comparison ? (
+        ) : comparison.comparison ? (
           <AppCard delay={60} isBusy={isRefreshing}>
             <ComparisonResult
-              labelA={comparison.labelA}
-              labelB={comparison.labelB}
-              rangeA={comparison.rangeA}
-              rangeB={comparison.rangeB}
-              statsA={comparison.statsA}
-              statsB={comparison.statsB}
+              labelA={comparison.comparison.labelA}
+              labelB={comparison.comparison.labelB}
+              rangeA={comparison.comparison.rangeA}
+              rangeB={comparison.comparison.rangeB}
+              statsA={comparison.comparison.statsA}
+              statsB={comparison.comparison.statsB}
               entries={entries}
-              difference={comparison.difference}
-              isDayMode={customKind === 'dates'}
+              difference={comparison.comparison.difference}
+              isDayMode={comparison.customKind === 'dates'}
               embedded
             />
           </AppCard>

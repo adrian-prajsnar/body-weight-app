@@ -2,8 +2,10 @@ import { I18n } from 'i18n-js';
 import en from './locales/en';
 import pl from './locales/pl';
 import { AppLocale } from './resolve-locale';
+import { TranslateOptions, TranslationKey } from './translation-keys';
 
 export type TranslationTree = typeof en;
+export type { TranslationKey, TranslateOptions } from './translation-keys';
 
 function polishPluralKeys(_i18n: I18n, count: number): string[] {
   const absolute = Math.abs(count);
@@ -36,7 +38,7 @@ export function getI18nLocale(): AppLocale {
   return i18n.locale === 'pl' ? 'pl' : 'en';
 }
 
-export function t(scope: string, options?: Record<string, unknown>): string {
+export function t(scope: TranslationKey, options?: TranslateOptions): string {
   return i18n.t(scope, options);
 }
 

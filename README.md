@@ -15,10 +15,21 @@ Your weight, your progress — a minimal Android app for logging daily body weig
 
 ```bash
 npm install
+# Copy .env.example to .env (macOS/Linux: cp .env.example .env; Windows: copy .env.example .env)
 cp .env.example .env
 # Edit .env with your Supabase URL and anon key
 npx expo start -c
 ```
+
+Verify changes before committing:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+```
+
+Coding rules for agents and contributors: [`AGENTS.md`](AGENTS.md).
 
 Local development uses the **same** Supabase project as production. Use a [dev test account](#safe-dev-on-production-one-project) so you don’t mix fake entries with real weigh-ins.
 
@@ -36,17 +47,9 @@ Local development uses the **same** Supabase project as production. Use a [dev t
 
 **Already have data?** Do not re-run `schema.sql` to apply changes. Add a new file under [`supabase/migrations/`](supabase/migrations/) instead — see **Database migrations** in [`AGENTS.md`](AGENTS.md). If your `weight_entries` table exists without `created_at`, run [`supabase/migrations/2026-09-01-weight-entry-created-at.sql`](supabase/migrations/2026-09-01-weight-entry-created-at.sql).
 
-**Already set up `weight_entries`?** Run only [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) to add `height_entries` without touching existing weight policies.
+**Already set up `weight_entries`?** Run only [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) to add `height_entries` without touching existing weight policies. That file also copies legacy `height_cm` from `user_profiles` when present.
 
-**Migrating from an older schema** (if `user_profiles` had a `height_cm` column):
-
-```sql
-insert into public.height_entries (user_id, effective_date, height_cm, updated_at)
-select user_id, updated_at::date, height_cm, updated_at
-from public.user_profiles
-where height_cm is not null
-on conflict (user_id, effective_date) do nothing;
-```
+**Missing `height_entries` on an older database?** Do not re-run the full `schema.sql`. Use [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) or an additive file under [`supabase/migrations/`](supabase/migrations/).
 
 ### Troubleshooting: "permission denied for table weight_entries"
 
@@ -59,7 +62,7 @@ grant select, insert, update, delete on table public.height_entries to authentic
 grant select, insert, update, delete on table public.user_profiles to authenticated;
 ```
 
-If you already ran an older schema without `height_entries`, run the full `supabase/schema.sql` or the migration block above.
+If `height_entries` is missing on an older database, run [`supabase/migrate-height-entries.sql`](supabase/migrate-height-entries.sql) — not the full `schema.sql`.
 
 ### 3. Enable email sign-in and confirmation
 
@@ -160,7 +163,8 @@ Full migration rules: [`AGENTS.md`](AGENTS.md) → Database migrations.
 
 ### App release
 
-- [ ] `npx tsc --noEmit` and `npx expo-doctor` pass.
+- [ ] `npm run lint`, `npm run typecheck`, and `npm test` pass.
+- [ ] `npx expo-doctor` passes (especially after dependency or Expo config changes).
 - [ ] Test app changes signed in as your **dev test account** (see [Safe dev on production](#safe-dev-on-production-one-project)), not friends’ data.
 - [ ] Migration already applied if the build reads new columns or tables.
 - [ ] After `eas env:push`, confirm `EXPO_PUBLIC_SUPABASE_*` still point at the **intended** project (local dev and production APK share the same DB today).

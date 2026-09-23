@@ -1,6 +1,7 @@
 import { getAgeOnDate } from './age';
 import { CDC_BMI_LMS_FEMALE, CDC_BMI_LMS_MALE } from './bmi/cdc-bmi-lms';
 import { t } from './i18n';
+import { TranslationKey } from './i18n/translation-keys';
 import { ColorScheme, palettes } from './theme/tokens';
 import { BiologicalSex } from './types';
 
@@ -75,8 +76,16 @@ const BMI_THEMES: Record<ColorScheme, Record<BmiCategory, BmiTheme>> = {
   },
 };
 
+const BMI_CATEGORY_KEYS: Record<BmiCategory, TranslationKey> = {
+  underweight: 'bmi.underweight',
+  normal: 'bmi.normal',
+  overweight: 'bmi.overweight',
+  obese: 'bmi.obese',
+  unclassified: 'bmi.unclassified',
+};
+
 function getCategoryLabel(category: BmiCategory): string {
-  return t(`bmi.${category}`);
+  return t(BMI_CATEGORY_KEYS[category]);
 }
 
 function adultCategory(bmi: number): BmiCategory {

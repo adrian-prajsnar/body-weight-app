@@ -1,4 +1,5 @@
 import { getI18nLocale, t } from './i18n';
+import { TranslationKey } from './i18n/translation-keys';
 import { getDateLocale } from './i18n/resolve-locale';
 import {
   cmToFeetInches,
@@ -193,12 +194,12 @@ export function validateHistoryDateRange(
 
 export function getHistoryDateRangeValidationMessageKey(
   error: TrendDateRangeValidationError,
-): string {
+): TranslationKey {
   if (error === 'maxSpanExceeded') {
     return 'history.rangeTooLong';
   }
 
-  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, string> = {
+  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, TranslationKey> = {
     invalidOrder: 'history.invalidRange',
     beforeBirthDate: 'history.invalidRange',
     futureDate: 'history.futureDate',
@@ -351,12 +352,12 @@ export function validateTrendDateRange(
 export function getTrendDateRangeValidationMessageKey(
   error: TrendDateRangeValidationError,
   granularity: TrendGranularity,
-): string {
+): TranslationKey {
   if (error === 'maxSpanExceeded') {
     return `comparison.rangeTooLong.${granularity}`;
   }
 
-  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, string> = {
+  const keys: Record<Exclude<TrendDateRangeValidationError, 'maxSpanExceeded'>, TranslationKey> = {
     invalidOrder: 'comparison.invalidRange',
     beforeBirthDate: 'comparison.beforeBirthDate',
     futureDate: 'comparison.futureDate',

@@ -13,6 +13,7 @@ import {
   formatWeightLabel,
 } from '../format';
 import { t } from '../i18n';
+import { TranslationKey } from '../i18n/translation-keys';
 import { getBmiStatsForRange, getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { DateRange, WeightEntry } from '../types';
@@ -160,7 +161,7 @@ function WeighInDetails({
   );
 }
 
-function periodTitleKey(metric: PeriodBmiMetric): string {
+function periodTitleKey(metric: PeriodBmiMetric): TranslationKey {
   if (metric === 'average') {
     return 'bmi.periodAverageTitle';
   }

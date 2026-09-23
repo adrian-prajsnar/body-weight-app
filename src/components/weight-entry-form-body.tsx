@@ -9,6 +9,7 @@ import { useSharedBmiDisplay } from '../context/bmi-display-context';
 import { useUnits } from '../context/unit-context';
 import { useToast } from '../context/toast-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
+import { useSharedWeightEntries } from '../context/weight-entries-context';
 import {
   formatWeightValue,
   getTodayDate,
@@ -20,7 +21,6 @@ import {
 import { getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { getLatestChange } from '../stats';
-import { saveEntry } from '../supabase/weight-sync';
 import { WeightEntry } from '../types';
 import { lbToKg, WEIGHT_STEP_KG, WEIGHT_STEP_LB } from '../units';
 import { useAppStyles } from '../theme/styles';
@@ -40,7 +40,7 @@ type WeightEntryFormBodyProps = {
 
 export function WeightEntryFormBody({
   entries,
-  onSaved,
+  onSaved: _onSaved,
   isDataLoading = false,
   initialDate,
   resetDateAfterSave = false,
@@ -56,6 +56,7 @@ export function WeightEntryFormBody({
   const { showBmi } = useSharedBmiDisplay();
   const { openWeighIn } = useBmiDetails();
   const { showError, showSuccess } = useToast();
+  const { upsertEntry } = useSharedWeightEntries();
   const [selectedDate, setSelectedDate] = useState(initialDate ?? getTodayDate);
   const [weightInput, setWeightInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -124,13 +125,7 @@ export function WeightEntryFormBody({
     setIsSaving(true);
 
     try {
-      await saveEntry(selectedDateKey, weightKg);
-      try {
-        await onSaved();
-      } catch {
-        showError(t('entryForm.savedRefreshFailed'));
-        return;
-      }
+      await upsertEntry(selectedDateKey, weightKg);
       if (resetDateAfterSave) {
         setSelectedDate(getTodayDate());
       }

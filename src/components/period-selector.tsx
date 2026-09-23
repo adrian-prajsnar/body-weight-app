@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Pressable, ScrollView, Text } from 'react-native';
+import { TranslationKey } from '../i18n/translation-keys';
 import { useTranslation } from '../i18n/language-context';
 import { DashboardPeriod } from '../types';
 import { useAppStyles } from '../theme/styles';
@@ -13,7 +14,7 @@ const BASE_PERIODS: DashboardPeriod[] = [
   'lastYear',
 ];
 
-const PERIOD_KEYS: Record<DashboardPeriod, string> = {
+const PERIOD_KEYS: Record<DashboardPeriod, TranslationKey> = {
   thisWeek: 'periods.thisWeek',
   lastWeek: 'periods.lastWeek',
   thisMonth: 'periods.thisMonth',

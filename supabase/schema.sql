@@ -96,6 +96,8 @@ end;
 $$;
 
 grant execute on function public.delete_own_account() to authenticated;
+revoke all on function public.delete_own_account() from public;
+revoke all on function public.delete_own_account() from anon;
 
 -- Optional profile table (legacy height_cm removed; use height_entries).
 create table if not exists public.user_profiles (

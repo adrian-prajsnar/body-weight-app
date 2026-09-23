@@ -2,9 +2,6 @@ import { calculateBmi } from './bmi';
 import { filterEntriesByRange } from './stats';
 import { DateRange, HeightEntry, WeightEntry } from './types';
 
-/** @deprecated Legacy fixed-height sentinel; may exist in older data. */
-export const FIXED_HEIGHT_EFFECTIVE_DATE = '1970-01-01';
-
 export type BmiStats = {
   average: number | null;
   min: number | null;

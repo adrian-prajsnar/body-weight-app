@@ -43,7 +43,7 @@ export function toSupabaseError(error: SupabaseRequestError): Error {
     return new Error(t('errors.sessionExpired'));
   }
 
-  return new Error(error.message);
+  return new Error(t('errors.couldNotLoadData'));
 }
 
 export function toSupabaseErrorFromUnknown(error: unknown): Error {
@@ -53,7 +53,7 @@ export function toSupabaseErrorFromUnknown(error: unknown): Error {
     }
 
     if (!isJwtClockSkewError(error)) {
-      return error;
+      return new Error(t('errors.couldNotLoadData'));
     }
   }
 
