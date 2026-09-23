@@ -5,6 +5,7 @@ import {
   getTrendDateRangeValidationMessageKey,
   getTodayDate,
   toDateKey,
+  getTrendDateRangeFieldHighlight,
   validateTrendDateRange,
 } from '../format';
 import { getComparison, getEarliestEntryDate, getTrendRows } from '../stats';
@@ -105,6 +106,20 @@ export function useComparison({ entries, isLoading, birthDate, t }: UseCompariso
     }
     return t(getTrendDateRangeValidationMessageKey(rangeValidation, mode));
   }, [mode, rangeValidation, t]);
+
+  const rangeFieldHighlight = useMemo(() => {
+    if (!rangeValidation || !isTrendMode(mode)) {
+      return { from: false, to: false };
+    }
+    return getTrendDateRangeFieldHighlight(
+      rangeValidation,
+      fromDate,
+      toDate,
+      mode,
+      today,
+      birthDate,
+    );
+  }, [birthDate, fromDate, mode, rangeValidation, today, toDate]);
 
   const isInvalidRange = rangeValidation !== null;
 
@@ -300,6 +315,7 @@ export function useComparison({ entries, isLoading, birthDate, t }: UseCompariso
     dateB,
     isDefaultRange,
     rangeValidationMessage,
+    rangeFieldHighlight,
     isInvalidRange,
     trendRows,
     showTrendContent,

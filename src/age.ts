@@ -83,13 +83,30 @@ export function getThisAgeYearRange(birthDateKey: string, todayInput?: Date): Da
   };
 }
 
+export function getLastAgeYearRange(birthDateKey: string, todayInput?: Date): DateRange {
+  const today = todayInput ? new Date(todayInput) : getTodayDate();
+  today.setHours(0, 0, 0, 0);
+  const lastBirthday = getLastBirthdayDate(birthDateKey, today);
+  const end = new Date(lastBirthday);
+  end.setDate(end.getDate() - 1);
+  const birth = fromDateKey(birthDateKey);
+  const start = birthdayOnYear(birth, lastBirthday.getFullYear() - 1);
+  return {
+    start: toDateKey(start),
+    end: toDateKey(end),
+  };
+}
+
 export function formatAge(age: AgeParts | null): string {
   if (!age) {
     return t('common.emDash');
   }
 
   if (age.years < 18) {
-    return t('age.yearsMonths', { years: age.years, months: age.months });
+    return t('age.yearsMonths', {
+      years: t('age.years', { count: age.years }),
+      months: t('age.months', { count: age.months }),
+    });
   }
 
   return t('age.years', { count: age.years });
@@ -101,8 +118,8 @@ export function formatAgeDetailed(age: AgeParts | null): string {
   }
 
   return t('age.yearsMonthsDays', {
-    years: age.years,
-    months: age.months,
-    days: age.days,
+    years: t('age.years', { count: age.years }),
+    months: t('age.months', { count: age.months }),
+    days: t('age.days', { count: age.days }),
   });
 }

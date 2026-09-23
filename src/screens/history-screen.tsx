@@ -17,6 +17,7 @@ import { useTranslation } from '../i18n/language-context';
 import {
   formatDateLabel,
   getDefaultHistoryDateRange,
+  getHistoryDateRangeFieldHighlight,
   getHistoryDateRangeValidationMessageKey,
   getTodayDate,
   toDateKey,
@@ -74,6 +75,10 @@ export function HistoryScreen() {
     }
     return t(getHistoryDateRangeValidationMessageKey(rangeValidation));
   }, [rangeValidation, t]);
+  const rangeFieldHighlight = useMemo(
+    () => getHistoryDateRangeFieldHighlight(rangeValidation, fromDate, toDate, today),
+    [fromDate, rangeValidation, toDate, today],
+  );
   const isInvalidRange = rangeValidation !== null;
   const showListContent = !isLoading && isListReady;
 
@@ -186,12 +191,14 @@ export function HistoryScreen() {
               value={fromDate}
               onChange={handleFromChange}
               maximumDate={toDate}
+              invalid={rangeFieldHighlight.from}
             />
             <DateField
               label={t('history.to')}
               value={toDate}
               onChange={handleToChange}
               maximumDate={today}
+              invalid={rangeFieldHighlight.to}
             />
           </View>
           {isFilterCustom || isClearingFilter ? (

@@ -19,7 +19,8 @@ export type DashboardPeriod =
   | 'lastMonth'
   | 'last6Months'
   | 'lastYear'
-  | 'thisAgeYear';
+  | 'thisAgeYear'
+  | 'lastAgeYear';
 
 export type DateRange = {
   start: string;

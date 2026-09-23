@@ -192,6 +192,35 @@ export function validateHistoryDateRange(
   return null;
 }
 
+export type DateRangeFieldHighlight = {
+  from: boolean;
+  to: boolean;
+};
+
+const NO_DATE_RANGE_FIELD_HIGHLIGHT: DateRangeFieldHighlight = { from: false, to: false };
+
+export function getHistoryDateRangeFieldHighlight(
+  error: TrendDateRangeValidationError | null,
+  from: Date,
+  to: Date,
+  today: Date = getTodayDate(),
+): DateRangeFieldHighlight {
+  if (!error) {
+    return NO_DATE_RANGE_FIELD_HIGHLIGHT;
+  }
+
+  switch (error) {
+    case 'invalidOrder':
+      return { from: true, to: false };
+    case 'futureDate':
+      return { from: false, to: true };
+    case 'beforeBirthDate':
+      return { from: true, to: false };
+    case 'maxSpanExceeded':
+      return { from: true, to: true };
+  }
+}
+
 export function getHistoryDateRangeValidationMessageKey(
   error: TrendDateRangeValidationError,
 ): TranslationKey {
@@ -347,6 +376,30 @@ export function validateTrendDateRange(
   }
 
   return null;
+}
+
+export function getTrendDateRangeFieldHighlight(
+  error: TrendDateRangeValidationError | null,
+  from: Date,
+  to: Date,
+  granularity: TrendGranularity,
+  today: Date = getTodayDate(),
+  birthDate?: string | null,
+): DateRangeFieldHighlight {
+  if (!error) {
+    return NO_DATE_RANGE_FIELD_HIGHLIGHT;
+  }
+
+  switch (error) {
+    case 'invalidOrder':
+      return { from: true, to: false };
+    case 'futureDate':
+      return { from: false, to: true };
+    case 'beforeBirthDate':
+      return { from: true, to: false };
+    case 'maxSpanExceeded':
+      return { from: true, to: true };
+  }
 }
 
 export function getTrendDateRangeValidationMessageKey(

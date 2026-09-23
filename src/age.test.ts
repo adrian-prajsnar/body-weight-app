@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { getAgeOnDate, getLastBirthdayKey, getThisAgeYearRange } from './age';
+import { afterEach, describe, expect, it } from 'vitest';
+import {
+  formatAgeDetailed,
+  getAgeOnDate,
+  getLastAgeYearRange,
+  getLastBirthdayKey,
+  getThisAgeYearRange,
+} from './age';
+import { setI18nLocale } from './i18n';
 
 describe('getAgeOnDate', () => {
   it('returns null for dates before birth', () => {
@@ -17,6 +24,25 @@ describe('getAgeOnDate', () => {
   });
 });
 
+describe('formatAgeDetailed', () => {
+  afterEach(() => {
+    setI18nLocale('en');
+  });
+
+  it('uses full Polish month labels with correct plural forms', () => {
+    setI18nLocale('pl');
+    expect(formatAgeDetailed(getAgeOnDate('2000-06-15', '2022-07-16'))).toBe(
+      '22 lata, 1 miesiąc, 1 dzień',
+    );
+    expect(formatAgeDetailed(getAgeOnDate('2000-06-15', '2022-08-18'))).toBe(
+      '22 lata, 2 miesiące, 3 dni',
+    );
+    expect(formatAgeDetailed(getAgeOnDate('2000-06-15', '2023-01-20'))).toBe(
+      '22 lata, 7 miesięcy, 5 dni',
+    );
+  });
+});
+
 describe('birthday helpers', () => {
   it('finds the latest birthday on or before today', () => {
     expect(getLastBirthdayKey('1990-05-10', new Date(2024, 8, 14))).toBe('2024-05-10');
@@ -27,6 +53,14 @@ describe('birthday helpers', () => {
     expect(getThisAgeYearRange('1990-05-10', today)).toEqual({
       start: '2024-05-10',
       end: '2024-09-14',
+    });
+  });
+
+  it('builds the previous age-year range ending the day before the last birthday', () => {
+    const today = new Date(2024, 8, 14);
+    expect(getLastAgeYearRange('1990-05-10', today)).toEqual({
+      start: '2023-05-10',
+      end: '2024-05-09',
     });
   });
 });

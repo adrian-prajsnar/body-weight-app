@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { formatDateLabel, addDays, getTodayDate, toDateKey } from '../format';
 import { useTranslation } from '../i18n/language-context';
+import type { TranslationKey } from '../i18n/translation-keys';
 import { useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { DatePickerSheet } from './date-picker-sheet';
@@ -17,6 +18,9 @@ type DateFieldProps = {
   maximumDate?: Date;
   minimumDate?: Date;
   showDayStepper?: boolean;
+  invalid?: boolean;
+  clearLabelKey?: TranslationKey;
+  onClearPress?: () => void;
 };
 
 export function DateField({
@@ -29,6 +33,9 @@ export function DateField({
   maximumDate,
   minimumDate,
   showDayStepper = false,
+  invalid = false,
+  clearLabelKey = 'common.clear',
+  onClearPress,
 }: DateFieldProps) {
   const styles = useAppStyles();
   const colors = useColors();
@@ -76,6 +83,7 @@ export function DateField({
     <Pressable
       style={({ pressed }) => [
         styles.dateButton,
+        invalid && styles.dateButtonInvalid,
         showDayStepper && styles.dateButtonInStepper,
         pressed && styles.buttonPressed,
       ]}
@@ -102,8 +110,13 @@ export function DateField({
       <View style={styles.filterFieldHeader}>
         <Text style={styles.fieldLabel}>{label}</Text>
         {optional && value && !readOnly ? (
-          <Pressable onPress={() => onChange(null)} hitSlop={8}>
-            <Text style={styles.linkText}>{t('common.clear')}</Text>
+          <Pressable
+            onPress={() => (onClearPress ? onClearPress() : onChange(null))}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t(clearLabelKey)}
+          >
+            <Text style={styles.linkText}>{t(clearLabelKey)}</Text>
           </Pressable>
         ) : null}
       </View>

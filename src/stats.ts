@@ -1,4 +1,9 @@
-import { getAgeOnDate, getLastBirthdayDate, getThisAgeYearRange } from './age';
+import {
+  getAgeOnDate,
+  getLastAgeYearRange,
+  getLastBirthdayDate,
+  getThisAgeYearRange,
+} from './age';
 import {
   addDays,
   formatDateLabel,
@@ -59,6 +64,14 @@ export function getDashboardPeriodRange(
         return toRange(start, today);
       }
       return getThisAgeYearRange(birthDate, today);
+    }
+    case 'lastAgeYear': {
+      if (!birthDate) {
+        const start = addDays(today, -729);
+        const end = addDays(today, -365);
+        return toRange(start, end);
+      }
+      return getLastAgeYearRange(birthDate, today);
     }
     case 'thisWeek': {
       const start = getMondayWeekStart(today);
@@ -158,13 +171,10 @@ function assignEntriesToBuckets(
   return bucketEntries;
 }
 
-export function getLast7DaysEntries(entries: WeightEntry[]): WeightEntry[] {
-  const today = getTodayDate();
-  const start = addDays(today, -6);
-  const range = toRange(start, today);
-  return filterEntriesByRange(entries, range).sort((a, b) =>
-    b.date.localeCompare(a.date),
-  );
+export function getLast7WeighIns(entries: WeightEntry[]): WeightEntry[] {
+  return [...entries]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 7);
 }
 
 function clipRangeToFilter(bucket: DateRange, filter: DateRange): DateRange {

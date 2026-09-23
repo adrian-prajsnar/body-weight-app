@@ -9,9 +9,11 @@ import {
   useState,
 } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeOutUp, SlideInUp } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from '../i18n/language-context';
+import { toastEntering, toastExiting } from '../hooks/toast-animation';
+import { useToastSwipeDismiss } from '../hooks/use-toast-swipe-dismiss';
 import { AppStyles, useAppStyles } from '../theme/styles';
 import { useColors } from '../theme/theme-context';
 import { Palette, spacing } from '../theme/tokens';
@@ -85,6 +87,7 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
   const insets = useSafeAreaInsets();
   const toastTop = insets.top + spacing.sm;
   const variant = toastVariant(styles, toast.type);
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toastTitle =
     toast.type === 'success'
@@ -93,19 +96,45 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
         ? t('toasts.error')
         : t('toasts.info');
 
+  const clearDismissTimer = useCallback(() => {
+    if (dismissTimerRef.current) {
+      clearTimeout(dismissTimerRef.current);
+      dismissTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleDismissTimer = useCallback(() => {
+    clearDismissTimer();
+    dismissTimerRef.current = setTimeout(onDismiss, TOAST_DURATION_MS);
+  }, [clearDismissTimer, onDismiss]);
+
+  const handleDismiss = useCallback(() => {
+    clearDismissTimer();
+    onDismiss();
+  }, [clearDismissTimer, onDismiss]);
+
+  const { panHandlers, animatedCardStyle } = useToastSwipeDismiss({
+    onDismiss: handleDismiss,
+    pauseAutoDismiss: clearDismissTimer,
+    resumeAutoDismiss: scheduleDismissTimer,
+  });
+
   useEffect(() => {
-    const timer = setTimeout(onDismiss, TOAST_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [onDismiss]);
+    scheduleDismissTimer();
+    return clearDismissTimer;
+  }, [clearDismissTimer, scheduleDismissTimer]);
 
   return (
     <Animated.View
       pointerEvents="box-none"
-      entering={SlideInUp.springify().damping(18).mass(0.6)}
-      exiting={FadeOutUp.duration(180)}
+      entering={toastEntering}
+      exiting={toastExiting}
       style={[styles.toastContainer, { top: toastTop }]}
     >
-      <Pressable style={[styles.toastCard, variant.card]} onPress={onDismiss}>
+      <Animated.View
+        style={[styles.toastCard, variant.card, animatedCardStyle]}
+        {...panHandlers}
+      >
         <Ionicons
           name={TOAST_ICONS[toast.type]}
           size={20}
@@ -115,7 +144,16 @@ function ToastBanner({ toast, onDismiss }: { toast: ToastState; onDismiss: () =>
           <Text style={[styles.toastTitle, variant.title]}>{toastTitle}</Text>
           <Text style={[styles.toastMessage, variant.message]}>{toast.message}</Text>
         </View>
-      </Pressable>
+        <Pressable
+          style={styles.toastCloseButton}
+          onPress={handleDismiss}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('toasts.dismiss')}
+        >
+          <Ionicons name="close" size={18} color={colors.textMuted} />
+        </Pressable>
+      </Animated.View>
     </Animated.View>
   );
 }

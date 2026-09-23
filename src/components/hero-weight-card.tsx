@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
-import { formatAge, getAgeOnDate } from '../age';
+import { formatAgeDetailed, getAgeOnDate } from '../age';
 import { calculateBmi } from '../bmi';
 import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
@@ -106,7 +106,7 @@ export function HeroWeightCard({ entries, isLoading, isBusy = false }: HeroWeigh
             {birthDate
               ? t('hero.loggedOnWithAge', {
                   date: formatDateLabel(latest.date),
-                  age: formatAge(getAgeOnDate(birthDate, latest.date)),
+                  age: formatAgeDetailed(getAgeOnDate(birthDate, latest.date)),
                 })
               : t('hero.loggedOn', { date: formatDateLabel(latest.date) })}
           </Text>

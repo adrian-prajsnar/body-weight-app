@@ -15,6 +15,7 @@ type SexControlValue = BiologicalSex | 'unset';
 type AboutYouSectionProps = {
   birthDate: string | null;
   onBirthDateChange: (date: Date | null) => void;
+  onBirthDateDelete: () => void;
   birthDateAutoOpen?: boolean;
   minimumBirthDate: Date;
   maximumBirthDate: Date;
@@ -48,6 +49,7 @@ export function AboutYouSkeleton() {
 export function AboutYouSection({
   birthDate,
   onBirthDateChange,
+  onBirthDateDelete,
   birthDateAutoOpen = false,
   minimumBirthDate,
   maximumBirthDate,
@@ -74,6 +76,8 @@ export function AboutYouSection({
         label={t('profile.birthDate')}
         value={birthDate ? fromDateKey(birthDate) : null}
         onChange={onBirthDateChange}
+        onClearPress={onBirthDateDelete}
+        clearLabelKey="common.delete"
         optional
         autoOpen={birthDateAutoOpen}
         maximumDate={maximumBirthDate}

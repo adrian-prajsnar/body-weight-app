@@ -3,6 +3,7 @@ import {
   filterEntriesByRange,
   getComparison,
   getDashboardPeriodRange,
+  getLast7WeighIns,
   getTrendRows,
 } from './stats';
 import { WeightEntry } from './types';
@@ -50,6 +51,14 @@ describe('getDashboardPeriodRange', () => {
       end: '2024-09-18',
     });
   });
+
+  it('uses the previous age year for lastAgeYear when birth date is set', () => {
+    const today = new Date(2024, 8, 14);
+    expect(getDashboardPeriodRange('lastAgeYear', today, '1990-05-10')).toEqual({
+      start: '2023-05-10',
+      end: '2024-05-09',
+    });
+  });
 });
 
 describe('filterEntriesByRange', () => {
@@ -62,6 +71,36 @@ describe('filterEntriesByRange', () => {
       '2024-01-15',
       '2024-06-01',
       '2024-06-02',
+    ]);
+  });
+});
+
+describe('getLast7WeighIns', () => {
+  it('returns the seven most recent weigh-ins by date', () => {
+    const manyEntries: WeightEntry[] = Array.from({ length: 10 }, (_, index) => ({
+      date: `2024-06-${String(index + 1).padStart(2, '0')}`,
+      weightKg: 80 - index,
+      createdAt: `2024-06-${String(index + 1).padStart(2, '0')}T08:00:00.000Z`,
+      updatedAt: `2024-06-${String(index + 1).padStart(2, '0')}T08:00:00.000Z`,
+    }));
+
+    expect(getLast7WeighIns(manyEntries).map((entry) => entry.date)).toEqual([
+      '2024-06-10',
+      '2024-06-09',
+      '2024-06-08',
+      '2024-06-07',
+      '2024-06-06',
+      '2024-06-05',
+      '2024-06-04',
+    ]);
+  });
+
+  it('returns all entries when fewer than seven exist', () => {
+    expect(getLast7WeighIns(entries).map((entry) => entry.date)).toEqual([
+      '2024-06-02',
+      '2024-06-01',
+      '2024-01-15',
+      '2023-06-01',
     ]);
   });
 });

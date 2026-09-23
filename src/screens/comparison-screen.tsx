@@ -51,6 +51,7 @@ function RangePicker({
         value={start}
         onChange={onStartChange}
         maximumDate={end ?? maximumDate}
+        invalid={invalid}
       />
       <DateField
         label={t('comparison.end')}
@@ -126,6 +127,7 @@ export function ComparisonScreen() {
                     onChange={comparison.handleFromChange}
                     maximumDate={comparison.toDate}
                     minimumDate={comparison.filterMinimumFrom}
+                    invalid={comparison.rangeFieldHighlight.from}
                   />
                   <DateField
                     label={t('comparison.end')}
@@ -133,6 +135,7 @@ export function ComparisonScreen() {
                     onChange={comparison.handleToChange}
                     maximumDate={comparison.today}
                     minimumDate={comparison.fromDate}
+                    invalid={comparison.rangeFieldHighlight.to}
                   />
                 </View>
                 {!comparison.isDefaultRange ? (

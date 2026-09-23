@@ -66,6 +66,10 @@ export function createFormStyles({ colors, scheme }: StyleContext) {
     dateButtonInStepper: {
       flex: 1,
     },
+    dateButtonInvalid: {
+      borderColor: colors.danger,
+      backgroundColor: colors.dangerSoft,
+    },
 
     primaryButton: {
       backgroundColor: colors.accent,

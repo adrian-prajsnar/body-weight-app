@@ -201,17 +201,40 @@ export function ProfileScreen({
   }, [focusSection, isLoading, birthDate, heightEntries.length, navigation]);
 
   const handleBirthDateChange = (date: Date | null) => {
+    if (!date) {
+      return;
+    }
     void (async () => {
       try {
-        await saveBirthDateEntry(date ? toDateKey(date) : null);
-        if (date) {
-          showSuccess(t('profile.birthDateSaved'));
-        }
+        await saveBirthDateEntry(toDateKey(date));
+        showSuccess(t('profile.birthDateSaved'));
       } catch (saveError) {
         const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
         showError(message);
       }
     })();
+  };
+
+  const handleBirthDateDelete = () => {
+    void confirm({
+      title: t('profile.deleteBirthDate'),
+      message: t('profile.deleteBirthDateConfirm'),
+      confirmLabel: t('common.delete'),
+      destructive: true,
+    }).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      void (async () => {
+        try {
+          await saveBirthDateEntry(null);
+          showSuccess(t('profile.birthDateRemoved'));
+        } catch (saveError) {
+          const message = saveError instanceof Error ? saveError.message : t('profile.saveFailed');
+          showError(message);
+        }
+      })();
+    });
   };
 
   const handleSexChange = (next: BiologicalSex | null) => {
@@ -274,6 +297,7 @@ export function ProfileScreen({
             <AboutYouSection
               birthDate={birthDate}
               onBirthDateChange={handleBirthDateChange}
+              onBirthDateDelete={handleBirthDateDelete}
               birthDateAutoOpen={shouldOpenBirthDatePicker}
               minimumBirthDate={minimumBirthDate}
               maximumBirthDate={getTodayDate()}

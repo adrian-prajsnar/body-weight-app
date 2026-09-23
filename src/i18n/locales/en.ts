@@ -94,10 +94,10 @@ export default {
   dashboard: {
     title: 'Home',
     subtitle: 'Log a weigh-in and see your trend',
-    averages: 'Stats',
-    recentHistory: 'Last 7 days',
+    averages: 'Statistics',
+    recentHistory: 'Last 7 weigh-ins',
     viewAll: 'View all',
-    emptyRecent: 'No weigh-ins in the last 7 days.',
+    emptyRecent: 'No weigh-ins yet.',
     profileBannerMessage:
       'Complete your profile to unlock the full potential of the app and discover interesting comparisons.',
     profileBannerAction: 'Set up profile',
@@ -140,6 +140,7 @@ export default {
     last6Months: 'Last 6 months',
     lastYear: 'Last year',
     thisAgeYear: 'This year of life',
+    lastAgeYear: 'Last year of life',
     rangeA: 'First period',
     rangeB: 'Second period',
   },
@@ -228,6 +229,10 @@ export default {
     memberSince: 'Joined',
     birthDate: 'Birth date',
     birthDateSaved: 'Birth date saved.',
+    birthDateRemoved: 'Birth date removed.',
+    deleteBirthDate: 'Remove birth date?',
+    deleteBirthDateConfirm:
+      'Without your birth date, age-based comparisons and birthday insights won’t be available. BMI may be less accurate or use generic categories.\n\nYou can add it again anytime.',
     sex: 'Sex',
     sexFemale: 'Female',
     sexMale: 'Male',
@@ -320,6 +325,7 @@ export default {
     success: 'Success',
     error: 'Error',
     info: 'Info',
+    dismiss: 'Dismiss toast',
   },
   bmi: {
     label: 'BMI %{value}',
@@ -336,7 +342,7 @@ export default {
     methodBmiForAge: 'BMI-for-age (CDC 2000)',
     methodUnclassified: 'No category',
     percentile: 'Percentile',
-    ageOnDate: 'Age on this date',
+    age: 'Age',
     unclassifiedUnder2: 'BMI categories are not used under 2 years.',
     unclassifiedNeedSex: 'Add sex on your profile to classify BMI-for-age under 20.',
     unclassifiedNeedBirthDate: 'Add a birth date to use age-aware BMI categories.',
@@ -366,8 +372,16 @@ export default {
       one: '1 year',
       other: '%{count} years',
     },
-    yearsMonths: '%{years} years, %{months} months',
-    yearsMonthsDays: '%{years} years, %{months} months, %{days} days',
+    months: {
+      one: '1 month',
+      other: '%{count} months',
+    },
+    days: {
+      one: '1 day',
+      other: '%{count} days',
+    },
+    yearsMonths: '%{years}, %{months}',
+    yearsMonthsDays: '%{years}, %{months}, %{days}',
   },
   validation: {
     weightRangeMetric:

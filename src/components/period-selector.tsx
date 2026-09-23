@@ -22,6 +22,7 @@ const PERIOD_KEYS: Record<DashboardPeriod, TranslationKey> = {
   last6Months: 'periods.last6Months',
   lastYear: 'periods.lastYear',
   thisAgeYear: 'periods.thisAgeYear',
+  lastAgeYear: 'periods.lastAgeYear',
 };
 
 type PeriodSelectorProps = {
@@ -39,7 +40,9 @@ export function PeriodSelector({
   const { t, locale } = useTranslation();
 
   const options = useMemo(() => {
-    const values = showAgeYear ? [...BASE_PERIODS, 'thisAgeYear' as const] : BASE_PERIODS;
+    const values = showAgeYear
+      ? [...BASE_PERIODS, 'thisAgeYear' as const, 'lastAgeYear' as const]
+      : BASE_PERIODS;
     return values.map((value) => ({
       value,
       label: t(PERIOD_KEYS[value]),

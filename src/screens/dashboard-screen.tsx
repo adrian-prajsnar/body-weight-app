@@ -27,7 +27,7 @@ import { RootTabParamList } from '../navigation/types';
 import { formatDateRange } from '../format';
 import {
   getDashboardPeriodRange,
-  getLast7DaysEntries,
+  getLast7WeighIns,
   getStatsForRange,
 } from '../stats';
 import { DashboardPeriod } from '../types';
@@ -53,7 +53,7 @@ export function DashboardScreen({ navigation }: Props) {
   const [editingDate, setEditingDate] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!birthDate && period === 'thisAgeYear') {
+    if (!birthDate && (period === 'thisAgeYear' || period === 'lastAgeYear')) {
       setPeriod('thisWeek');
     }
   }, [birthDate, period]);
@@ -90,7 +90,7 @@ export function DashboardScreen({ navigation }: Props) {
     [period, birthDate],
   );
   const stats = useMemo(() => getStatsForRange(entries, range), [entries, range]);
-  const recentEntries = useMemo(() => getLast7DaysEntries(entries), [entries]);
+  const recentEntries = useMemo(() => getLast7WeighIns(entries), [entries]);
 
   const showProfileBanner = useMemo(() => {
     if (!areDismissalsReady || isProfileLoading) {

@@ -210,6 +210,10 @@ export function createOverlayStyles({ colors, scheme }: StyleContext) {
       flex: 1,
       gap: 2,
     },
+    toastCloseButton: {
+      alignSelf: 'flex-start',
+      marginTop: 1,
+    },
     toastCardSuccess: {
       backgroundColor: colors.successSoft,
       borderColor: colors.successBorder,

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatAge, getAgeOnDate } from '../age';
+import { formatAgeDetailed, getAgeOnDate } from '../age';
 import { calculateBmi, BmiInfo, classifyBmiValue, formatBmiValue } from '../bmi';
 import { useUnits } from '../context/unit-context';
 import { useSharedUserProfile } from '../context/user-profile-context';
@@ -138,7 +138,7 @@ function WeighInDetails({
   return (
     <>
       <DetailRow label={t('bmi.date')} value={formatDateLabel(date)} />
-      {age ? <DetailRow label={t('bmi.ageOnDate')} value={formatAge(age)} /> : null}
+      {age ? <DetailRow label={t('bmi.age')} value={formatAgeDetailed(age)} /> : null}
       <DetailRow
         label={t('bmi.height')}
         value={heightCm === null ? unavailable : formatHeight(heightCm, units)}

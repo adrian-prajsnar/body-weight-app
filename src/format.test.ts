@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   fromDateKey,
+  getHistoryDateRangeFieldHighlight,
+  getTrendDateRangeFieldHighlight,
   parseWeightInput,
   toDateKey,
   validateHistoryDateRange,
@@ -56,6 +58,66 @@ describe('validateTrendDateRange', () => {
         today,
       ),
     ).toBe('maxSpanExceeded');
+  });
+});
+
+describe('getHistoryDateRangeFieldHighlight', () => {
+  const today = fromDateKey('2024-09-14');
+
+  it('highlights from when the range order is reversed', () => {
+    const error = validateHistoryDateRange(
+      fromDateKey('2024-09-15'),
+      fromDateKey('2024-09-01'),
+      today,
+    );
+    expect(
+      getHistoryDateRangeFieldHighlight(
+        error,
+        fromDateKey('2024-09-15'),
+        fromDateKey('2024-09-01'),
+        today,
+      ),
+    ).toEqual({ from: true, to: false });
+  });
+
+  it('highlights to when the end date is in the future', () => {
+    const error = validateHistoryDateRange(
+      fromDateKey('2024-09-01'),
+      fromDateKey('2024-09-20'),
+      today,
+    );
+    expect(
+      getHistoryDateRangeFieldHighlight(
+        error,
+        fromDateKey('2024-09-01'),
+        fromDateKey('2024-09-20'),
+        today,
+      ),
+    ).toEqual({ from: false, to: true });
+  });
+
+  it('highlights both fields when the range is too long', () => {
+    const from = fromDateKey('2023-01-01');
+    const to = fromDateKey('2024-09-14');
+    const error = validateHistoryDateRange(from, to, today);
+    expect(getHistoryDateRangeFieldHighlight(error, from, to, today)).toEqual({
+      from: true,
+      to: true,
+    });
+  });
+});
+
+describe('getTrendDateRangeFieldHighlight', () => {
+  const today = fromDateKey('2024-09-14');
+
+  it('highlights both fields when the day range is too long', () => {
+    const from = fromDateKey('2023-01-01');
+    const to = fromDateKey('2024-09-14');
+    const error = validateTrendDateRange(from, to, 'day', today);
+    expect(getTrendDateRangeFieldHighlight(error, from, to, 'day', today)).toEqual({
+      from: true,
+      to: true,
+    });
   });
 });
 

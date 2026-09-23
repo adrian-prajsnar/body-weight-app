@@ -1,5 +1,5 @@
 import { ReactNode, useMemo } from 'react';
-import { Text, View } from 'react-native';
+import { StyleProp, Text, TextStyle, View } from 'react-native';
 import { calculateBmi } from '../bmi';
 import { useBmiDetails } from '../context/bmi-details-context';
 import { useSharedBmiDisplay } from '../context/bmi-display-context';
@@ -9,6 +9,8 @@ import { formatDateLabel, formatWeightDifference, formatWeightValue, getWeightUn
 import { getHeightAtDate } from '../height';
 import { useTranslation } from '../i18n/language-context';
 import { useAppStyles } from '../theme/styles';
+import { Palette } from '../theme/tokens';
+import { useColors } from '../theme/theme-context';
 import { WeightEntry } from '../types';
 import { getChangeSinceLastBirthday, getWeightExtremes } from '../weight-insights';
 import { AppCard } from './app-card';
@@ -20,14 +22,26 @@ type WeightHighlightsCardProps = {
   isBusy?: boolean;
 };
 
+function getWeightChangeTextStyle(changeKg: number, colors: Palette): TextStyle | undefined {
+  if (changeKg < 0) {
+    return { color: colors.successText };
+  }
+  if (changeKg > 0) {
+    return { color: colors.warningText };
+  }
+  return undefined;
+}
+
 function InsightRow({
   label,
   value,
+  valueTextStyle,
   meta,
   badge,
 }: {
   label: string;
   value: string;
+  valueTextStyle?: StyleProp<TextStyle>;
   meta: string;
   badge?: ReactNode;
 }) {
@@ -37,7 +51,7 @@ function InsightRow({
     <View style={styles.insightRow}>
       <Text style={styles.statTileLabel}>{label}</Text>
       <View style={styles.insightValueRow}>
-        <Text style={styles.insightValue}>{value}</Text>
+        <Text style={[styles.insightValue, valueTextStyle]}>{value}</Text>
         {badge}
       </View>
       <Text style={styles.insightMeta}>{meta}</Text>
@@ -51,6 +65,7 @@ export function WeightHighlightsCard({
   isBusy = false,
 }: WeightHighlightsCardProps) {
   const styles = useAppStyles();
+  const colors = useColors();
   const { t } = useTranslation();
   const { units } = useUnits();
   const { heightEntries, sex } = useSharedUserProfile();
@@ -127,6 +142,7 @@ export function WeightHighlightsCard({
           <InsightRow
             label={t('dashboard.sinceBirthday')}
             value={formatWeightDifference(sinceBirthday.changeKg, units)}
+            valueTextStyle={getWeightChangeTextStyle(sinceBirthday.changeKg, colors)}
             meta={formatMeta(sinceBirthday.birthday.entry.date, sinceBirthday.birthday.ageLabel)}
           />
         ) : null}

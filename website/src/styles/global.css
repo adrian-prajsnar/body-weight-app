@@ -270,7 +270,7 @@ html[data-theme='dark'] .page-fx-noise {
   display: contents;
 }
 
-@media (min-width: 851px) {
+@media (min-width: 901px) {
   .header-shell {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -1153,17 +1153,18 @@ html[data-theme='dark'] .page-fx-noise {
 }
 
 .faq-panel {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 280ms var(--ease);
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms var(--ease);
 }
 
 .faq-item.is-open .faq-panel {
-  max-height: var(--faq-panel-height, 24rem);
+  grid-template-rows: 1fr;
 }
 
 .faq-panel-inner {
   overflow: hidden;
+  min-height: 0;
 }
 
 .faq-item p {
@@ -1967,7 +1968,7 @@ html.theme-animating::view-transition-new(root) {
   }
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) {
   .page-fx-noise {
     display: none;
   }
@@ -2200,7 +2201,7 @@ html.theme-animating::view-transition-new(root) {
   }
 }
 
-@media (max-width: 850px) and (prefers-reduced-motion: reduce) {
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   .site-header.is-open .header-menu,
   .site-header.is-closing .header-menu,
   .site-header.is-open .menu-overlay,
